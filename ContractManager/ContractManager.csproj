@@ -12,9 +12,27 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Brutal.Core.Numerics">
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="Brutal.Glfw">
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Glfw.dll</HintPath>
+    </Reference>
+    <Reference Include="Brutal.ImGui">
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
+    </Reference>
+    <Reference Include="Brutal.ImGui.Extensions">
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="KSA">
       <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\KSA.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="mod.toml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
