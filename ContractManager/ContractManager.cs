@@ -1,6 +1,7 @@
 ﻿using Brutal.ImGuiApi;
 using KSA;
 using StarMap.API;
+using System.Diagnostics.Contracts;
 
 namespace ContractManager
 {
@@ -11,12 +12,27 @@ public class ContractManager
     public void onImmediateLoad(Mod definingMod)
     {
         Console.WriteLine("[CM] 'onImmediateLoad'");
+        //KSA.XmlLoader.Load();
     }
 
     [StarMapAllModsLoaded]
     public void OnAllModsLoaded()
     {
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
+
+        // Load contracts from disk here
+        var contract = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
+        contract.WriteToConsole();
+
+        //var contractToWrite = new ContractBlueprint.ContractBlueprint
+        //{
+        //    uid = "example_contract_001",
+        //    title = "Example Contract",
+        //    synopsis = "This is an example contract.",
+        //    details = "Complete the objectives to fulfill this contract."
+        //};
+        //contractToWrite.WriteToConsole();
+        //contractToWrite.WriteToFile(@"${HOME}\My Games\Kitten Space Agency\contracts\example_contract_001.xml");
     }
 
     [StarMapAfterGui]

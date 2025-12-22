@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<uid>example_contract_001</uid>
+	<title>Example Contract</title>
+	<synopsis>This is an example contract.</synopsis>
+	<details>Complete the objectives to fulfill this contract.</details>
+</Contract>
