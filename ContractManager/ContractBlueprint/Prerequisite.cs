@@ -9,6 +9,7 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("type")]
         public string type { get; set; }
 
+        // Fields for specific prerequisite types.
         // type: maxNumOfferedContracts - offer contract if number of offered contracts is less than this number.
         [XmlElement("maxNumOfferedContracts")]
         public uint maxNumOfferedContracts { get; set; }

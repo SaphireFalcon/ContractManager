@@ -4,10 +4,8 @@ using System.Collections.Generic;
 namespace ContractManager.ContractBlueprint
 {
     [XmlRoot("Contract")]    
-    public class ContractBlueprint  // Note needs for serialization
+    public class ContractBlueprint
     {
-        // Fields as loaded from XML
-
         // Details of the contract
         // The unique identifier for the contract
         [XmlElement("uid")]
@@ -26,12 +24,11 @@ namespace ContractManager.ContractBlueprint
         public string description { get; set; }
 
         // List of prerequisites for the contract
-
-        [XmlArray("prerequisites")]  // every prerequisite element in XML becomes one Prerequisite object in the list.
+        [XmlArray("prerequisites")]
         public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
 
         // List of requirements for the contract
-        [XmlArray("requirements")]  // every requirement element in XML becomes one Requirement object in the list.
+        [XmlArray("requirements")]
         public List<Requirement> requirements { get; set; } = new List<Requirement>();
 
         // Completion condition of the contract based on the requirements.
@@ -39,7 +36,7 @@ namespace ContractManager.ContractBlueprint
         public string completionCondition { get; set; } = "all";
 
         // List of actions for the contract
-        [XmlArray("actions")]  // every action element in XML becomes one Action object in the list.
+        [XmlArray("actions")]
         public List<Action> actions { get; set; } = new List<Action>();
 
         public ContractBlueprint() { }
@@ -70,6 +67,7 @@ namespace ContractManager.ContractBlueprint
             Console.WriteLine($"  ");
         }
 
+        // Write the contract blueprint to an XML file.
         internal void WriteToFile(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
@@ -79,6 +77,7 @@ namespace ContractManager.ContractBlueprint
             }
         }
 
+        // Load a contract blueprint from an XML file.
         internal static ContractBlueprint LoadFromFile(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));

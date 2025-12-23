@@ -9,9 +9,12 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("trigger")]
         public string trigger { get; set; }
 
+        // The type of the action.
         [XmlElement("type")]
         public string type { get; set; }
 
+        // Fields for specific action types.
+        // type: showMessage - message to show when triggered.
         [XmlElement("showMessage")]
         public string showMessage { get; set; }
 
