@@ -46,9 +46,9 @@ namespace ContractManager.ContractBlueprint
         public string completionCondition { get; set; } = "all";
 
         // Fields for specific requirement types.
-        // type: orbit - fields for orbit requirement.
-        //[XmlElement("Orbit")]
-        //public RequirementOrbit { get; set; };
+        // type: orbit - field for orbit requirement type.
+        [XmlElement("Orbit")]
+        public RequiredOrbit orbit { get; set; } = null;
 
         public Requirement() { }
                 
@@ -72,7 +72,7 @@ namespace ContractManager.ContractBlueprint
         }
     }
 
-    public class RequirementOrbit
+    public class RequiredOrbit
     {
         // Fields needed for the orbit requirement type.
 
@@ -96,6 +96,6 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("maxPeriapsis")]
         public double maxPeriapsis { get; set; } = double.PositiveInfinity;
 
-        public RequirementOrbit() { }
+        public RequiredOrbit() { }
     }
 }

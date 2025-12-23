@@ -24,6 +24,13 @@
       <isHidden>false</isHidden>
       <completeInOrder>true</completeInOrder>
       <completionCondition>all</completionCondition>
+      <Orbit>
+        <targetBody>Earth</targetBody>
+        <minApoapsis>150000</minApoapsis>
+        <maxApoapsis>160000</maxApoapsis>
+        <minPeriapsis>150000</minPeriapsis>
+        <maxPeriapsis>160000</maxPeriapsis>
+      </Orbit>
     </Requirement>
   </requirements>
   <completionCondition>all</completionCondition>

@@ -27,6 +27,9 @@ public class ContractManager
         contract1.WriteToConsole();
         var contract2 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_002.xml");
         contract2.WriteToConsole();
+
+        // For testing: create and write an example contract to disk
+        CreateExample002Contract();
     }
 
 
@@ -66,12 +69,21 @@ public class ContractManager
         });
 
         contractToWrite.completionCondition = "all";
+        var requiredOrbit = new ContractBlueprint.RequiredOrbit
+        {
+            targetBody = "Earth",
+            minApoapsis = 150000,
+            maxApoapsis = 160000,
+            minPeriapsis = 150000,
+            maxPeriapsis = 160000
+        };
         contractToWrite.requirements.Add(new ContractBlueprint.Requirement
         {
             type = "orbit",
             title = "Change orbit",
             synopsis = "Change orbit to be xyz.",
-            description = "Change the orbit by increasing the apoapsis, then increasing the periapsis."
+            description = "Change the orbit by increasing the apoapsis, then increasing the periapsis.",
+            orbit = requiredOrbit
         });
             
         contractToWrite.actions.Add(new ContractBlueprint.Action
