@@ -1,10 +1,34 @@
-﻿using System;
+﻿using System.Xml.Serialization;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ContractManager.ContractBlueprint
 {
-    internal class Prerequisite
+    public class Prerequisite
     {
+        // Type of the prerequisite.
+        [XmlElement("type")]
+        public string type { get; set; }
+
+        // type: maxNumOfferedContracts - offer contract if number of offered contracts is less than this number.
+        [XmlElement("maxNumOfferedContracts")]
+        public uint maxNumOfferedContracts { get; set; }
+
+        // type: maxNumAcceptedContracts  - offer contract if number of accept contracts is less than this number.
+        [XmlElement("maxNumAcceptedContracts")]
+        public uint maxNumAcceptedContracts { get; set; }
+
+        public Prerequisite() { }
+        
+        public void WriteToConsole()
+        {
+            if (type == "maxNumOfferedContracts")
+            {
+                Console.WriteLine($"  - Require less than {maxNumOfferedContracts} offered contracts");
+            }
+            if (type == "maxNumAcceptedContracts")
+            {
+                Console.WriteLine($"  - Require less than {maxNumAcceptedContracts} accepted contracts");
+            }
+        }
     }
 }

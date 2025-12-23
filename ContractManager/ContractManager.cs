@@ -1,7 +1,9 @@
 ﻿using Brutal.ImGuiApi;
+using ContractManager.ContractBlueprint;
 using KSA;
 using StarMap.API;
-using System.Diagnostics.Contracts;
+using System;
+using System.IO;
 
 namespace ContractManager
 {
@@ -21,19 +23,12 @@ public class ContractManager
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
         // Load contracts from disk here
-        var contract = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
-        contract.WriteToConsole();
-
-        //var contractToWrite = new ContractBlueprint.ContractBlueprint
-        //{
-        //    uid = "example_contract_001",
-        //    title = "Example Contract",
-        //    synopsis = "This is an example contract.",
-        //    details = "Complete the objectives to fulfill this contract."
-        //};
-        //contractToWrite.WriteToConsole();
-        //contractToWrite.WriteToFile(@"${HOME}\My Games\Kitten Space Agency\contracts\example_contract_001.xml");
+        var contract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
+        contract1.WriteToConsole();
+        var contract2 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_002.xml");
+        contract2.WriteToConsole();
     }
+
 
     [StarMapAfterGui]
     public void AfterGui(double dt)
@@ -46,6 +41,66 @@ public class ContractManager
             ImGui.Text("This is the Contract Manager window.");
         }
         ImGui.End();
+    }
+        
+    // unit-test method to create an example contract and write it to disk
+    private void CreateExample002Contract()
+    {
+        var contractToWrite = new ContractBlueprint.ContractBlueprint
+        {
+            uid = "example_contract_002",
+            title = "Example Contract",
+            synopsis = "This is an example contract.",
+            description = "Complete the objectives to fulfill this contract."
+        };
+            
+        contractToWrite.prerequisites.Add(new ContractBlueprint.Prerequisite
+        {
+            type = "maxNumOfferedContracts",
+            maxNumOfferedContracts = 1
+        });
+        contractToWrite.prerequisites.Add(new ContractBlueprint.Prerequisite
+        {
+            type = "maxNumAcceptedContracts",
+            maxNumAcceptedContracts = 1
+        });
+
+        contractToWrite.completionCondition = "all";
+        contractToWrite.requirements.Add(new ContractBlueprint.Requirement
+        {
+            type = "orbit",
+            title = "Change orbit",
+            synopsis = "Change orbit to be xyz.",
+            description = "Change the orbit by increasing the apoapsis, then increasing the periapsis."
+        });
+            
+        contractToWrite.actions.Add(new ContractBlueprint.Action
+        {
+            trigger = "onContractComplete",
+            type = "showMessage",
+            showMessage = "Congratulations! You pounced the example contract."
+        });
+        contractToWrite.actions.Add(new ContractBlueprint.Action
+        {
+            trigger = "onContractFail",
+            type = "showMessage",
+            showMessage = "Keep persevering; The road to success is pawed with failure."
+        });
+
+        contractToWrite.WriteToConsole();
+
+        string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        Console.WriteLine($"[CM] 'My Documents' path: {myDocumentsPath}");
+        string savePath = Path.Combine(
+            myDocumentsPath,
+            @"My Games\Kitten Space Agency\contracts\",
+            $"{contractToWrite.uid}.xml"
+        );
+        Console.WriteLine($"[CM] save path: {savePath}");
+        if (!string.IsNullOrEmpty(myDocumentsPath))
+        {
+            contractToWrite.WriteToFile(savePath);
+        }
     }
 }
 

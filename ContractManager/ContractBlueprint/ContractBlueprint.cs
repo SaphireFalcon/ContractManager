@@ -7,24 +7,67 @@ namespace ContractManager.ContractBlueprint
     public class ContractBlueprint  // Note needs for serialization
     {
         // Fields as loaded from XML
+
+        // Details of the contract
+        // The unique identifier for the contract
         [XmlElement("uid")]
         public string uid {  get; set;  }
+
+        // The title of the contract
         [XmlElement("title")]
         public string title { get; set; }
+
+        // A brief synopsis of the contract
         [XmlElement("synopsis")]
         public string synopsis { get; set; }
-        [XmlElement("details")]
-        public string details { get; set; }
+
+        // Detailed description of the contract
+        [XmlElement("description")]
+        public string description { get; set; }
+
+        // List of prerequisites for the contract
+
+        [XmlArray("prerequisites")]  // every prerequisite element in XML becomes one Prerequisite object in the list.
+        public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+
+        // List of requirements for the contract
+        [XmlArray("requirements")]  // every requirement element in XML becomes one Requirement object in the list.
+        public List<Requirement> requirements { get; set; } = new List<Requirement>();
+
+        // Completion condition of the contract based on the requirements.
+        [XmlElement("completionCondition")]
+        public string completionCondition { get; set; } = "all";
+
+        // List of actions for the contract
+        [XmlArray("actions")]  // every action element in XML becomes one Action object in the list.
+        public List<Action> actions { get; set; } = new List<Action>();
 
         public ContractBlueprint() { }
 
+        //  Doesn't write anything to console in-game, only on StarMap launcher console.
         internal void WriteToConsole()
         {
             Console.WriteLine($"Contract Blueprint:");
             Console.WriteLine($"  UID: {uid}");
             Console.WriteLine($"  Title: {title}");
             Console.WriteLine($"  Synopsis: {synopsis}");
-            Console.WriteLine($"  Details: {details}");
+            Console.WriteLine($"  Description: {description}");
+            Console.WriteLine($"  Prerequisistes: {prerequisites.Count}");
+            foreach (Prerequisite prerequisite in prerequisites)
+            {
+                prerequisite.WriteToConsole();
+            }
+            Console.WriteLine($"  Complete {completionCondition} of {requirements.Count} requirements:");
+            foreach (Requirement requirement in requirements)
+            {
+                requirement.WriteToConsole();
+            }
+            Console.WriteLine($"  Actions: {actions.Count}");
+            foreach (Action action in actions)
+            {
+                action.WriteToConsole();
+            }
+            Console.WriteLine($"  ");
         }
 
         internal void WriteToFile(string filePath)
