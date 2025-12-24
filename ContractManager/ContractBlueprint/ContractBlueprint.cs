@@ -33,7 +33,7 @@ namespace ContractManager.ContractBlueprint
 
         // Completion condition of the contract based on the requirements.
         [XmlElement("completionCondition")]
-        public string completionCondition { get; set; } = "all";
+        public CompletionCondition completionCondition { get; set; } = CompletionCondition.All;
 
         // List of actions for the contract
         [XmlArray("actions")]
@@ -86,5 +86,13 @@ namespace ContractManager.ContractBlueprint
                 return (ContractBlueprint)serializer.Deserialize(reader);
             }
         }
+    }
+
+    public enum CompletionCondition
+    {
+        [XmlEnum("all")]
+        All,
+        [XmlEnum("any")]
+        Any
     }
 }

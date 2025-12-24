@@ -59,16 +59,16 @@ public class ContractManager
             
         contractToWrite.prerequisites.Add(new ContractBlueprint.Prerequisite
         {
-            type = "maxNumOfferedContracts",
+            type = ContractBlueprint.PrerequisiteType.MaxNumOfferedContracts,
             maxNumOfferedContracts = 1
         });
         contractToWrite.prerequisites.Add(new ContractBlueprint.Prerequisite
         {
-            type = "maxNumAcceptedContracts",
+            type = ContractBlueprint.PrerequisiteType.MaxNumAcceptedContracts,
             maxNumAcceptedContracts = 1
         });
 
-        contractToWrite.completionCondition = "all";
+        contractToWrite.completionCondition = CompletionCondition.All;
         var requiredOrbit = new ContractBlueprint.RequiredOrbit
         {
             targetBody = "Earth",
@@ -79,7 +79,7 @@ public class ContractManager
         };
         contractToWrite.requirements.Add(new ContractBlueprint.Requirement
         {
-            type = "orbit",
+            type = RequirementType.Orbit,
             title = "Change orbit",
             synopsis = "Change orbit to be xyz.",
             description = "Change the orbit by increasing the apoapsis, then increasing the periapsis.",
@@ -88,14 +88,14 @@ public class ContractManager
             
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = "onContractComplete",
-            type = "showMessage",
+            trigger = TriggerType.OnContractComplete,
+            type = ActionType.ShowMessage,
             showMessage = "Congratulations! You pounced the example contract."
         });
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = "onContractFail",
-            type = "showMessage",
+            trigger = TriggerType.OnContractFail,
+            type = ActionType.ShowMessage,
             showMessage = "Keep persevering; The road to success is pawed with failure."
         });
 

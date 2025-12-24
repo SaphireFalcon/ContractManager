@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 namespace ContractManager.ContractBlueprint
 {
+
     public class Prerequisite
     {
         // Type of the prerequisite.
         [XmlElement("type")]
-        public string type { get; set; }
+        public PrerequisiteType type { get; set; }
 
         // Fields for specific prerequisite types.
         // type: maxNumOfferedContracts - offer contract if number of offered contracts is less than this number.
@@ -22,14 +23,22 @@ namespace ContractManager.ContractBlueprint
         
         public void WriteToConsole()
         {
-            if (type == "maxNumOfferedContracts")
+            if (type == PrerequisiteType.MaxNumOfferedContracts)
             {
                 Console.WriteLine($"  - Require less than {maxNumOfferedContracts} offered contracts");
             }
-            if (type == "maxNumAcceptedContracts")
+            if (type == PrerequisiteType.MaxNumAcceptedContracts)
             {
                 Console.WriteLine($"  - Require less than {maxNumAcceptedContracts} accepted contracts");
             }
         }
+    }
+
+    public enum PrerequisiteType
+    {
+        [XmlEnum("maxNumOfferedContracts")]
+        MaxNumOfferedContracts,
+        [XmlEnum("maxNumAcceptedContracts")]
+        MaxNumAcceptedContracts
     }
 }
