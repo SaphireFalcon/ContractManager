@@ -1,7 +1,67 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<uid>example_contract_001</uid>
-	<title>Example Contract</title>
-	<synopsis>This is an example contract.</synopsis>
-	<description>Complete the objectives to fulfill this contract.</description>
+  <uid>example_contract_001</uid>
+  <title>Example Contract 001</title>
+  <synopsis>This is an example contract, changing the orbit in 2 steps.</synopsis>
+  <description>Complete the objectives to fulfill this contract. 
+First, change the Periapsis to within 150 and 200 km altitude. 
+Next, change the Apoapsis to within 150 and 200 km altitude.
+  </description>
+  <prerequisites>
+    <Prerequisite>
+      <type>maxNumOfferedContracts</type>
+      <maxNumOfferedContracts>1</maxNumOfferedContracts>
+    </Prerequisite>
+    <Prerequisite>
+      <type>maxNumAcceptedContracts</type>
+      <maxNumAcceptedContracts>1</maxNumAcceptedContracts>
+    </Prerequisite>
+  </prerequisites>
+  <requirements>
+    <Requirement>
+      <uid>change_periapsis_150_200km</uid>
+      <type>orbit</type>
+      <title>Change Periapsis</title>
+      <synopsis>Change Periapsis to 150~200km.</synopsis>
+      <description>Change the orbit to a low orbit with a Periapsis between 150.000 and 200.000 meter.</description>
+      <isCompletedOnAchievement>false</isCompletedOnAchievement>
+      <isHidden>false</isHidden>
+      <completeInOrder>true</completeInOrder>
+      <completionCondition>all</completionCondition>
+      <Orbit>
+        <targetBody>Earth</targetBody>
+        <minPeriapsis>150000</minPeriapsis>
+        <maxPeriapsis>200000</maxPeriapsis>
+      </Orbit>
+    </Requirement>
+    <Requirement>
+      <uid>change_apoapsis_150_200km</uid>
+      <type>orbit</type>
+      <title>Change Apoapsis</title>
+      <synopsis>Change Apoapsis to 150~200km.</synopsis>
+      <description>Change the orbit to a low orbit with a Apoapsis between 150.000 and 200.000 meter.</description>
+      <isCompletedOnAchievement>true</isCompletedOnAchievement>
+      <isHidden>false</isHidden>
+      <completeInOrder>true</completeInOrder>
+      <completionCondition>all</completionCondition>
+      <Orbit>
+        <targetBody>Earth</targetBody>
+        <minApoapsis>150000</minApoapsis>
+			<maxApoapsis>200000</maxApoapsis>
+      </Orbit>
+    </Requirement>
+  </requirements>
+  <completionCondition>all</completionCondition>
+  <actions>
+    <Action>
+      <trigger>onContractComplete</trigger>
+      <type>showMessage</type>
+      <showMessage>Congratulations! You pounced the example contract.</showMessage>
+    </Action>
+    <Action>
+      <trigger>onContractFail</trigger>
+      <type>showMessage</type>
+      <showMessage>Keep persevering; The road to success is pawed with failure.</showMessage>
+    </Action>
+  </actions>
 </Contract>

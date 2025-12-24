@@ -25,11 +25,9 @@ public class ContractManager
         // Load contracts from disk here
         var contract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
         contract1.WriteToConsole();
-        var contract2 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_002.xml");
-        contract2.WriteToConsole();
 
         // For testing: create and write an example contract to disk
-        CreateExample002Contract();
+        CreateExample001Contract();
     }
 
 
@@ -47,14 +45,14 @@ public class ContractManager
     }
         
     // unit-test method to create an example contract and write it to disk
-    private void CreateExample002Contract()
+    private void CreateExample001Contract()
     {
         var contractToWrite = new ContractBlueprint.ContractBlueprint
         {
-            uid = "example_contract_002",
-            title = "Example Contract",
-            synopsis = "This is an example contract.",
-            description = "Complete the objectives to fulfill this contract."
+            uid = "example_contract_001",
+            title = "Example Contract 001",
+            synopsis = "This is an example contract, changing the orbit in 2 steps.",
+            description = "Complete the objectives to fulfill this contract. \nFirst, change the Periapsis to within 150 and 200 km altitude. \nNext, change the Apoapsis to within 150 and 200 km altitude."
         };
             
         contractToWrite.prerequisites.Add(new ContractBlueprint.Prerequisite
@@ -69,21 +67,34 @@ public class ContractManager
         });
 
         contractToWrite.completionCondition = CompletionCondition.All;
-        var requiredOrbit = new ContractBlueprint.RequiredOrbit
-        {
-            targetBody = "Earth",
-            minApoapsis = 150000,
-            maxApoapsis = 160000,
-            minPeriapsis = 150000,
-            maxPeriapsis = 160000
-        };
         contractToWrite.requirements.Add(new ContractBlueprint.Requirement
         {
+            uid = "change_periapsis_150_200km",
             type = RequirementType.Orbit,
-            title = "Change orbit",
-            synopsis = "Change orbit to be xyz.",
-            description = "Change the orbit by increasing the apoapsis, then increasing the periapsis.",
-            orbit = requiredOrbit
+            title = "Change Periapsis",
+            synopsis = "Change Periapsis to 150~200km.",
+            description = "Change the orbit to a low orbit with a Periapsis between 150.000 and 200.000 meter.",
+            isCompletedOnAchievement = false,
+            orbit = new ContractBlueprint.RequiredOrbit
+            {
+                targetBody = "Earth",
+                minPeriapsis = 150000,
+                maxPeriapsis = 200000
+            }
+        });
+        contractToWrite.requirements.Add(new ContractBlueprint.Requirement
+        {
+            uid = "change_apoapsis_150_200km",
+            type = RequirementType.Orbit,
+            title = "Change Apoapsis",
+            synopsis = "Change Apoapsis to 150~200km.",
+            description = "Change the orbit to a low orbit with a Apoapsis between 150.000 and 200.000 meter.",
+            orbit = new ContractBlueprint.RequiredOrbit
+            {
+                targetBody = "Earth",
+                minApoapsis = 150000,
+                maxApoapsis = 200000
+            }
         });
             
         contractToWrite.actions.Add(new ContractBlueprint.Action
