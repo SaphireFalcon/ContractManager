@@ -17,6 +17,14 @@ The base xml tag for the contract blueprint is `<Contract>`. The following table
 | `completionCondition` | `<completionCondition>` | Completion condition of the contract based on the requirements. One of [`CompletionConditions`](#completionconditions) |
 | `actions`      | `<actions>`  | Actions to be executed as part of the contract, contains [`Action`](#action-class) |
 
+#### `CompletionConditions`
+
+The completion conditions of the contract or requirement. The following conditions are supported:
+* `all`: All requirements must be completed.
+* `any`: Any requirement must be completed.
+
+In the future more conditions may be added, like `atLeast`.
+
 ### `Prerequisite` Class
 
 The prerequisites for offering a contract are defined with the `Prerequisite` class.
@@ -87,14 +95,6 @@ More requirement types will be added in the future, such as:
 * `hasPassengers`: has specified passengers
 * `hasPart`: has part
 * `hasModule`: has a module (e.g. SAS, gyro etc.)
-
-#### `CompletionConditions`
-
-The completion conditions of the contract or requirement. The following conditions are supported:
-* `all`: All requirements must be completed.
-* `any`: Any requirement must be completed.
-
-In the future more conditions may be added, like `atLeast`.
 
 #### `RequiredOrbit` Class
 

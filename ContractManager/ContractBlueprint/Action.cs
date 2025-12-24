@@ -7,11 +7,11 @@ namespace ContractManager.ContractBlueprint
     {
         // The trigger of the action.
         [XmlElement("trigger")]
-        public string trigger { get; set; }
+        public TriggerType trigger { get; set; }
 
         // The type of the action.
         [XmlElement("type")]
-        public string type { get; set; }
+        public ActionType type { get; set; }
 
         // Fields for specific action types.
         // type: showMessage - message to show when triggered.
@@ -23,10 +23,24 @@ namespace ContractManager.ContractBlueprint
         public void WriteToConsole()
         {
             Console.WriteLine($"  - trigger: {trigger}");
-            if (type == "showMessage")
+            if (type == ActionType.ShowMessage)
             {
                 Console.WriteLine($"    type: showMessage: {showMessage}");
             }
         }
+    }
+
+    public enum ActionType
+    {
+        [XmlEnum("showMessage")]
+        ShowMessage
+    }
+
+    public enum TriggerType
+    {
+        [XmlEnum("onContractComplete")]
+        OnContractComplete,
+        [XmlEnum("onContractFail")]
+        OnContractFail
     }
 }
