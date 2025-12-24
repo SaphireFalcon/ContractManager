@@ -71,7 +71,7 @@ namespace ContractManager.ContractBlueprint
             }
             if (type == RequirementType.Orbit && orbit != null)
             {
-                Console.WriteLine($"{indent}  Orbit Requirement:");
+                Console.WriteLine($"{indent}  Required Orbit:");
                 Console.WriteLine($"{indent}    targetBody: {orbit.targetBody}");
                 Console.WriteLine($"{indent}    minApoapsis: {orbit.minApoapsis}");
                 Console.WriteLine($"{indent}    maxApoapsis: {orbit.maxApoapsis}");
