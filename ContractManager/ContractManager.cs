@@ -4,6 +4,7 @@ using KSA;
 using StarMap.API;
 using System;
 using System.IO;
+using System.Numerics;
 
 namespace ContractManager
 {
@@ -34,14 +35,228 @@ public class ContractManager
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
-        // Create the UI here
+        // Contract Manager Window with two panels: left fixed-width, right flexible
+        ImGui.SetNextWindowSizeConstraints(
+            new Brutal.Numerics.float2 { X = 600.0f, Y = 300.0f },
+            new Brutal.Numerics.float2 { X = float.PositiveInfinity, Y = float.PositiveInfinity }  // no max size
+        );
+        // var imGuiIO = ImGui.GetIO();
+        // var currentFont = ImGui.GetFont();
+        // float fontSize = ImGui.GetFontSize();
+        // var largeFont = imGuiIO.Fonts.AddFont(currentFont, fontSize * 1.5);
+        // Console.WriteLine($"[CM] ImGui Font: '{currentFont}' size: {fontSize}");
 
-        // Contract Manager Window
-        if (ImGui.Begin("Contract Manager", ImGuiWindowFlags.None))
+        if (ImGui.Begin("Contract Management", ImGuiWindowFlags.None))
         {
-            ImGui.Text("This is the Contract Manager window.");
+            // Left panel: fixed width and fill available height so it becomes scrollable when content overflows
+            var contractManagerContentRegionSize = ImGui.GetContentRegionAvail();
+            Brutal.Numerics.float2 leftPanelSize = new Brutal.Numerics.float2 { X = 260.0f, Y = 0.0f };
+            if (ImGui.BeginChild("LeftPanel", leftPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+            {
+                ImGui.SeparatorText("Contracts");
+
+                // Tabs in the left panel
+                if (ImGui.BeginTabBar("LeftTabs", ImGuiTabBarFlags.None))
+                {
+                    if (ImGui.BeginTabItem("Offered"))
+                    {
+                        var tabContentRegionSize = ImGui.GetContentRegionAvail();
+                        Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = tabContentRegionSize.Y };
+                        // Wrap contens in a child to make it scrollable if needed
+                        if (ImGui.BeginChild("OfferedTabChild", tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
+                        {
+                            // Fill available width for buttons
+                            var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
+                            Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
+                            // Left-align button text
+                            ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
+                            if (ImGui.Button("Example Contract 001", buttonSize))
+                            {
+                                // TODO: handle showing details in the right panel.
+                            }
+                            if (ImGui.Button("Example Contract 002", buttonSize))
+                            {
+                                // TODO: handle showing details in the right panel.
+                            }
+                            if (ImGui.Button("Example Contract 003", buttonSize))
+                            {
+                                // TODO: handle showing details in the right panel.
+                            }
+                            if (ImGui.Button("Example Contract 004", buttonSize))
+                            {
+                                // TODO: handle showing details in the right panel.
+                            }
+                            ImGui.PopStyleVar();
+                            ImGui.EndChild();
+                        }
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("Accepted"))
+                    {
+                        var tabContentRegionSize = ImGui.GetContentRegionAvail();
+                        Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = tabContentRegionSize.Y };
+                        // Wrap contens in a child to make it scrollable if needed
+                        if (ImGui.BeginChild("AcceptedTabChild", tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
+                        {
+                            // Fill available width for buttons
+                            var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
+                            Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
+                            // Left-align button text
+                            ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
+                            if (ImGui.Button("Accepted Contract A", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract B", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract C", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract D", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract E", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract F", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract G", buttonSize)) { }
+                            if (ImGui.Button("Accepted Contract H", buttonSize)) { }
+                            ImGui.PopStyleVar();
+                            ImGui.EndChild();
+                        }
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("Completed"))
+                    {
+                        var tabContentRegionSize = ImGui.GetContentRegionAvail();
+                        Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = tabContentRegionSize.Y };
+                        // Wrap contens in a child to make it scrollable if needed
+                        if (ImGui.BeginChild("CompletedTabChild", tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
+                        {
+                            // Fill available width for buttons
+                            var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
+                            Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
+                            // Left-align button text
+                            ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
+                            if (ImGui.Button("Completed Contract X1", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X2", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X3", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X4", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X5", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X6", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X7", buttonSize)) { }
+                            if (ImGui.Button("Completed Contract X8", buttonSize)) { }
+                            ImGui.PopStyleVar();
+                            ImGui.EndChild();
+                        }
+                        ImGui.EndTabItem();
+                    }
+                    ImGui.EndTabBar();
+                }
+                ImGui.EndChild();  // End of LeftPanel
+            }
+
+            ImGui.SameLine();
+            // Right panel: fills remaining space on the right
+            if (ImGui.BeginChild("RightPanel"))
+            {
+                var rightPanelRegionSize = ImGui.GetContentRegionAvail();
+                Brutal.Numerics.float2 rightPanelSize = new Brutal.Numerics.float2 { X = 0.0f, Y = rightPanelRegionSize.Y - 35.0f};
+                // Wrap contens in a child to make it scrollable if needed
+                if (ImGui.BeginChild("Contract details: title of contract", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
+                {
+                    ImGui.SeparatorText("Contract details: title of contract");
+                    // If no contract to be shown
+                    ImGui.TextWrapped("Select a contract from the left panel to view details here.");
+                    
+                    //ImGui.PushFont(FontLarge);
+                    ImGui.TextWrapped("Synopsis goes here");
+                    //ImGui.PopFont();
+
+                    ImGui.TextWrapped("Full description goes here.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+                        
+                    ImGui.SeparatorText("Rewards");
+                    ImGui.Text("Funds: K 1000");
+
+                    ImGui.SeparatorText("Requirements");
+                    ImGuiTreeNodeFlags requirementTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
+                    if (ImGui.TreeNodeEx("Contract requirements:", requirementTreeNodeFlags))
+                    {
+                        ImGui.Text("Complete all/any of these requirements");
+                        if (ImGui.TreeNodeEx("Requirement title 1", requirementTreeNodeFlags))
+                        {
+                            ImGui.TextWrapped("Requirement synopsis");
+                            ImGui.TextWrapped("Requirement details");
+                            // Note: should `Orbit` be mentioned here?
+                            ImGui.Text("Min Apoapsis 150.000m altitude");
+                            ImGui.Text("Max Apoapsis 200.000m altitude");
+                            ImGui.Text("Completed on achievement / maintain until completion");
+                            ImGui.Text("Complete in order");
+                            ImGui.Text("Child requirements:");
+                            if (ImGui.TreeNodeEx("Requirement title child 1", requirementTreeNodeFlags))
+                            {
+                                ImGui.TextWrapped("Requirement synopsis");
+                                ImGui.TextWrapped("Requirement details");
+                                ImGui.Text("Min Apoapsis 150.000m altitude");
+                                ImGui.Text("Max Apoapsis 200.000m altitude");
+                                ImGui.TreePop();
+                            }
+                            if (ImGui.TreeNodeEx("requirement title child 2", requirementTreeNodeFlags))
+                            {
+                                ImGui.TextWrapped("Requirement synopsis");
+                                ImGui.TextWrapped("Requirement details");
+                                ImGui.Text("Min Perisapsis 150.000m altitude");
+                                ImGui.Text("Max Perisapsis 200.000m altitude");
+                                ImGui.TreePop();
+                            }
+                            ImGui.TreePop();
+                        }
+                        if (ImGui.TreeNodeEx("Requirement title 2", requirementTreeNodeFlags))
+                        {
+                            ImGui.TextWrapped("Requirement synopsis");
+                            ImGui.TextWrapped("Requirement details");
+                            ImGui.Text("Min Perisapsis 150.000m altitude");
+                            ImGui.Text("Max Perisapsis 200.000m altitude");
+                            ImGui.Text("Child requirements:");
+                            if (ImGui.TreeNodeEx("Requirement title child 1", requirementTreeNodeFlags))
+                            {
+                                ImGui.TextWrapped("Requirement synopsis");
+                                ImGui.TextWrapped("Requirement details");
+                                ImGui.Text("Min Apoapsis 150.000m altitude");
+                                ImGui.Text("Max Apoapsis 200.000m altitude");
+                                ImGui.TreePop();
+                            }
+                            if (ImGui.TreeNodeEx("requirement title child 2", requirementTreeNodeFlags))
+                            {
+                                ImGui.TextWrapped("Requirement synopsis");
+                                ImGui.TextWrapped("Requirement details");
+                                ImGui.Text("Min Perisapsis 150.000m altitude");
+                                ImGui.Text("Max Perisapsis 200.000m altitude");
+                                ImGui.TreePop();
+                            }
+                            ImGui.TreePop();
+                        }
+                        ImGui.TreePop();
+                    }
+                    ImGui.EndChild();  // End of Contract details child
+                }
+                ImGui.Separator();
+                ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.1f, Z = 0.1f, W = 1.0f });
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.25f, Z = 0.25f, W = 1.0f });
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.1f, Z = 0.1f, W = 1.0f });
+                if (ImGui.Button("Reject Contract"))
+                {
+                }
+                ImGui.SameLine();
+                ImGui.PopStyleColor(3);
+                var style = ImGui.GetStyle();
+                float buttonWidthReject = ImGui.CalcTextSize("Reject Contract").X + style.FramePadding.X * 2.0f;
+                float buttonWidthAccept = ImGui.CalcTextSize("Accept Contract").X + style.FramePadding.X * 2.0f;
+                float resizeTriangleWidth = 25.0f;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightPanelRegionSize.X - buttonWidthReject - buttonWidthAccept - resizeTriangleWidth);
+                ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.5f, Z = 0.2f, W = 1.0f });
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.35f, Y = 0.75f, Z = 0.35f, W = 1.0f });
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
+                if (ImGui.Button("Accept Contract"))
+                {
+                }
+                ImGui.PopStyleColor(3);
+                ImGui.EndChild();  // End of RightPanel
+            }
         }
-        ImGui.End();
+        ImGui.End();  // End of Contract Management Window
     }
         
     // unit-test method to create an example contract and write it to disk
