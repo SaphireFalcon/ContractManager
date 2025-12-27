@@ -13,6 +13,7 @@ namespace ContractManager
 [StarMapMod]
 public class ContractManager
 {
+    // XML serializable fields
     // List of offered contracts, loaded from save game / file.
     [XmlElement("offeredContracts")]
     public List<Contract.Contract> offeredContracts {  get; set; } = new List<Contract.Contract>();
@@ -25,8 +26,11 @@ public class ContractManager
     [XmlElement("finishedContracts")]
     public List<Contract.Contract> finishedContracts {  get; set; } = new List<Contract.Contract>();
 
+    // Internal fields
+    private double _lastUpdateTime = 0.0d;
+    private double _updateInterval = 5.0d;
     // List of all loaded contract blueprints
-    private List<ContractBlueprint.ContractBlueprint> contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+    private List<ContractBlueprint.ContractBlueprint> _contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
 
     [StarMapImmediateLoad]
     public void onImmediateLoad(Mod definingMod)
@@ -44,7 +48,7 @@ public class ContractManager
         // Load contracts from disk here
         var blueprintContract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
         blueprintContract1.WriteToConsole();
-        this.contractBlueprints.Add(blueprintContract1);
+        this._contractBlueprints.Add(blueprintContract1);
 
         var dummyContract = new Contract.Contract(in blueprintContract1, 0.0d);
         this.offeredContracts.Add(dummyContract);
@@ -59,9 +63,56 @@ public class ContractManager
     {
         // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
         KSA.Vehicle currentVehicle = Program.ControlledVehicle;
-        double apoapsis = currentVehicle.Orbit.Apoapsis;
-        // Debugging: get game time reference
         double playerTime = Program.GetPlayerTime();
+
+        if (playerTime - this._lastUpdateTime > this._updateInterval)
+        {
+            this._lastUpdateTime = playerTime;
+            Console.WriteLine($"[CM] Game time: {playerTime}s offered: {this.offeredContracts.Count} accepted: {this.acceptedContracts.Count} finished: {this.finishedContracts.Count}");
+            foreach (Contract.Contract offeredContract in this.offeredContracts)
+            {
+                // auto-accept for now
+                if (offeredContract.status == Contract.ContractStatus.Offered)
+                {
+                    offeredContract.AcceptOfferedContract(playerTime);
+                    acceptedContracts.Add(offeredContract);
+                }
+            }
+            // Cleanup offered contracts
+            for (int offeredContractIndex = 0; offeredContractIndex < offeredContracts.Count; offeredContractIndex++)
+            {
+                if (this.offeredContracts[offeredContractIndex].status != Contract.ContractStatus.Offered)
+                {
+                    this.offeredContracts.RemoveAt(offeredContractIndex);
+                    offeredContractIndex--;
+                }
+            }
+            foreach (Contract.Contract acceptedContract in this.acceptedContracts)
+            {
+                if (currentVehicle != null)
+                {
+                    acceptedContract.UpdateStateWithVehicle(currentVehicle);
+                }
+                bool statusUpdated = acceptedContract.Update(playerTime);
+                if (statusUpdated)
+                {
+                    // Check status and do something with it.
+                    if (acceptedContract.status == Contract.ContractStatus.Completed)
+                    {
+                        finishedContracts.Add(acceptedContract);
+                    }
+                }
+            }
+            // Cleanup accepted contracts
+            for (int acceptedContractIndex = 0; acceptedContractIndex < acceptedContracts.Count; acceptedContractIndex++)
+            {
+                if (this.acceptedContracts[acceptedContractIndex].status != Contract.ContractStatus.Accepted)
+                {
+                    this.acceptedContracts.RemoveAt(acceptedContractIndex);
+                    acceptedContractIndex--;
+                }
+            }
+        }
 
         //KSA.UniverseData universeData = KSA. /* obtain a UniverseData instance here */;
         //KSA.SimTimeReference gameTimeReference = universeData.GameTime;

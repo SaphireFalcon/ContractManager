@@ -2,20 +2,62 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace ContractManager.Contract
 {
     public class TrackedRequirement
     {
-        protected Requirement _blueprintRequirement { get; }
+        // Internal handle to the blueprint requirement.
+        protected Requirement _blueprintRequirement { get; set; } = null;
+        
+        // Serializable fields.
+        // Unique identifier which blueprint requirement is being tracked.
+        [XmlElement("requirementUID")]
+        public string requirementUID { get; set; }
+
+        // Status of the tracked requirement.
+        [XmlElement("status")]
         public TrackedRequirementStatus status {  get; set; }
+
+        // List of tracked child requirements
+        [XmlArray("trackedRequirements")]
         public List<TrackedRequirement> trackedRequirements { get; set; } = new List<TrackedRequirement>();
 
+        // Get the type of requirement
         public RequirementType type { get { return this._blueprintRequirement.type; } }
 
+        // Constructor, used when deserializing from XML.
+        public TrackedRequirement() { }
+
+        // Set the blueprintRequirement, used when deserialized from XML.
+        public bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
+        {
+            if (this.requirementUID == string.Empty) { return false; }  // requirementUID is not set, so can set blueprint requirement.
+            bool setBlueprintRequirement = this._blueprintRequirement == null;
+            if (setBlueprintRequirement) { return setBlueprintRequirement; }  // already set
+            foreach (ContractBlueprint.Requirement blueprintRequirement in blueprintRequirements)
+            {
+                setBlueprintRequirement = blueprintRequirement.uid == this.requirementUID;
+                if (setBlueprintRequirement)
+                {
+                    this._blueprintRequirement = blueprintRequirement;
+                    //  Set childs
+                    foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
+                    {
+                        setBlueprintRequirement = trackedRequirement.SetBlueprintRequirementFromUID(blueprintRequirement.requirements);
+                    }
+                    break;
+                }
+            }
+            return setBlueprintRequirement;
+        }
+
+        // Constructor, used when contract is offered.
         public TrackedRequirement(in Requirement blueprintRequirement)
         {
             this._blueprintRequirement = blueprintRequirement;
+            this.requirementUID = blueprintRequirement.uid;
             if (blueprintRequirement.completeInOrder)
             {
                 this.status = TrackedRequirementStatus.NOT_STARTED;
@@ -35,12 +77,15 @@ namespace ContractManager.Contract
         }
 
         //  Update the state with vehicle data, overwrite as needed by childs.
-        public virtual void UpdateStateWithVehicle(in KSA.Vehicle vehicle) { return; }
-
-        // Update the tracked requirement, e.g. change the status
-        public void Update()
+        public virtual void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
-            Utils.UpdateTrackedRequirements(this.trackedRequirements);
+            Console.WriteLine("[CM] TrackedRequirement.UpdateStateWithVehicle()");
+        }
+        
+        // Update the tracked requirement based on the tracked state (updated through UpdateStateX functions), overwrite as needed by childs.
+        public virtual void Update()
+        {
+            Console.WriteLine("[CM] TrackedRequirement.Update()");
         }
 
         // TODO: Add GUI function(s) here
@@ -48,11 +93,16 @@ namespace ContractManager.Contract
 
     public enum TrackedRequirementStatus
     {
-        // Order worst -> best status
+        // Order status from worst to best status.
+        [XmlEnum("FAILED")]
         FAILED = 0,  // Failed, final state
-        NOT_STARTED = 1,  // Not started yet -> e.g. it can only start if previous requirement has been 
+        [XmlEnum("NOT_STARTED")]
+        NOT_STARTED = 1,  // Not started yet -> e.g. it can only start if previous requirement has been achieved.
+        [XmlEnum("TRACKED")]
         TRACKED = 2,  // Tracked until maintained, achieved, or failed.
+        [XmlEnum("MAINTAINED")]
         MAINTAINED = 3,  // Achieved, but tneed to hold the requirements until other requirements are achieved.
+        [XmlEnum("ACHIEVED")]
         ACHIEVED = 4  // Achieved, final state
     }
 
@@ -66,26 +116,35 @@ namespace ContractManager.Contract
         public double periapsis { get; set; } = double.NaN;
         // TODO: add all the other ones
         
-        public TrackedOrbit(in Requirement requirement) : base(in requirement) { }
+        public TrackedOrbit(in Requirement requirement) : base(in requirement)
+        {
+            Console.WriteLine("[CM] TrackedOrbit()");
+        }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
-            this.orbitedBody = vehicle.Orbit.Parent.Id;  // TODO: Verify!
+            Console.WriteLine("[CM] TrackedOrbit.UpdateStateWithVehicle()");
+            this.orbitedBody = vehicle.Orbit.Parent.Id;
             this.apoapsis = vehicle.Orbit.Apoapsis;
             this.periapsis = vehicle.Orbit.Periapsis;
             return;
         }
         
-        public void Update()
+        public override void Update()
         {
+            Console.WriteLine("[CM] TrackedOrbit.Update()");
             if (this.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED) { return; }
 
+            // FIXME: There is a bug here that will make this requirement incorrectly advance.
             bool requirementAchieved = true;
             RequiredOrbit requiredOrbit = this._blueprintRequirement.orbit;
+            Console.WriteLine($"[CM] TrackedOrbit data: {this.orbitedBody} {this.apoapsis} {this.periapsis}");
             if (requirementAchieved && requiredOrbit.targetBody != string.Empty && this.orbitedBody != string.Empty && this.orbitedBody != requiredOrbit.targetBody)
             {
+                Console.WriteLine($"[CM] TrackedOrbit.Update() required '{requiredOrbit.targetBody}' != '{this.orbitedBody}' currently orbited.");
                 requirementAchieved = false;
             }
+            Console.WriteLine($"[CM] required apoapsis: {requiredOrbit.minApoapsis} < {this.apoapsis} < {requiredOrbit.maxApoapsis}");
             if (requirementAchieved && requiredOrbit.minApoapsis != double.NaN && this.apoapsis != double.NaN && requiredOrbit.minApoapsis > this.apoapsis)
             {
                 requirementAchieved = false;
@@ -94,6 +153,7 @@ namespace ContractManager.Contract
             {
                 requirementAchieved = false;
             }
+            Console.WriteLine($"[CM] required periapsis: {requiredOrbit.minPeriapsis} < {this.periapsis} < {requiredOrbit.maxPeriapsis}");
             if (requirementAchieved && requiredOrbit.minPeriapsis != double.NaN && this.periapsis != double.NaN && requiredOrbit.minPeriapsis > this.periapsis)
             {
                 requirementAchieved = false;
@@ -102,20 +162,23 @@ namespace ContractManager.Contract
             {
                 requirementAchieved = false;
             }
+            Console.WriteLine($"[CM] requirement '{this.requirementUID}' achieved: {requirementAchieved}");
             if (requirementAchieved && this.status == TrackedRequirementStatus.TRACKED)
             {
                 // Update status because the requirement is achieved.
                 if (this._blueprintRequirement.isCompletedOnAchievement)
                 {
+                    Console.WriteLine($"[CM] requirement {this.requirementUID} -> ACHIEVED");
                     this.status = TrackedRequirementStatus.ACHIEVED;
                 }
                 else
                 {
+                    Console.WriteLine($"[CM] requirement {this.requirementUID} -> MAINTAINED");
                     this.status = TrackedRequirementStatus.MAINTAINED;
                 }
             }
             else
-            if (this.status == TrackedRequirementStatus.MAINTAINED)
+            if (!requirementAchieved && this.status == TrackedRequirementStatus.MAINTAINED)
             {
                 // requiremnt not achieved anymore, and requirement needs to be maintained, set back to tracked.
                 this.status = TrackedRequirementStatus.TRACKED;
