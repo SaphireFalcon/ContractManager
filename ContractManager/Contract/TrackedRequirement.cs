@@ -58,6 +58,8 @@ namespace ContractManager.Contract
         {
             this._blueprintRequirement = blueprintRequirement;
             this.requirementUID = blueprintRequirement.uid;
+            
+            // Set the initial status of the tracked requirement.
             if (blueprintRequirement.completeInOrder)
             {
                 this.status = TrackedRequirementStatus.NOT_STARTED;
@@ -65,6 +67,7 @@ namespace ContractManager.Contract
                 this.status = TrackedRequirementStatus.TRACKED;
             }
             
+            // FIXME: This should only be done if `blueprintRequirement.type == Group`
             //  Create tracked requirements as defined by the blueprint requirement.
             foreach (Requirement req in blueprintRequirement.requirements)
             {
@@ -116,14 +119,10 @@ namespace ContractManager.Contract
         public double periapsis { get; set; } = double.NaN;
         // TODO: add all the other ones
         
-        public TrackedOrbit(in Requirement requirement) : base(in requirement)
-        {
-            // Console.WriteLine("[CM] TrackedOrbit()");
-        }
+        public TrackedOrbit(in Requirement requirement) : base(in requirement) { }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
-            // Console.WriteLine("[CM] TrackedOrbit.UpdateStateWithVehicle()");
             this.orbitedBody = vehicle.Orbit.Parent.Id;
             this.apoapsis = vehicle.Orbit.Apoapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
             this.periapsis = vehicle.Orbit.Periapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
@@ -132,10 +131,8 @@ namespace ContractManager.Contract
         
         public override void Update()
         {
-            //  Console.WriteLine("[CM] TrackedOrbit.Update()");
             if (this.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED) { return; }
 
-            // FIXME: There is a bug here that will make this requirement incorrectly advance.
             bool requirementAchieved = true;
             RequiredOrbit requiredOrbit = this._blueprintRequirement.orbit;
             if (requirementAchieved && requiredOrbit.targetBody != string.Empty && this.orbitedBody != string.Empty && this.orbitedBody != requiredOrbit.targetBody)
@@ -177,7 +174,7 @@ namespace ContractManager.Contract
             else
             if (!requirementAchieved && this.status == TrackedRequirementStatus.MAINTAINED)
             {
-                // requiremnt not achieved anymore, and requirement needs to be maintained, set back to tracked.
+                // requirement is not maintained anymore, set back to tracked.
                 Console.WriteLine($"[CM] requirement {this.requirementUID} -> TRACKED");
                 this.status = TrackedRequirementStatus.TRACKED;
             }

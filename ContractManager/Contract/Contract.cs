@@ -50,7 +50,7 @@ namespace ContractManager.Contract
         public bool SetBlueprintFromUID(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
         {
             //  Verify the data loaded.
-            if (this.blueprintUID == string.Empty) { return false; }  // blueprintUID is not set, so can set blueprint
+            if (this.blueprintUID == string.Empty) { return false; }  // blueprintUID is not set, so cannot set blueprint
             // Add verification of the status
             // Add verification of the offered (and other?) time
 
@@ -62,7 +62,7 @@ namespace ContractManager.Contract
                 if (setBlueprint)
                 {
                     this._contractBlueprint = contractBlueprint;
-                    // Update the tracked requirements.
+                    // Set the tracked requirements.
                     
                     foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
                     {
@@ -85,11 +85,10 @@ namespace ContractManager.Contract
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
-                // TODO: add action to be passed to constructor if `onRequirementX` is implemented
+                // TODO: move this to utils function or `TrackedRequirement.CreateFromBlueprintRequirement` factory function.
                 // Construct a tracked requirement from blueprint.
                 if (blueprintRequirement.type == RequirementType.Orbit)
                 {
-                    // Console.WriteLine($"[CM] Contract() Add trackedRequirement: {blueprintRequirement.uid} {blueprintRequirement.type}");
                     this.trackedRequirements.Add(new TrackedOrbit(in blueprintRequirement));
                 }
             }
@@ -103,7 +102,6 @@ namespace ContractManager.Contract
             // Only update if this tracked contract is tracking this vehicle.
             if ( this.trackedVehicleNames.Count > 0 && !this.trackedVehicleNames.Contains(vehicle.Id)) { return; }
 
-            // Console.WriteLine($"[CM] Contract.UpdateStateWithVehicle({vehicle.Id}) update {this.trackedRequirements.Count} tracked requirements");
             Utils.UpdateStateWithVehicle(in vehicle, this.trackedRequirements);
 
             return;
@@ -116,7 +114,6 @@ namespace ContractManager.Contract
 
             // Only check if status is Accepted, because that is the only situation the status can change through tracked requirements.
             if (this.status != ContractStatus.Accepted) { return false; }
-            // Console.WriteLine($"[CM] Contract.Update({playerTime})");
 
             ContractStatus previousStatus = this.status;
             // TODO: Check if accepted contract expired -> Failed

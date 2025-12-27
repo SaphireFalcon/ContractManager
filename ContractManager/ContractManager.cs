@@ -114,11 +114,6 @@ public class ContractManager
             }
         }
 
-        //KSA.UniverseData universeData = KSA. /* obtain a UniverseData instance here */;
-        //KSA.SimTimeReference gameTimeReference = universeData.GameTime;
-        //double gameTimeS = gameTimeReference.GetSeconds();
-        //Console.WriteLine($"[CM] Game time: {gameTimeS}s");
-
         var style = ImGui.GetStyle();
 
         // Contract Management Window with two panels: left fixed-width, right flexible

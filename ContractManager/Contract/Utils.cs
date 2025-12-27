@@ -11,17 +11,12 @@ namespace ContractManager.Contract
         public static void UpdateTrackedRequirements(List<TrackedRequirement> trackedRequirements)
         {
             // Call update of the requirement
-            // FIXME: make for-loop and start a tracked requirement if it can be started
-            //foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             for (int trackedRequirementIndex = 0; trackedRequirementIndex < trackedRequirements.Count; trackedRequirementIndex++)
             {
                 // Update the tracked requirements
-                if (!(
-                    trackedRequirements[trackedRequirementIndex].status
-                    is TrackedRequirementStatus.NOT_STARTED
-                    or TrackedRequirementStatus.ACHIEVED
-                    or TrackedRequirementStatus.FAILED
-                ))
+                if (trackedRequirements[trackedRequirementIndex].status
+                    is TrackedRequirementStatus.TRACKED
+                    or TrackedRequirementStatus.MAINTAINED)
                 {
                     trackedRequirements[trackedRequirementIndex].Update();
                 }
@@ -49,7 +44,6 @@ namespace ContractManager.Contract
         public static void UpdateStateWithVehicle(in KSA.Vehicle vehicle, List<TrackedRequirement> trackedRequirements) {
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             {
-                // Console.WriteLine($"[CM] Utils.UpdateStateWithVehicle() trackedRequirement: {trackedRequirement.requirementUID} {trackedRequirement.status}");
                 if (!( trackedRequirement.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED ))
                 {
                     //Utils.UpdateStateWithVehicle(in vehicle, trackedRequirement.trackedRequirements); -> call for group type
@@ -58,7 +52,7 @@ namespace ContractManager.Contract
             }
         }
 
-        // Check the status of all tracked requirements and get worse status.
+        // Check the status of all tracked requirements and get worst status.
         public static TrackedRequirementStatus GetWorstTrackedRequirementStatus(List<TrackedRequirement> trackedRequirements)
         {
             TrackedRequirementStatus worstRequirementStatus = TrackedRequirementStatus.ACHIEVED;
