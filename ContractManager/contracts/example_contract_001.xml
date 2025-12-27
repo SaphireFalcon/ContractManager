@@ -47,7 +47,7 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <Orbit>
         <targetBody>Earth</targetBody>
         <minApoapsis>150000</minApoapsis>
-			<maxApoapsis>200000</maxApoapsis>
+		<maxApoapsis>200000</maxApoapsis>
       </Orbit>
     </Requirement>
   </requirements>

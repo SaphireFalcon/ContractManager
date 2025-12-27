@@ -5,17 +5,39 @@ using StarMap.API;
 using System;
 using System.IO;
 using System.Numerics;
+using System.Xml.Serialization;
+using System.Collections.Generic;
 
 namespace ContractManager
 {
 [StarMapMod]
 public class ContractManager
 {
+    // XML serializable fields
+    // List of offered contracts, loaded from save game / file.
+    [XmlElement("offeredContracts")]
+    public List<Contract.Contract> offeredContracts {  get; set; } = new List<Contract.Contract>();
+
+    // List of accepted contracts, loaded from save game / file.
+    [XmlElement("acceptedContracts")]
+    public List<Contract.Contract> acceptedContracts {  get; set; } = new List<Contract.Contract>();
+        
+    // List of finished contracts, loaded from save game / file.
+    [XmlElement("finishedContracts")]
+    public List<Contract.Contract> finishedContracts {  get; set; } = new List<Contract.Contract>();
+
+    // Internal fields
+    private double _lastUpdateTime = 0.0d;
+    private double _updateInterval = 5.0d;
+    // List of all loaded contract blueprints
+    private List<ContractBlueprint.ContractBlueprint> _contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+
     [StarMapImmediateLoad]
     public void onImmediateLoad(Mod definingMod)
     {
         Console.WriteLine("[CM] 'onImmediateLoad'");
         //KSA.XmlLoader.Load();
+
     }
 
     [StarMapAllModsLoaded]
@@ -24,8 +46,12 @@ public class ContractManager
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
         // Load contracts from disk here
-        var contract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
-        contract1.WriteToConsole();
+        var blueprintContract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
+        blueprintContract1.WriteToConsole();
+        this._contractBlueprints.Add(blueprintContract1);
+
+        var dummyContract = new Contract.Contract(in blueprintContract1, 0.0d);
+        this.offeredContracts.Add(dummyContract);
 
         // For testing: create and write an example contract to disk
         CreateExample001Contract();
@@ -35,6 +61,59 @@ public class ContractManager
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
+        // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
+        KSA.Vehicle currentVehicle = Program.ControlledVehicle;
+        double playerTime = Program.GetPlayerTime();
+
+        if (playerTime - this._lastUpdateTime > this._updateInterval)
+        {
+            this._lastUpdateTime = playerTime;
+            Console.WriteLine($"[CM] Game time: {playerTime}s offered: {this.offeredContracts.Count} accepted: {this.acceptedContracts.Count} finished: {this.finishedContracts.Count}");
+            foreach (Contract.Contract offeredContract in this.offeredContracts)
+            {
+                // auto-accept for now
+                if (offeredContract.status == Contract.ContractStatus.Offered)
+                {
+                    offeredContract.AcceptOfferedContract(playerTime);
+                    acceptedContracts.Add(offeredContract);
+                }
+            }
+            // Cleanup offered contracts
+            for (int offeredContractIndex = 0; offeredContractIndex < offeredContracts.Count; offeredContractIndex++)
+            {
+                if (this.offeredContracts[offeredContractIndex].status != Contract.ContractStatus.Offered)
+                {
+                    this.offeredContracts.RemoveAt(offeredContractIndex);
+                    offeredContractIndex--;
+                }
+            }
+            foreach (Contract.Contract acceptedContract in this.acceptedContracts)
+            {
+                if (currentVehicle != null)
+                {
+                    acceptedContract.UpdateStateWithVehicle(currentVehicle);
+                }
+                bool statusUpdated = acceptedContract.Update(playerTime);
+                if (statusUpdated)
+                {
+                    // Check status and do something with it.
+                    if (acceptedContract.status == Contract.ContractStatus.Completed)
+                    {
+                        finishedContracts.Add(acceptedContract);
+                    }
+                }
+            }
+            // Cleanup accepted contracts
+            for (int acceptedContractIndex = 0; acceptedContractIndex < acceptedContracts.Count; acceptedContractIndex++)
+            {
+                if (this.acceptedContracts[acceptedContractIndex].status != Contract.ContractStatus.Accepted)
+                {
+                    this.acceptedContracts.RemoveAt(acceptedContractIndex);
+                    acceptedContractIndex--;
+                }
+            }
+        }
+
         var style = ImGui.GetStyle();
 
         // Contract Management Window with two panels: left fixed-width, right flexible
@@ -437,14 +516,14 @@ public class ContractManager
             
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = TriggerType.OnContractComplete,
-            type = ActionType.ShowMessage,
+            trigger = ContractBlueprint.Action.TriggerType.OnContractComplete,
+            type = ContractBlueprint.Action.ActionType.ShowMessage,
             showMessage = "Congratulations! You pounced the example contract."
         });
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = TriggerType.OnContractFail,
-            type = ActionType.ShowMessage,
+            trigger = ContractBlueprint.Action.TriggerType.OnContractFail,
+            type = ContractBlueprint.Action.ActionType.ShowMessage,
             showMessage = "Keep persevering; The road to success is pawed with failure."
         });
 
