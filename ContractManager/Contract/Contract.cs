@@ -7,13 +7,12 @@ using System.Xml.Serialization;
 
 namespace ContractManager.Contract
 {
-
     public class Contract
     {
         // Class for containing and handling contracts that are instantiated from a ContractBlueprint.
         
         // Internal handle to the blueprint the contract was instantiated from.
-        private ContractBlueprint.ContractBlueprint _contractBlueprint { get; set;} = null;
+        internal ContractBlueprint.ContractBlueprint _contractBlueprint { get; set;} = null;
 
         // Serializable fields.
         // Unique identifier for which blueprint the contract was instantiated from.

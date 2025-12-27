@@ -9,7 +9,7 @@ namespace ContractManager.Contract
     public class TrackedRequirement
     {
         // Internal handle to the blueprint requirement.
-        protected Requirement _blueprintRequirement { get; set; } = null;
+        internal Requirement _blueprintRequirement { get; set; } = null;
         
         // Serializable fields.
         // Unique identifier which blueprint requirement is being tracked.
@@ -23,9 +23,6 @@ namespace ContractManager.Contract
         // List of tracked child requirements
         [XmlArray("trackedRequirements")]
         public List<TrackedRequirement> trackedRequirements { get; set; } = new List<TrackedRequirement>();
-
-        // Get the type of requirement
-        public RequirementType type { get { return this._blueprintRequirement.type; } }
 
         // Constructor, used when deserializing from XML.
         public TrackedRequirement() { }
@@ -140,20 +137,20 @@ namespace ContractManager.Contract
                 requirementAchieved = false;
             }
             Console.WriteLine($"[CM] required apoapsis: {requiredOrbit.minApoapsis} < {this.apoapsis} < {requiredOrbit.maxApoapsis}");
-            if (requirementAchieved && requiredOrbit.minApoapsis != double.NaN && requiredOrbit.minApoapsis > this.apoapsis)
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minApoapsis) && requiredOrbit.minApoapsis > this.apoapsis)
             {
                 requirementAchieved = false;
             }
-            if (requirementAchieved && requiredOrbit.maxApoapsis != double.NaN && requiredOrbit.maxApoapsis < this.apoapsis)
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxApoapsis) && requiredOrbit.maxApoapsis < this.apoapsis)
             {
                 requirementAchieved = false;
             }
             Console.WriteLine($"[CM] required periapsis: {requiredOrbit.minPeriapsis} < {this.periapsis} < {requiredOrbit.maxPeriapsis}");
-            if (requirementAchieved && requiredOrbit.minPeriapsis != double.NaN && requiredOrbit.minPeriapsis > this.periapsis)
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minPeriapsis) && requiredOrbit.minPeriapsis > this.periapsis)
             {
                 requirementAchieved = false;
             }
-            if (requirementAchieved && requiredOrbit.maxPeriapsis != double.NaN && requiredOrbit.maxPeriapsis < this.periapsis)
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxPeriapsis) && requiredOrbit.maxPeriapsis < this.periapsis)
             {
                 requirementAchieved = false;
             }
