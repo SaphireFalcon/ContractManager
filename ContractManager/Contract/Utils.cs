@@ -49,42 +49,41 @@ namespace ContractManager.Contract
         public static void UpdateStateWithVehicle(in KSA.Vehicle vehicle, List<TrackedRequirement> trackedRequirements) {
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             {
-                Console.WriteLine($"[CM] Utils.UpdateStateWithVehicle() trackedRequirement: {trackedRequirement.requirementUID} {trackedRequirement.status}");
+                // Console.WriteLine($"[CM] Utils.UpdateStateWithVehicle() trackedRequirement: {trackedRequirement.requirementUID} {trackedRequirement.status}");
                 if (!( trackedRequirement.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED ))
                 {
                     //Utils.UpdateStateWithVehicle(in vehicle, trackedRequirement.trackedRequirements); -> call for group type
                     trackedRequirement.UpdateStateWithVehicle(in vehicle);
                 }
             }
-            return;
         }
 
-        public static TrackedRequirementStatus CheckTrackedRequirementsStatus(List<TrackedRequirement> trackedRequirements)
+        // Check the status of all tracked requirements and get worse status.
+        public static TrackedRequirementStatus GetWorstTrackedRequirementStatus(List<TrackedRequirement> trackedRequirements)
         {
-            Console.WriteLine($"[CM] Utils.CheckTrackedRequirementsStatus() trackedRequirements: {trackedRequirements.Count}");
             TrackedRequirementStatus worstRequirementStatus = TrackedRequirementStatus.ACHIEVED;
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             {
                 // Check childs
                 // TODO: if (trackedRequirement.type == RequirementType.Group)
-                TrackedRequirementStatus worstChildStatus = Utils.CheckTrackedRequirementsStatus(trackedRequirement.trackedRequirements);
-                Console.WriteLine($"[CM] Utils.CheckTrackedRequirementsStatus() '{trackedRequirement.requirementUID}' child status: {worstChildStatus}");
-                if (worstChildStatus < worstRequirementStatus)
-                {
-                    worstRequirementStatus = worstChildStatus;
+                if (trackedRequirement.trackedRequirements.Count > 0) {
+                    TrackedRequirementStatus worstChildStatus = Utils.GetWorstTrackedRequirementStatus(trackedRequirement.trackedRequirements);
+                    if (worstChildStatus < worstRequirementStatus)
+                    {
+                        worstRequirementStatus = worstChildStatus;
+                    }
                 }
                 // Check tracked requirement
-                Console.WriteLine($"[CM] Utils.CheckTrackedRequirementsStatus() '{trackedRequirement.requirementUID}' status: {trackedRequirement.status}");
                 if (trackedRequirement.status < worstRequirementStatus)
                 {
                     worstRequirementStatus = trackedRequirement.status;
                 }
             }
-            Console.WriteLine($"[CM] Utils.CheckTrackedRequirementsStatus() worstRequirementStatus: {worstRequirementStatus}");
+            Console.WriteLine($"[CM] Utils.GetWorstTrackedRequirementStatus() worstRequirementStatus: {worstRequirementStatus}");
             return worstRequirementStatus;
         }
 
-        // Trigger action of the given typ.
+        // Trigger action of the given type.
         public static void TriggerAction(in List<ContractBlueprint.Action> actions, ContractBlueprint.Action.TriggerType triggerType) {
             foreach (ContractBlueprint.Action action in actions) {
                 if (action.trigger == triggerType) {

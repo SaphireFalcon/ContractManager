@@ -118,51 +118,48 @@ namespace ContractManager.Contract
         
         public TrackedOrbit(in Requirement requirement) : base(in requirement)
         {
-            Console.WriteLine("[CM] TrackedOrbit()");
+            // Console.WriteLine("[CM] TrackedOrbit()");
         }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
-            Console.WriteLine("[CM] TrackedOrbit.UpdateStateWithVehicle()");
+            // Console.WriteLine("[CM] TrackedOrbit.UpdateStateWithVehicle()");
             this.orbitedBody = vehicle.Orbit.Parent.Id;
-            this.apoapsis = vehicle.Orbit.Apoapsis;
-            this.periapsis = vehicle.Orbit.Periapsis;
+            this.apoapsis = vehicle.Orbit.Apoapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
+            this.periapsis = vehicle.Orbit.Periapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
             return;
         }
         
         public override void Update()
         {
-            Console.WriteLine("[CM] TrackedOrbit.Update()");
+            //  Console.WriteLine("[CM] TrackedOrbit.Update()");
             if (this.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED) { return; }
 
             // FIXME: There is a bug here that will make this requirement incorrectly advance.
             bool requirementAchieved = true;
             RequiredOrbit requiredOrbit = this._blueprintRequirement.orbit;
-            Console.WriteLine($"[CM] TrackedOrbit data: {this.orbitedBody} {this.apoapsis} {this.periapsis}");
             if (requirementAchieved && requiredOrbit.targetBody != string.Empty && this.orbitedBody != string.Empty && this.orbitedBody != requiredOrbit.targetBody)
             {
-                Console.WriteLine($"[CM] TrackedOrbit.Update() required '{requiredOrbit.targetBody}' != '{this.orbitedBody}' currently orbited.");
                 requirementAchieved = false;
             }
             Console.WriteLine($"[CM] required apoapsis: {requiredOrbit.minApoapsis} < {this.apoapsis} < {requiredOrbit.maxApoapsis}");
-            if (requirementAchieved && requiredOrbit.minApoapsis != double.NaN && this.apoapsis != double.NaN && requiredOrbit.minApoapsis > this.apoapsis)
+            if (requirementAchieved && requiredOrbit.minApoapsis != double.NaN && requiredOrbit.minApoapsis > this.apoapsis)
             {
                 requirementAchieved = false;
             }
-            if (requirementAchieved && requiredOrbit.maxApoapsis <= double.NaN && this.apoapsis != double.NaN && requiredOrbit.maxApoapsis < this.apoapsis)
+            if (requirementAchieved && requiredOrbit.maxApoapsis != double.NaN && requiredOrbit.maxApoapsis < this.apoapsis)
             {
                 requirementAchieved = false;
             }
             Console.WriteLine($"[CM] required periapsis: {requiredOrbit.minPeriapsis} < {this.periapsis} < {requiredOrbit.maxPeriapsis}");
-            if (requirementAchieved && requiredOrbit.minPeriapsis != double.NaN && this.periapsis != double.NaN && requiredOrbit.minPeriapsis > this.periapsis)
+            if (requirementAchieved && requiredOrbit.minPeriapsis != double.NaN && requiredOrbit.minPeriapsis > this.periapsis)
             {
                 requirementAchieved = false;
             }
-            if (requirementAchieved && requiredOrbit.maxPeriapsis <= double.NaN && this.periapsis != double.NaN && requiredOrbit.maxPeriapsis < this.periapsis)
+            if (requirementAchieved && requiredOrbit.maxPeriapsis != double.NaN && requiredOrbit.maxPeriapsis < this.periapsis)
             {
                 requirementAchieved = false;
             }
-            Console.WriteLine($"[CM] requirement '{this.requirementUID}' achieved: {requirementAchieved}");
             if (requirementAchieved && this.status == TrackedRequirementStatus.TRACKED)
             {
                 // Update status because the requirement is achieved.
@@ -181,6 +178,7 @@ namespace ContractManager.Contract
             if (!requirementAchieved && this.status == TrackedRequirementStatus.MAINTAINED)
             {
                 // requiremnt not achieved anymore, and requirement needs to be maintained, set back to tracked.
+                Console.WriteLine($"[CM] requirement {this.requirementUID} -> TRACKED");
                 this.status = TrackedRequirementStatus.TRACKED;
             }
         }
