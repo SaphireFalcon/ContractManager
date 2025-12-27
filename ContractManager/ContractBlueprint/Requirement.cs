@@ -48,7 +48,7 @@ namespace ContractManager.ContractBlueprint
         // Fields for specific requirement types.
         // type: orbit - field for orbit requirement type.
         [XmlElement("Orbit")]
-        public RequiredOrbit orbit { get; set; } = null;
+        public RequiredOrbit? orbit { get; set; } = null;
 
         public Requirement() { }
 
