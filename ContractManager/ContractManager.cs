@@ -5,17 +5,35 @@ using StarMap.API;
 using System;
 using System.IO;
 using System.Numerics;
+using System.Xml.Serialization;
+using System.Collections.Generic;
 
 namespace ContractManager
 {
 [StarMapMod]
 public class ContractManager
 {
+    // List of offered contracts, loaded from save game / file.
+    [XmlElement("offeredContracts")]
+    public List<Contract.Contract> offeredContracts {  get; set; } = new List<Contract.Contract>();
+
+    // List of accepted contracts, loaded from save game / file.
+    [XmlElement("acceptedContracts")]
+    public List<Contract.Contract> acceptedContracts {  get; set; } = new List<Contract.Contract>();
+        
+    // List of finished contracts, loaded from save game / file.
+    [XmlElement("finishedContracts")]
+    public List<Contract.Contract> finishedContracts {  get; set; } = new List<Contract.Contract>();
+
+    // List of all loaded contract blueprints
+    private List<ContractBlueprint.ContractBlueprint> contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+
     [StarMapImmediateLoad]
     public void onImmediateLoad(Mod definingMod)
     {
         Console.WriteLine("[CM] 'onImmediateLoad'");
         //KSA.XmlLoader.Load();
+
     }
 
     [StarMapAllModsLoaded]
@@ -24,8 +42,12 @@ public class ContractManager
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
         // Load contracts from disk here
-        var contract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
-        contract1.WriteToConsole();
+        var blueprintContract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_001.xml");
+        blueprintContract1.WriteToConsole();
+        this.contractBlueprints.Add(blueprintContract1);
+
+        var dummyContract = new Contract.Contract(in blueprintContract1, 0.0d);
+        this.offeredContracts.Add(dummyContract);
 
         // For testing: create and write an example contract to disk
         CreateExample001Contract();
@@ -35,6 +57,17 @@ public class ContractManager
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
+        // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
+        KSA.Vehicle currentVehicle = Program.ControlledVehicle;
+        double apoapsis = currentVehicle.Orbit.Apoapsis;
+        // Debugging: get game time reference
+        double playerTime = Program.GetPlayerTime();
+
+        //KSA.UniverseData universeData = KSA. /* obtain a UniverseData instance here */;
+        //KSA.SimTimeReference gameTimeReference = universeData.GameTime;
+        //double gameTimeS = gameTimeReference.GetSeconds();
+        //Console.WriteLine($"[CM] Game time: {gameTimeS}s");
+
         var style = ImGui.GetStyle();
 
         // Contract Management Window with two panels: left fixed-width, right flexible
@@ -437,14 +470,14 @@ public class ContractManager
             
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = TriggerType.OnContractComplete,
-            type = ActionType.ShowMessage,
+            trigger = ContractBlueprint.Action.TriggerType.OnContractComplete,
+            type = ContractBlueprint.Action.ActionType.ShowMessage,
             showMessage = "Congratulations! You pounced the example contract."
         });
         contractToWrite.actions.Add(new ContractBlueprint.Action
         {
-            trigger = TriggerType.OnContractFail,
-            type = ActionType.ShowMessage,
+            trigger = ContractBlueprint.Action.TriggerType.OnContractFail,
+            type = ContractBlueprint.Action.ActionType.ShowMessage,
             showMessage = "Keep persevering; The road to success is pawed with failure."
         });
 

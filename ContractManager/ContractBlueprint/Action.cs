@@ -5,6 +5,21 @@ namespace ContractManager.ContractBlueprint
 {
     public class Action
     {
+
+        public enum ActionType
+        {
+            [XmlEnum("showMessage")]
+            ShowMessage
+        }
+
+        public enum TriggerType
+        {
+            [XmlEnum("onContractComplete")]
+            OnContractComplete,
+            [XmlEnum("onContractFail")]
+            OnContractFail
+        }
+
         // The trigger of the action.
         [XmlElement("trigger")]
         public TriggerType trigger { get; set; }
@@ -28,19 +43,19 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"    type: showMessage: {showMessage}");
             }
         }
-    }
 
-    public enum ActionType
-    {
-        [XmlEnum("showMessage")]
-        ShowMessage
-    }
+        public void DoAction()
+        {
+            Console.WriteLine($"[CM] DoAction {this.type}");
+            if (type == ActionType.ShowMessage) {
+                this.ShowMessage();
+            }
+        }
 
-    public enum TriggerType
-    {
-        [XmlEnum("onContractComplete")]
-        OnContractComplete,
-        [XmlEnum("onContractFail")]
-        OnContractFail
+        // Actions
+        private void ShowMessage()
+        {
+            Console.WriteLine($"[CM] ShowMessage: '{this.showMessage}'");
+        }
     }
 }

@@ -93,23 +93,23 @@ namespace ContractManager.ContractBlueprint
 
         // The celestial body to orbit.
         [XmlElement("targetBody")]
-        public string targetBody { get; set; }
+        public string targetBody { get; set; } = string.Empty;
 
         // minimum apoapsis altitude in meters.
         [XmlElement("minApoapsis")]
-        public double minApoapsis { get; set; } = 0;
+        public double minApoapsis { get; set; } = double.NaN;
 
         // maximum apoapsis altitude in meters.
         [XmlElement("maxApoapsis")]
-        public double maxApoapsis { get; set; } = double.PositiveInfinity;
+        public double maxApoapsis { get; set; } = double.NaN;
 
         // minimum periapsis altitude in meters.
         [XmlElement("minPeriapsis")]
-        public double minPeriapsis { get; set; } = 0;
+        public double minPeriapsis { get; set; } = double.NaN;
 
         // maximum periapsis altitude in meters.
         [XmlElement("maxPeriapsis")]
-        public double maxPeriapsis { get; set; } = double.PositiveInfinity;
+        public double maxPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
     }
