@@ -20,17 +20,29 @@ namespace ContractManager.Contract
         [XmlElement("status")]
         public TrackedRequirementStatus status {  get; set; }
 
-        // List of tracked child requirements
-        [XmlArray("trackedRequirements")]
-        public List<TrackedRequirement> trackedRequirements { get; set; } = new List<TrackedRequirement>();
-
         // Constructor, used when deserializing from XML.
         public TrackedRequirement() { }
 
-        // Set the blueprintRequirement, used when deserialized from XML.
-        public bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
+        // Factory function to create a TrackedRequirement (sub-class types) from a blueprint requirement.
+        public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement)
         {
-            if (this.requirementUID == string.Empty) { return false; }  // requirementUID is not set, so can set blueprint requirement.
+            // Construct a tracked requirement from blueprint.
+            if (blueprintRequirement.type == RequirementType.Orbit)
+            {
+                return new TrackedOrbit(in blueprintRequirement);
+            }
+            else
+            if (blueprintRequirement.type == RequirementType.Group)
+            {
+                return new TrackedGroup(blueprintRequirement);
+            }
+            return new TrackedRequirement(blueprintRequirement); 
+        }
+
+        // Set the blueprintRequirement, used when deserialized from XML.
+        public virtual bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
+        {
+            if (this.requirementUID == string.Empty) { return false; }  // requirementUID is not set, so cannot find matching blueprint requirement.
             bool setBlueprintRequirement = this._blueprintRequirement == null;
             if (setBlueprintRequirement) { return setBlueprintRequirement; }  // already set
             foreach (ContractBlueprint.Requirement blueprintRequirement in blueprintRequirements)
@@ -38,13 +50,8 @@ namespace ContractManager.Contract
                 setBlueprintRequirement = blueprintRequirement.uid == this.requirementUID;
                 if (setBlueprintRequirement)
                 {
+                    // Found matching blueprint requirement.
                     this._blueprintRequirement = blueprintRequirement;
-                    //  Set childs
-                    foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
-                    {
-                        setBlueprintRequirement = trackedRequirement.SetBlueprintRequirementFromUID(blueprintRequirement.requirements);
-                    }
-                    break;
                 }
             }
             return setBlueprintRequirement;
@@ -63,32 +70,13 @@ namespace ContractManager.Contract
             } else {
                 this.status = TrackedRequirementStatus.TRACKED;
             }
-            
-            // FIXME: This should only be done if `blueprintRequirement.type == Group`
-            //  Create tracked requirements as defined by the blueprint requirement.
-            foreach (Requirement req in blueprintRequirement.requirements)
-            {
-                // construct a tracked requirement
-                if (req.type == RequirementType.Orbit)
-                {
-                    this.trackedRequirements.Add(new TrackedOrbit(in req));
-                }
-            }
         }
 
         //  Update the state with vehicle data, overwrite as needed by childs.
-        public virtual void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
-        {
-            Console.WriteLine("[CM] TrackedRequirement.UpdateStateWithVehicle()");
-        }
+        public virtual void UpdateStateWithVehicle(in KSA.Vehicle vehicle) { }
         
         // Update the tracked requirement based on the tracked state (updated through UpdateStateX functions), overwrite as needed by childs.
-        public virtual void Update()
-        {
-            Console.WriteLine("[CM] TrackedRequirement.Update()");
-        }
-
-        // TODO: Add GUI function(s) here
+        public virtual void Update() { }
     }
 
     public enum TrackedRequirementStatus
@@ -131,12 +119,13 @@ namespace ContractManager.Contract
             if (this.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED) { return; }
 
             bool requirementAchieved = true;
-            RequiredOrbit requiredOrbit = this._blueprintRequirement.orbit;
+            RequiredOrbit? requiredOrbit = this._blueprintRequirement.orbit;
+            if (requiredOrbit == null) { return; }
             if (requirementAchieved && requiredOrbit.targetBody != string.Empty && this.orbitedBody != string.Empty && this.orbitedBody != requiredOrbit.targetBody)
             {
                 requirementAchieved = false;
             }
-            Console.WriteLine($"[CM] required apoapsis: {requiredOrbit.minApoapsis} < {this.apoapsis} < {requiredOrbit.maxApoapsis}");
+
             if (requirementAchieved && !Double.IsNaN(requiredOrbit.minApoapsis) && requiredOrbit.minApoapsis > this.apoapsis)
             {
                 requirementAchieved = false;
@@ -145,7 +134,7 @@ namespace ContractManager.Contract
             {
                 requirementAchieved = false;
             }
-            Console.WriteLine($"[CM] required periapsis: {requiredOrbit.minPeriapsis} < {this.periapsis} < {requiredOrbit.maxPeriapsis}");
+
             if (requirementAchieved && !Double.IsNaN(requiredOrbit.minPeriapsis) && requiredOrbit.minPeriapsis > this.periapsis)
             {
                 requirementAchieved = false;
@@ -154,17 +143,16 @@ namespace ContractManager.Contract
             {
                 requirementAchieved = false;
             }
+
             if (requirementAchieved && this.status == TrackedRequirementStatus.TRACKED)
             {
                 // Update status because the requirement is achieved.
                 if (this._blueprintRequirement.isCompletedOnAchievement)
                 {
-                    Console.WriteLine($"[CM] requirement {this.requirementUID} -> ACHIEVED");
                     this.status = TrackedRequirementStatus.ACHIEVED;
                 }
                 else
                 {
-                    Console.WriteLine($"[CM] requirement {this.requirementUID} -> MAINTAINED");
                     this.status = TrackedRequirementStatus.MAINTAINED;
                 }
             }
@@ -172,11 +160,71 @@ namespace ContractManager.Contract
             if (!requirementAchieved && this.status == TrackedRequirementStatus.MAINTAINED)
             {
                 // requirement is not maintained anymore, set back to tracked.
-                Console.WriteLine($"[CM] requirement {this.requirementUID} -> TRACKED");
                 this.status = TrackedRequirementStatus.TRACKED;
             }
         }
+    }
 
-        // TODO: Add GUI function(s) here
+    public class TrackedGroup : TrackedRequirement
+    {
+        // List of tracked child requirements
+        [XmlArray("trackedRequirements")]
+        public List<TrackedRequirement> trackedRequirements { get; set; } = new List<TrackedRequirement>();
+
+        public TrackedGroup(in Requirement requirement) : base(in requirement)
+        {
+            if (requirement.group == null) { return; }
+            foreach (Requirement blueprintRequirement in requirement.group.requirements)
+            {
+                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
+            }
+        }
+
+        // Set the blueprintRequirement, used when deserialized from XML.
+        public override bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
+        {
+            bool setBlueprintRequirement = base.SetBlueprintRequirementFromUID(blueprintRequirements);
+            //  Set childs
+            if (this._blueprintRequirement.group != null)
+            {
+                foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
+                {
+                    setBlueprintRequirement &= trackedRequirement.SetBlueprintRequirementFromUID(this._blueprintRequirement.group.requirements);
+                }
+            }
+            return setBlueprintRequirement;
+        }
+
+        public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
+        {
+            foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
+            {
+                trackedRequirement.UpdateStateWithVehicle(vehicle);
+            }
+        }
+        
+        public override void Update()
+        {
+            foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
+            {
+                trackedRequirement.Update();
+            }
+            
+            // Check childs status and update for
+            TrackedRequirementStatus worstRequirementStatus = ContractUtils.GetWorstTrackedRequirementStatus(this.trackedRequirements);
+            
+            // TODO: for these two fixme, need GetBestTrackedRequirementStatus
+            // FIXME: If completion condition is any, but all childs has status FAILED, than also fail...
+            if (worstRequirementStatus == TrackedRequirementStatus.FAILED && this._blueprintRequirement.group.completionCondition == CompletionCondition.All)
+            {
+                this.status = TrackedRequirementStatus.FAILED;
+            }
+            else
+            // FIXME: If completion condition is any, than only one achieved should be sufficient
+            if (worstRequirementStatus is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED)
+            {
+                this.status = TrackedRequirementStatus.ACHIEVED;
+            }
+        }
     }
 }

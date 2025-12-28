@@ -7,6 +7,10 @@ namespace ContractManager.ContractBlueprint
     public class ContractBlueprint
     {
         // Details of the contract
+        // The version for which the contract was created.
+        [XmlElement("version")]
+        public string version {  get; set; } = "0.0.1";
+
         // The unique identifier for the contract
         [XmlElement("uid")]
         public string uid {  get; set;  }
@@ -27,13 +31,13 @@ namespace ContractManager.ContractBlueprint
         [XmlArray("prerequisites")]
         public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
 
-        // List of requirements for the contract
-        [XmlArray("requirements")]
-        public List<Requirement> requirements { get; set; } = new List<Requirement>();
-
         // Completion condition of the contract based on the requirements.
         [XmlElement("completionCondition")]
         public CompletionCondition completionCondition { get; set; } = CompletionCondition.All;
+
+        // List of requirements for the contract
+        [XmlArray("requirements")]
+        public List<Requirement> requirements { get; set; } = new List<Requirement>();
 
         // List of actions for the contract
         [XmlArray("actions")]

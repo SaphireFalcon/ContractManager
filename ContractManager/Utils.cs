@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ContractManager.Contract;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -71,5 +72,34 @@ namespace ContractManager
         public static Brutal.Numerics.float4 grayLight = new Brutal.Numerics.float4 { X = 0.75f, Y = 0.75f, Z = 0.75f, W = 1.0f };
         // Gray, bright, used for pushed or normal text.
         public static Brutal.Numerics.float4 gray = new Brutal.Numerics.float4 { X = 0.5f, Y = 0.5f, Z = 0.5f, W = 1.0f };
+
+        public static Brutal.Numerics.float4 GetTrackedRequirementStatusColor(Contract.TrackedRequirementStatus status)
+        {
+            if (status == TrackedRequirementStatus.NOT_STARTED)
+            {
+                return Colors.gray;
+            }
+            else
+            if (status == TrackedRequirementStatus.TRACKED)
+            {
+                return Colors.orange;
+            }
+            else
+            if (status == TrackedRequirementStatus.MAINTAINED)
+            {
+                return Colors.yellow;
+            }
+            else
+            if (status == TrackedRequirementStatus.ACHIEVED)
+            {
+                return Colors.green;
+            }
+            else
+            if (status == TrackedRequirementStatus.FAILED)
+            {
+                return Colors.red;
+            }
+            return Colors.gray;
+        }
     }
 }

@@ -23,8 +23,6 @@ namespace ContractManager.Contract
                 // Start first requirement (at all times).
                 if (trackedRequirementIndex == 0 && trackedRequirements[trackedRequirementIndex].status == TrackedRequirementStatus.NOT_STARTED)
                 {
-                    
-                    Console.WriteLine($"[CM] Utils.UpdateTrackedRequirements() '{trackedRequirements[trackedRequirementIndex].requirementUID}' -> TRACKED");
                     trackedRequirements[trackedRequirementIndex].status = TrackedRequirementStatus.TRACKED;
                 }
                 // Start next requirement when previous maintained/achieved.
@@ -34,8 +32,11 @@ namespace ContractManager.Contract
                     trackedRequirements[trackedRequirementIndex - 1].status is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED
                 )
                 {
-                    Console.WriteLine($"[CM] Utils.UpdateTrackedRequirements() '{trackedRequirements[trackedRequirementIndex].requirementUID}' -> TRACKED");
                     trackedRequirements[trackedRequirementIndex].status = TrackedRequirementStatus.TRACKED;
+                }
+                if (trackedRequirements[trackedRequirementIndex]._blueprintRequirement.type == ContractBlueprint.RequirementType.Group)
+                {
+                    ContractUtils.UpdateTrackedRequirements(((TrackedGroup)trackedRequirements[trackedRequirementIndex]).trackedRequirements);
                 }
             }
         }
@@ -58,10 +59,12 @@ namespace ContractManager.Contract
             TrackedRequirementStatus worstRequirementStatus = TrackedRequirementStatus.ACHIEVED;
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             {
-                // Check childs
-                // TODO: if (trackedRequirement.type == RequirementType.Group)
-                if (trackedRequirement.trackedRequirements.Count > 0) {
-                    TrackedRequirementStatus worstChildStatus = ContractUtils.GetWorstTrackedRequirementStatus(trackedRequirement.trackedRequirements);
+                // Check group childs
+                if (
+                    trackedRequirement._blueprintRequirement.type == ContractBlueprint.RequirementType.Group &&
+                    ((TrackedGroup)trackedRequirement).trackedRequirements.Count > 0)
+                {
+                    TrackedRequirementStatus worstChildStatus = ContractUtils.GetWorstTrackedRequirementStatus(((TrackedGroup)trackedRequirement).trackedRequirements);
                     if (worstChildStatus < worstRequirementStatus)
                     {
                         worstRequirementStatus = worstChildStatus;
@@ -73,7 +76,6 @@ namespace ContractManager.Contract
                     worstRequirementStatus = trackedRequirement.status;
                 }
             }
-            Console.WriteLine($"[CM] Utils.GetWorstTrackedRequirementStatus() worstRequirementStatus: {worstRequirementStatus}");
             return worstRequirementStatus;
         }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>0.0.1</version>
   <uid>example_contract_001</uid>
   <title>Example Contract 001</title>
   <synopsis>This is an example contract, changing the orbit in 2 steps.</synopsis>
@@ -27,7 +28,6 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <isCompletedOnAchievement>false</isCompletedOnAchievement>
       <isHidden>false</isHidden>
       <completeInOrder>true</completeInOrder>
-      <completionCondition>all</completionCondition>
       <Orbit>
         <targetBody>Earth</targetBody>
         <minPeriapsis>150000</minPeriapsis>
@@ -43,7 +43,6 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <isCompletedOnAchievement>true</isCompletedOnAchievement>
       <isHidden>false</isHidden>
       <completeInOrder>true</completeInOrder>
-      <completionCondition>all</completionCondition>
       <Orbit>
         <targetBody>Earth</targetBody>
         <minApoapsis>150000</minApoapsis>
