@@ -15,6 +15,10 @@ namespace ContractManager.Contract
         internal ContractBlueprint.ContractBlueprint _contractBlueprint { get; set;} = null;
 
         // Serializable fields.
+        // Unique identifier for the contract.
+        [XmlElement("contractUID")]
+        public string contractUID { get; set; } = string.Empty;
+
         // Unique identifier for which blueprint the contract was instantiated from.
         [XmlElement("blueprintUID")]
         public string blueprintUID { get; set; } = string.Empty;
@@ -81,6 +85,7 @@ namespace ContractManager.Contract
             this._contractBlueprint = contractBlueprint;
             this.offeredTimeS = playerTime;
             this.status = ContractStatus.Offered;
+            this.contractUID = String.Format("{0}_{1:N3}", contractBlueprint.uid, playerTime);
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {

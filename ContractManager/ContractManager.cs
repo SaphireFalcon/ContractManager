@@ -39,7 +39,8 @@ public class ContractManager
     private double _updateInterval = 5.0d;
     // List of all loaded contract blueprints
     private List<ContractBlueprint.ContractBlueprint> _contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
-
+        
+    private ActiveContractsWindow? _activeContractsWindow = null;
     private ContractManagementWindow? _contractManagementWindow = null;
 
     [StarMapImmediateLoad]
@@ -48,6 +49,7 @@ public class ContractManager
         Console.WriteLine("[CM] 'onImmediateLoad'");
 
         this._contractManagementWindow = new ContractManagementWindow(this.offeredContracts, this.acceptedContracts, this.finishedContracts);
+        this._activeContractsWindow = new ActiveContractsWindow(this.acceptedContracts);
     }
 
     [StarMapAllModsLoaded]
@@ -68,142 +70,26 @@ public class ContractManager
     public void AfterGui(double dt)
     {
         // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
-        KSA.Vehicle currentVehicle = Program.ControlledVehicle;
+        KSA.Vehicle? currentVehicle = Program.ControlledVehicle;
         double playerTime = Program.GetPlayerTime();
 
         // Update contracts
         this.UpdateContracts();
 
         // Draw GUI
-        this._contractManagementWindow.DrawContractManagementWindow();
-
-        var style = ImGui.GetStyle();
-
-        // Active Contracts Window
-        // Compute the size based on title and the Details button
-        //var style = ImGui.GetStyle();
-        float textWidthContractTitle = ImGui.CalcTextSize("Contract title 1:").X + style.FramePadding.X * 2.0f;
-        float buttonWidthDetails = ImGui.CalcTextSize("Details").X + style.FramePadding.X * 2.0f;
-        ImGui.SetNextWindowSizeConstraints(
-            new Brutal.Numerics.float2 { X = textWidthContractTitle + buttonWidthDetails + 50, Y = 100.0f },
-            new Brutal.Numerics.float2 { X = 500.0f, Y = float.PositiveInfinity }  // no max size
-        );
-        if (ImGui.Begin("Active Contracts", ImGuiWindowFlags.None))
+        Contract.Contract? contractToShowDetails = null;
+        if (this._activeContractsWindow != null)
         {
-            //ImGui.SeparatorText("Active Contracts");
-            ImGui.Text("No active contracts");
-
-            ImGuiTreeNodeFlags requirementTreeNodeFlags = ImGuiTreeNodeFlags.DrawLinesToNodes;
-            var activeContractsWindowSize = ImGui.GetContentRegionAvail();
-            // Option 1: shorter lines
-            if (ImGui.TreeNodeEx("Contract title 1:", requirementTreeNodeFlags))
-            {
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + activeContractsWindowSize.X - textWidthContractTitle - buttonWidthDetails - 25);
-                ImGui.SmallButton("Details");
-
-                // Completed requirement -> should be hidden?
-                ImGui.PushStyleColor(ImGuiCol.Header, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });  // Doesn't seem to work inside TreeNodeEx?
-                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Brutal.Numerics.float4 { X = 0.35f, Y = 0.75f, Z = 0.35f, W = 1.0f });
-                ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
-                if (ImGui.TreeNodeEx("Requirement title 1.1", requirementTreeNodeFlags))
-                {
-                    ImGui.TextWrapped("Requirement synopsis");
-                    ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f }, "Apoapsis: 175.000 m");
-                    ImGui.TreePop();
-                }
-                ImGui.PopStyleColor(3);
-                    
-                // ongoing requirement
-                ImGui.PushStyleColor(ImGuiCol.Header, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f });
-                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.5f, Z = 0.2f, W = 1.0f });
-                ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f });
-                if (ImGui.TreeNodeEx("Requirement title 1.2", requirementTreeNodeFlags))
-                {
-                    ImGui.TextWrapped("Requirement synopsis");
-                    ImGui.TextColored(new Brutal.Numerics.float4 {X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f }, "min Apoapsis: 150.000 m");
-                    ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "Apoapsis: 207.000 m");
-                    ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "max Apoapsis: 200.000 m");
-                    
-                    // holding requirement
-                    ImGui.PushStyleColor(ImGuiCol.Header, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Brutal.Numerics.float4 { X = 0.35f, Y = 0.75f, Z = 0.35f, W = 1.0f });
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
-                    if (ImGui.TreeNodeEx("Requirement title child 1", requirementTreeNodeFlags))
-                    {
-                        ImGui.TextWrapped("Requirement synopsis");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f }, "Min Apoapsis 150.000 m");
-                        ImGui.TextColored(new Brutal.Numerics.float4 {X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f }, "Apoapsis 175.000 m");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f }, "Min Apoapsis 200.000 m");
-                        ImGui.TreePop();
-                    }
-                    ImGui.PopStyleColor(3);
-                        
-                    // ongoing requirement
-                    ImGui.PushStyleColor(ImGuiCol.Header, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f });
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.5f, Z = 0.2f, W = 1.0f });
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f });
-                    if (ImGui.TreeNodeEx("requirement title child 2", requirementTreeNodeFlags))
-                    {
-                        ImGui.TextWrapped("Requirement synopsis, do in order");
-                        ImGui.TextColored(new Brutal.Numerics.float4 {X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f }, "min Perisapsis: 150.000 m");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "Perisapsis: 207.000 m");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "max Perisapsis: 200.000 m");
-                        ImGui.TreePop();
-                    }
-                    ImGui.PopStyleColor(3);
-                    ImGui.TreePop();
-                }
-                ImGui.PopStyleColor(3);
-
-                // locked requirement
-                ImGui.PushStyleColor(ImGuiCol.Header, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.5f, Z = 0.5f, W = 1.0f });
-                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.5f, Z = 0.5f, W = 1.0f });
-                ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.5f, Z = 0.5f, W = 1.0f });
-                if (ImGui.TreeNodeEx("Requirement title 1.3", requirementTreeNodeFlags))
-                {
-                    // TODO: make synopsis grayed out
-                    ImGui.TextWrapped ("Requirement synopsis, do in order");
-                    ImGui.TextDisabled("Min Periapsis 150.0000 m");
-                    ImGui.TextDisabled("Periapsis 207.000 m");
-                    ImGui.TextDisabled("Max Periapsis 200.000 m");
-                    ImGui.TreePop();
-                }
-                ImGui.PopStyleColor(3);
-                ImGui.TreePop();
-            }
-            
-            // Option 2: longer lines with min/max
-            if (ImGui.TreeNodeEx("Contract title 2:", requirementTreeNodeFlags))
-            {
-                if (ImGui.TreeNodeEx("Requirement title 2.1", requirementTreeNodeFlags))
-                {
-                    ImGui.TextWrapped("Requirement synopsis");
-                    ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f }, "min Apoapsis 150.000 < 207.000 < 200.000 m");
-                    ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "min Apoapsis 150.000 < 207.000 < 200.000 m");
-                    ImGui.TextDisabled("Min Periapsis 150.000 < 207.000 < 200.000 m");
-                    if (ImGui.TreeNodeEx("Requirement title child 2.1", requirementTreeNodeFlags))
-                    {
-                        ImGui.TextWrapped("Requirement synopsis");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.4f, Z = 0.1f, W = 1.0f }, "Min Apoapsis 150.000 < 207.000 < 200.000 m");
-                        ImGui.TreePop();
-                    }
-                    if (ImGui.TreeNodeEx("requirement title child 2.2", requirementTreeNodeFlags))
-                    {
-                        ImGui.TextWrapped("Requirement synopsis, do in order");
-                        ImGui.TextColored(new Brutal.Numerics.float4 { X = 0.75f, Y = 0.2f, Z = 0.2f, W = 1.0f }, "Min Periapsis 150.000 < 207.000 < 200.000 m");
-                        ImGui.TreePop();
-                    }
-                    ImGui.TreePop();
-                }
-                ImGui.TreePop();
-            }
+            contractToShowDetails = this._activeContractsWindow.DrawActiveContractsWindow();
         }
-        ImGui.End();  // End of Active Contracts Window
+        if (this._contractManagementWindow != null)
+        {
+            this._contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
+        }
     }
-        
-    // unit-test method to create an example contract and write it to disk
-    private void CreateExample001Contract()
+
+        // unit-test method to create an example contract and write it to disk
+        private void CreateExample001Contract()
     {
         var contractToWrite = new ContractBlueprint.ContractBlueprint
         {

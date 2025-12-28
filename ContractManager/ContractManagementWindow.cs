@@ -25,8 +25,12 @@ namespace ContractManager
             this._finishedContracts = finishedContracts;
         }
 
-        public void DrawContractManagementWindow()
+        public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
         {
+            if (contractToShowDetails != null)
+            {
+                this._contractToShowDetails = contractToShowDetails;
+            }
             // Contract Management Window with two panels: left fixed-width, right flexible
             ImGui.SetNextWindowSizeConstraints(
                 new Brutal.Numerics.float2 { X = 600.0f, Y = 300.0f },
@@ -93,8 +97,8 @@ namespace ContractManager
                         float textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
                         while (textSize > buttonSize.X)
                         {
-                            titleForButton = titleForButton[0..^1];
-                            textSize = ImGui.CalcTextSize(titleForButton + "..").X + style.FramePadding.X * 2.0f;
+                            titleForButton = titleForButton[0..^3] + "..";
+                            textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
                         }
                         if (ImGui.Button(titleForButton, buttonSize))
                         {
@@ -125,7 +129,7 @@ namespace ContractManager
                 Brutal.Numerics.float2 rightPanelRegionSize = ImGui.GetContentRegionAvail();
                 Brutal.Numerics.float2 rightPanelSize = new Brutal.Numerics.float2 { X = 0.0f, Y = rightPanelRegionSize.Y - 35.0f};
                 // Wrap contents in a child to make it scrollable if needed
-                if (ImGui.BeginChild("Contract details: title of contract", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
+                if (ImGui.BeginChild("Contract details", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
                 {
                     if (this._contractToShowDetails != null)
                     {
