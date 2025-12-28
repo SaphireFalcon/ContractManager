@@ -5,10 +5,10 @@ using System.Text;
 
 namespace ContractManager.Contract
 {
-    public static class Utils
+    internal static class ContractUtils
     {
         // Update tracked requirements based on the tracked state (updated through UpdateStateX functions)
-        public static void UpdateTrackedRequirements(List<TrackedRequirement> trackedRequirements)
+        internal static void UpdateTrackedRequirements(List<TrackedRequirement> trackedRequirements)
         {
             // Call update of the requirement
             for (int trackedRequirementIndex = 0; trackedRequirementIndex < trackedRequirements.Count; trackedRequirementIndex++)
@@ -41,7 +41,7 @@ namespace ContractManager.Contract
         }
         
         // Update the tracked state of a tracked requirement using the vehicle data.
-        public static void UpdateStateWithVehicle(in KSA.Vehicle vehicle, List<TrackedRequirement> trackedRequirements) {
+        internal static void UpdateStateWithVehicle(in KSA.Vehicle vehicle, List<TrackedRequirement> trackedRequirements) {
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
             {
                 if (!( trackedRequirement.status is TrackedRequirementStatus.NOT_STARTED or TrackedRequirementStatus.ACHIEVED or TrackedRequirementStatus.FAILED ))
@@ -53,7 +53,7 @@ namespace ContractManager.Contract
         }
 
         // Check the status of all tracked requirements and get worst status.
-        public static TrackedRequirementStatus GetWorstTrackedRequirementStatus(List<TrackedRequirement> trackedRequirements)
+        internal static TrackedRequirementStatus GetWorstTrackedRequirementStatus(List<TrackedRequirement> trackedRequirements)
         {
             TrackedRequirementStatus worstRequirementStatus = TrackedRequirementStatus.ACHIEVED;
             foreach (TrackedRequirement trackedRequirement in trackedRequirements)
@@ -61,7 +61,7 @@ namespace ContractManager.Contract
                 // Check childs
                 // TODO: if (trackedRequirement.type == RequirementType.Group)
                 if (trackedRequirement.trackedRequirements.Count > 0) {
-                    TrackedRequirementStatus worstChildStatus = Utils.GetWorstTrackedRequirementStatus(trackedRequirement.trackedRequirements);
+                    TrackedRequirementStatus worstChildStatus = ContractUtils.GetWorstTrackedRequirementStatus(trackedRequirement.trackedRequirements);
                     if (worstChildStatus < worstRequirementStatus)
                     {
                         worstRequirementStatus = worstChildStatus;
@@ -78,7 +78,7 @@ namespace ContractManager.Contract
         }
 
         // Trigger action of the given type.
-        public static void TriggerAction(in List<ContractBlueprint.Action> actions, ContractBlueprint.Action.TriggerType triggerType) {
+        internal static void TriggerAction(in List<ContractBlueprint.Action> actions, ContractBlueprint.Action.TriggerType triggerType) {
             foreach (ContractBlueprint.Action action in actions) {
                 if (action.trigger == triggerType) {
                     // Do action
