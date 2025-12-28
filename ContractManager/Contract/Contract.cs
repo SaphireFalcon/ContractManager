@@ -106,7 +106,7 @@ namespace ContractManager.Contract
             // Only update if this tracked contract is tracking this vehicle.
             if ( this.trackedVehicleNames.Count > 0 && !this.trackedVehicleNames.Contains(vehicle.Id)) { return; }
 
-            Utils.UpdateStateWithVehicle(in vehicle, this.trackedRequirements);
+            ContractUtils.UpdateStateWithVehicle(in vehicle, this.trackedRequirements);
 
             return;
         }
@@ -123,12 +123,12 @@ namespace ContractManager.Contract
             // TODO: Check if accepted contract expired -> Failed
 
             // Update the tracked requirements, e.g. change the status
-            Utils.UpdateTrackedRequirements(this.trackedRequirements);
+            ContractUtils.UpdateTrackedRequirements(this.trackedRequirements);
 
             // TODO: Add vehicleName to the trackedVehicleNames when the first requirement is achieved
 
             // Update the contract
-            TrackedRequirementStatus worstRequirementStatus = Utils.GetWorstTrackedRequirementStatus(this.trackedRequirements);
+            TrackedRequirementStatus worstRequirementStatus = ContractUtils.GetWorstTrackedRequirementStatus(this.trackedRequirements);
 
             // Do actions
             if (worstRequirementStatus == TrackedRequirementStatus.FAILED)
@@ -178,7 +178,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Failed;
                 this.finishedTimeS = playerTime;
-                Utils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractFail);
+                ContractUtils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractFail);
             }
         }
 
@@ -190,7 +190,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Completed;
                 this.finishedTimeS = playerTime;
-                Utils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractComplete);
+                ContractUtils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractComplete);
             }
         }
         

@@ -258,63 +258,100 @@ namespace ContractManager
             else
             if (this._contractToShowDetails.status == ContractStatus.Accepted || this._contractToShowDetails.status == ContractStatus.Completed)
             {
+                var color = Colors.green;
                 // Show the status of the requirement
-                // TODO: add color!
                 if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
                 {
-                    ImGui.Text(String.Format("Status: Not yet started..."));
+                    color = Colors.gray;
+                    ImGui.TextColored(color, String.Format("Status: Not yet started..."));
                 }
                 else
                 if (trackedRequirement.status == TrackedRequirementStatus.TRACKED)
                 {
-                    ImGui.Text(String.Format("Status: Not yet achieved..."));
+                    color = Colors.orange;
+                    ImGui.TextColored(color, String.Format("Status: Not yet achieved..."));
                 }
                 else
                 if (trackedRequirement.status == TrackedRequirementStatus.MAINTAINED)
                 {
-                    ImGui.Text(String.Format("Status: Maintain until other requirements are achieved."));
+                    color = Colors.yellow;
+                    ImGui.TextColored(color, String.Format("Status: Maintain until other requirements are achieved."));
                 }
                 else
                 if (trackedRequirement.status == TrackedRequirementStatus.ACHIEVED)
                 {
-                    ImGui.Text(String.Format("Status: Achieved!"));
+                    color = Colors.green;
+                    ImGui.TextColored(color, String.Format("Status: Achieved!"));
                 }
                 else
                 if (trackedRequirement.status == TrackedRequirementStatus.FAILED)
                 {
-                    ImGui.Text(String.Format("Status: Failed!"));
+                    color = Colors.red;
+                    ImGui.TextColored(color, String.Format("Status: Failed!"));
                 }
 
                 // Show requirement(s) and current tracked state
                 // Apoapsis
                 if (!Double.IsNaN(requiredOrbit.minApoapsis) && !Double.IsNaN(requiredOrbit.maxApoapsis))
                 {
-                    ImGui.Text(String.Format("Apoapsis {0:F0} < {1:F0} < {2:F0} m altitude", requiredOrbit.minApoapsis, ((TrackedOrbit)trackedRequirement).apoapsis, requiredOrbit.maxApoapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Apoapsis {0} < {1} < {2} altitude",
+                            Utils.FormatDistance(requiredOrbit.minApoapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).apoapsis),
+                            Utils.FormatDistance(requiredOrbit.maxApoapsis)));
                 }
                 else
                 if (!Double.IsNaN(requiredOrbit.minApoapsis))
                 {
-                    ImGui.Text(String.Format("Apoapsis {0:F0} < {1:F0}  m altitude", requiredOrbit.minApoapsis, ((TrackedOrbit)trackedRequirement).apoapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Apoapsis {0} < {1} altitude",
+                            Utils.FormatDistance(requiredOrbit.minApoapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).apoapsis)));
                 }
                 else
                 if (!Double.IsNaN(requiredOrbit.maxApoapsis))
                 {
-                    ImGui.Text(String.Format("Apoapsis {0:F0} > {1:F0} m altitude", requiredOrbit.maxApoapsis, ((TrackedOrbit)trackedRequirement).apoapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Apoapsis {0} > {1} altitude",
+                            Utils.FormatDistance(requiredOrbit.maxApoapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).apoapsis)));
                 }
                 // Periapsis
                 if (!Double.IsNaN(requiredOrbit.minPeriapsis) && !Double.IsNaN(requiredOrbit.maxPeriapsis))
                 {
-                    ImGui.Text(String.Format("Periapsis {0:F0} < {1:F0} < {2:F0} m altitude", requiredOrbit.minPeriapsis, ((TrackedOrbit)trackedRequirement).periapsis, requiredOrbit.maxPeriapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Periapsis {0} < {1} < {2} altitude",
+                            Utils.FormatDistance(requiredOrbit.minPeriapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).periapsis),
+                            Utils.FormatDistance(requiredOrbit.maxPeriapsis)));
                 }
                 else
                 if (!Double.IsNaN(requiredOrbit.minPeriapsis))
                 {
-                    ImGui.Text(String.Format("Periapsis {0:F0} < {1:F0}  m altitude", requiredOrbit.minPeriapsis, ((TrackedOrbit)trackedRequirement).periapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Periapsis {0} < {1} altitude",
+                            Utils.FormatDistance(requiredOrbit.minPeriapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).periapsis)));
                 }
                 else
                 if (!Double.IsNaN(requiredOrbit.maxPeriapsis))
                 {
-                    ImGui.Text(String.Format("Periapsis {0:F0} > {1:F0} m altitude", requiredOrbit.maxPeriapsis, ((TrackedOrbit)trackedRequirement).periapsis));
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Periapsis {0} > {1} altitude",
+                            Utils.FormatDistance(requiredOrbit.maxPeriapsis),
+                            Utils.FormatDistance(((TrackedOrbit)trackedRequirement).periapsis)));
                 }
             }
         }
