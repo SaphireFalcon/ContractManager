@@ -202,7 +202,7 @@ namespace ContractManager
         {
             if (trackedRequirement._blueprintRequirement == null) { return; }
 
-            if (ImGui.TreeNodeEx("Requirement" + trackedRequirement._blueprintRequirement.title, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
+            if (ImGui.TreeNodeEx("Requirement " + trackedRequirement._blueprintRequirement.title, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
             {
                 if (trackedRequirement._blueprintRequirement.synopsis != string.Empty)
                 {
@@ -224,6 +224,23 @@ namespace ContractManager
                 if (trackedRequirement._blueprintRequirement.type == RequirementType.Orbit)
                 {
                     this.DrawRequiredOrbit(trackedRequirement);
+                }
+                else
+                if (trackedRequirement._blueprintRequirement.type == RequirementType.Group)
+                {
+                    
+                    if (this._contractToShowDetails != null && (this._contractToShowDetails.status == ContractStatus.Accepted || this._contractToShowDetails.status == ContractStatus.Completed))
+                    {
+                        this.DrawTrackedRequiredStatus(trackedRequirement.status);
+                    }
+                    if (trackedRequirement._blueprintRequirement.group != null)
+                    {
+                        ImGui.Text(String.Format("Complete {0} of these requirements", trackedRequirement._blueprintRequirement.group.completionCondition));
+                    }
+                    foreach (Contract.TrackedRequirement childTrackedRequirement in ((TrackedGroup)trackedRequirement).trackedRequirements)
+                    {
+                       this.DrawRequirement(childTrackedRequirement);
+                    }
                 }
                 ImGui.TreePop();
             }
@@ -258,39 +275,10 @@ namespace ContractManager
             else
             if (this._contractToShowDetails.status == ContractStatus.Accepted || this._contractToShowDetails.status == ContractStatus.Completed)
             {
-                var color = Colors.green;
-                // Show the status of the requirement
-                if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
-                {
-                    color = Colors.gray;
-                    ImGui.TextColored(color, String.Format("Status: Not yet started..."));
-                }
-                else
-                if (trackedRequirement.status == TrackedRequirementStatus.TRACKED)
-                {
-                    color = Colors.orange;
-                    ImGui.TextColored(color, String.Format("Status: Not yet achieved..."));
-                }
-                else
-                if (trackedRequirement.status == TrackedRequirementStatus.MAINTAINED)
-                {
-                    color = Colors.yellow;
-                    ImGui.TextColored(color, String.Format("Status: Maintain until other requirements are achieved."));
-                }
-                else
-                if (trackedRequirement.status == TrackedRequirementStatus.ACHIEVED)
-                {
-                    color = Colors.green;
-                    ImGui.TextColored(color, String.Format("Status: Achieved!"));
-                }
-                else
-                if (trackedRequirement.status == TrackedRequirementStatus.FAILED)
-                {
-                    color = Colors.red;
-                    ImGui.TextColored(color, String.Format("Status: Failed!"));
-                }
+                this.DrawTrackedRequiredStatus(trackedRequirement.status);
 
                 // Show requirement(s) and current tracked state
+                var color = Colors.GetTrackedRequirementStatusColor(trackedRequirement.status);
                 // Apoapsis
                 if (!Double.IsNaN(requiredOrbit.minApoapsis) && !Double.IsNaN(requiredOrbit.maxApoapsis))
                 {
@@ -356,6 +344,35 @@ namespace ContractManager
             }
         }
 
+        private void DrawTrackedRequiredStatus(Contract.TrackedRequirementStatus status)
+        {
+            var color = Colors.GetTrackedRequirementStatusColor(status);
+            // Show the status of the requirement
+            if (status == TrackedRequirementStatus.NOT_STARTED)
+            {
+                ImGui.TextColored(color, String.Format("Status: Not yet started..."));
+            }
+            else
+            if (status == TrackedRequirementStatus.TRACKED)
+            {
+                ImGui.TextColored(color, String.Format("Status: Not yet achieved..."));
+            }
+            else
+            if (status == TrackedRequirementStatus.MAINTAINED)
+            {
+                ImGui.TextColored(color, String.Format("Status: Maintain until other requirements are achieved."));
+            }
+            else
+            if (status == TrackedRequirementStatus.ACHIEVED)
+            {
+                ImGui.TextColored(color, String.Format("Status: Achieved!"));
+            }
+            else
+            if (status == TrackedRequirementStatus.FAILED)
+            {
+                ImGui.TextColored(color, String.Format("Status: Failed!"));
+            }
+        }
         private void DrawRejectButton()
         {
             if (this._contractToShowDetails == null) { return; }

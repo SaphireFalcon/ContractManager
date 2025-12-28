@@ -195,6 +195,14 @@ namespace ContractManager
                 {
                     this.DrawRequiredOrbit(trackedRequirement);
                 }
+                else
+                if (trackedRequirement._blueprintRequirement.type == RequirementType.Group)
+                {
+                     foreach (Contract.TrackedRequirement childTrackedRequirement in ((TrackedGroup)trackedRequirement).trackedRequirements)
+                     {
+                        this.DrawRequirement(contract, childTrackedRequirement);
+                     }
+                }
                 ImGui.TreePop();
             }
             if (!poppedStyleColor)

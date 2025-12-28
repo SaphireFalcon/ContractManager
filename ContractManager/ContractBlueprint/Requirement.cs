@@ -15,15 +15,15 @@ namespace ContractManager.ContractBlueprint
 
         // The title of the requirement.
         [XmlElement("title")]
-        public string title { get; set; }
+        public string title { get; set; } = string.Empty;
 
         // A brief synopsis of the requirement.
         [XmlElement("synopsis")]
-        public string synopsis { get; set; }
+        public string synopsis { get; set; } = string.Empty;
 
         // Detailed description of the requirement.
         [XmlElement("description")]
-        public string description { get; set; }
+        public string description { get; set; } = string.Empty;
 
         // Flag if the requirement is completed upon achievement.
         [XmlElement("isCompletedOnAchievement")]
@@ -37,18 +37,13 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("completeInOrder")]
         public bool completeInOrder { get; set; } = true;
 
-        // List of child requirements for the contract.
-        [XmlElement("requirements")]
-        public List<Requirement> requirements { get; set; } = new List<Requirement>();
-
-        // Completion condition of the requirement based on its child requirements.
-        [XmlElement("completionCondition")]
-        public CompletionCondition completionCondition { get; set; } = CompletionCondition.All;
-
         // Fields for specific requirement types.
         // type: orbit - field for orbit requirement type.
         [XmlElement("Orbit")]
         public RequiredOrbit? orbit { get; set; } = null;
+
+        [XmlElement("Group")]
+        public RequiredGroup? group { get; set; } = null;
 
         public Requirement() { }
 
@@ -63,12 +58,6 @@ namespace ContractManager.ContractBlueprint
             Console.WriteLine($"{indent}  isCompletedOnAchievement: {isCompletedOnAchievement}");
             Console.WriteLine($"{indent}  isHidden: {isHidden}");
             Console.WriteLine($"{indent}  completeInOrder: {completeInOrder}");
-            Console.WriteLine($"{indent}  completionCondition: {completionCondition}");
-            Console.WriteLine($"{indent}  child requirements: {requirements.Count}");
-            foreach (Requirement requirement in requirements)
-            {
-                requirement.WriteToConsole(hierachyLevel + 1);
-            }
             if (type == RequirementType.Orbit && orbit != null)
             {
                 Console.WriteLine($"{indent}  Required Orbit:");
@@ -78,13 +67,24 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"{indent}    minPeriapsis: {orbit.minPeriapsis}");
                 Console.WriteLine($"{indent}    maxPeriapsis: {orbit.maxPeriapsis}");
             }
+            if (type == RequirementType.Group && group != null)
+            {
+                Console.WriteLine($"{indent}  completionCondition: {group.completionCondition}");
+                Console.WriteLine($"{indent}  child requirements: {group.requirements.Count}");
+                foreach (Requirement requirement in group.requirements)
+                {
+                    requirement.WriteToConsole(hierachyLevel + 1);
+                }
+            }
         }
     }
 
     public enum RequirementType
     {
         [XmlEnum("orbit")]
-        Orbit
+        Orbit,
+        [XmlEnum("group")]
+        Group
     }
 
     public class RequiredOrbit
@@ -112,5 +112,18 @@ namespace ContractManager.ContractBlueprint
         public double maxPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
+    }
+
+    public class RequiredGroup
+    {
+        // Completion condition of the requirement based on its child requirements.
+        [XmlElement("completionCondition")]
+        public CompletionCondition completionCondition { get; set; } = CompletionCondition.All;
+
+        // List of child requirements for the contract.
+        [XmlElement("requirements")]
+        public List<Requirement> requirements { get; set; } = new List<Requirement>();
+
+        public RequiredGroup() { }
     }
 }

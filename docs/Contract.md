@@ -8,13 +8,14 @@ The base xml tag for the contract blueprint is `<Contract>`. The following table
 
 | class variable | xml tag    | description                                 |
 | :------------- | :--------- | :------------------------------------------ |
+| `version`      | `<version>`  | Version of the Contract Manager mod for which this contract was created. | 
 | `uid`          | `<uid>`      | Unique identifier of the contract blueprint | 
 | `title`        | `<title>`    | Title of the contract                       |
 | `synopsis`     | `<synopsis>` | Short summary of the contract               |
 | `description`  | `<description>` | Description of the contract              |
 | `prerequisites` | `<prerequisites>` | Prerequisites for the contract, contains [`Prerequisite`](#prerequisite-class) |
-| `requirements` | `<requirements>` | Requirements for the contract, contains [`Requirement`](#requirement-class)       |
 | `completionCondition` | `<completionCondition>` | Completion condition of the contract based on the requirements. One of [`CompletionConditions`](#completionconditions) |
+| `requirements` | `<requirements>` | Requirements for the contract, contains [`Requirement`](#requirement-class)       |
 | `actions`      | `<actions>`  | Actions to be executed as part of the contract, contains [`Action`](#action-class) |
 
 #### `CompletionConditions`
@@ -76,16 +77,16 @@ The following table describes the mapping between the `Requirement` class variab
 | `isCompletedOnAchievement` | `<isCompletedOnAchievement>` | Flag if the requirement is completed upon achievement. If false, the required condition has to be maintained until the contract or the parent requirement is completed. |
 | `isHidden`   | `<isHidden>` | Flag if the requirement is hidden until previous requirement was achieved. |
 | `completeInOrder` | `<completeInOrder>` | Flag if the requirement can only be completed after previous requirement was achieved. |
-| `requirements` | `<requirements>` | Child requirements for this requirement, contains `Requirement` |
-| `completionCondition` | `<completionCondition>` | Completion condition of the requirement based on the child requirements. One of [`CompletionConditions`](#completionconditions) |
 | | |  Below fields as needed by `RequirementType` |
 | `orbit`       | `<Orbit>`  | Orbit parameters for `orbit` type requirement, contains [`RequiredOrbit`](#requiredorbit-class) |
+| `group`       | `<Group>`  | Group parameters for `group` type requirement, contains [`RequiredGroup`](#requiredgroup-class) |
 
 #### `RequirementType`
 
 The following types are supported:
 
 * `orbit`: Require specific orbit as defined by [`RequiredOrbit`](#requiredorbit-class) to be achieved.
+* `group`: A group of requirements as defined by [`RequiredGroup`](#requiredgroup-class).
 
 More requirement types will be added in the future, such as:
 
@@ -125,11 +126,21 @@ In the future more orbit parameters will be added:
 * `minSemiMajorAxis`: minimum semi major axis (related to Apoapsis and Periapsis)
 * `maxSemiMajorAxis`: maximum semi major axis (related to Apoapsis and Periapsis)
 
+#### `RequiredGroup` Class
+
+A requirement of type `group` holds a list of requirements. Based on the `completionCondition` either any or all of these child requirements need to be completed.
+The following table describes the mapping between the `RequiredGroup` class variables and their corresponding XML tags.
+
+| class variable | xml tag    | description                                 |
+| :------------- | :--------- | :------------------------------------------ |
+| `completionCondition` | `<completionCondition>` | Completion condition of the requirement based on the child requirements. One of [`CompletionConditions`](#completionconditions) |
+| `requirements` | `<requirements>` | Child requirements for this requirement, contains `Requirement` |
+
 ### `Action` Class
 
 The actions to be executed as part of the contract are defined with the `Action` class. Each action is triggered and a certain action is exectuted.
 
-The <actions> tag contains one or more <Action> tags. Each <Action> tag maps to a `Action` class instance. 
+The `<actions>` tag contains one or more `<Action>` tags. Each `<Action>` tag maps to a `Action` class instance. 
 The following table describes the mapping between the `Action` class variables and their corresponding XML tags.
 
 | class variable | xml tag    | description                                 |

@@ -89,12 +89,8 @@ namespace ContractManager.Contract
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
-                // TODO: move this to utils function or `TrackedRequirement.CreateFromBlueprintRequirement` factory function.
                 // Construct a tracked requirement from blueprint.
-                if (blueprintRequirement.type == RequirementType.Orbit)
-                {
-                    this.trackedRequirements.Add(new TrackedOrbit(in blueprintRequirement));
-                }
+                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
             }
         }
 
