@@ -34,6 +34,9 @@ namespace ContractManager
         // List of all loaded contract blueprints
         internal List<ContractBlueprint.ContractBlueprint> contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
 
+        // List of popup(s) to show
+        internal List<GUI.PopupWindow> popupWindows { get; set; } = new List<GUI.PopupWindow>();
+
         private static XmlSerializer _contractManagerDataXmlSerializer = new XmlSerializer(typeof(ContractManagerData));
 
         // Load data from save path.

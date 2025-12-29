@@ -148,7 +148,7 @@ The following table describes the mapping between the `Action` class variables a
 | `trigger`      | `<trigger>` | Trigger for the action. One of [`TriggerType`](#triggertype) |
 | `type`         | `<type>`   | Type of the action to execute. One of [`ActionType`](#actiontype) |
 | | |  Below fields as needed by `ActionType` |
-| `showMessage` | `<showMessage>` | Message to show to the player. Used when `ActionType` is `showMessage`. |
+| `showMessage` | `<showMessage>` | Message to show to the player. Used when `ActionType` is `showMessage` or `showBlockingPopup`. |
 
 #### `TriggerType`
 
@@ -172,6 +172,7 @@ In the futrure more triggers will be added:
 The type of action to be executed. The following action types are supported:
 
 * `showMessage`: Show a message to the player.
+* `showBlockingPopup`: Show a blocking popup message to the player.
 
 In the futrure more triggers will be added in the future, such as:
 * `spawnVessel`: Spawn a vessel.

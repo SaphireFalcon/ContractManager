@@ -5,11 +5,12 @@ namespace ContractManager.ContractBlueprint
 {
     public class Action
     {
-
         public enum ActionType
         {
             [XmlEnum("showMessage")]
-            ShowMessage
+            ShowMessage,
+            [XmlEnum("showBlockingPopup")]
+            ShowBlockingPopup,
         }
 
         public enum TriggerType
@@ -44,18 +45,31 @@ namespace ContractManager.ContractBlueprint
             }
         }
 
-        public void DoAction()
+        public void DoAction(Contract.Contract contract)
         {
             Console.WriteLine($"[CM] DoAction {this.type}");
             if (type == ActionType.ShowMessage) {
-                this.ShowMessage();
+                this.ShowMessage(contract);
+            }
+            if (type == ActionType.ShowBlockingPopup) {
+                this.ShowMessage(contract);
             }
         }
 
         // Actions
-        private void ShowMessage()
+        private void ShowMessage(Contract.Contract contract)
         {
             Console.WriteLine($"[CM] ShowMessage: '{this.showMessage}'");
+            if (contract._contractBlueprint == null) { return; }
+
+            ContractManager.data.popupWindows.Add(
+                new GUI.PopupWindow
+                {
+                    title = contract._contractBlueprint.title,
+                    messageToShow = this.showMessage,
+                    popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
+                }
+            );
         }
     }
 }

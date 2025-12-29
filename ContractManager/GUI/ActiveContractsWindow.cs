@@ -4,9 +4,8 @@ using ContractManager.ContractBlueprint;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static KSA.Rendering.PBR.PushConstants.PBRPushConstants;
 
-namespace ContractManager
+namespace ContractManager.GUI
 {
     internal class ActiveContractsWindow
     {

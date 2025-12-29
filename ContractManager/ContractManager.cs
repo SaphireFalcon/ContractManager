@@ -8,6 +8,7 @@ using System.IO;
 using System.Numerics;
 using System.Xml.Serialization;
 using System.Collections.Generic;
+using ContractManager.GUI;
 
 namespace ContractManager
 {
@@ -49,9 +50,14 @@ public class ContractManager
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
         // Load contracts from disk here
-        var blueprintContract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_002.xml");
-        blueprintContract1.WriteToConsole();
-        ContractManager.data.contractBlueprints.Add(blueprintContract1);
+        string contractsDirectoryPath = @"Content/ContractManager/contracts/";
+        string[] files = Directory.GetFiles(contractsDirectoryPath, "*.xml", SearchOption.AllDirectories);
+        foreach (string file in files)
+        {
+            var blueprintContract = ContractBlueprint.ContractBlueprint.LoadFromFile(file);
+            blueprintContract.WriteToConsole();
+            ContractManager.data.contractBlueprints.Add(blueprintContract);
+        }
 
         // For testing: create and write an example contract to disk
         //Generate.Example002Contract();
@@ -72,6 +78,18 @@ public class ContractManager
         if (this._contractManagementWindow != null)
         {
             this._contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
+        }
+        for (int popupIndex = 0; popupIndex < ContractManager.data.popupWindows.Count; popupIndex++)
+        {
+            if (ContractManager.data.popupWindows[popupIndex].drawPopup)
+            {
+                ContractManager.data.popupWindows[popupIndex].DrawPopup();
+            }
+            else
+            {
+                ContractManager.data.popupWindows.RemoveAt(popupIndex);
+                popupIndex--;
+            }
         }
     }
 
