@@ -34,7 +34,9 @@ namespace ContractManager.Contract
                 {
                     trackedRequirements[trackedRequirementIndex].status = TrackedRequirementStatus.TRACKED;
                 }
-                if (trackedRequirements[trackedRequirementIndex]._blueprintRequirement.type == ContractBlueprint.RequirementType.Group)
+                if (
+                    trackedRequirements[trackedRequirementIndex]._blueprintRequirement != null &&
+                    trackedRequirements[trackedRequirementIndex]._blueprintRequirement.type == ContractBlueprint.RequirementType.Group)
                 {
                     ContractUtils.UpdateTrackedRequirements(((TrackedGroup)trackedRequirements[trackedRequirementIndex]).trackedRequirements);
                 }
@@ -61,6 +63,7 @@ namespace ContractManager.Contract
             {
                 // Check group childs
                 if (
+                    trackedRequirement._blueprintRequirement != null &&
                     trackedRequirement._blueprintRequirement.type == ContractBlueprint.RequirementType.Group &&
                     ((TrackedGroup)trackedRequirement).trackedRequirements.Count > 0)
                 {
@@ -77,6 +80,36 @@ namespace ContractManager.Contract
                 }
             }
             return worstRequirementStatus;
+        }
+
+        internal static ContractBlueprint.ContractBlueprint? FindContractBlueprintFromUID(List<ContractBlueprint.ContractBlueprint> contractBlueprints, string blueprintUID)
+        {
+            bool foundBlueprint = false;
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprints)
+            {
+                foundBlueprint = contractBlueprint.uid == blueprintUID;
+                if (foundBlueprint)
+                {
+                    // Found matching blueprint requirement.
+                    return contractBlueprint;
+                }
+            }
+            return null;
+        }
+
+        internal static ContractBlueprint.Requirement? FindRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements, string requirementUID)
+        {
+            bool foundBlueprintRequirement = false;
+            foreach (ContractBlueprint.Requirement blueprintRequirement in blueprintRequirements)
+            {
+                foundBlueprintRequirement = blueprintRequirement.uid == requirementUID;
+                if (foundBlueprintRequirement)
+                {
+                    // Found matching blueprint requirement.
+                    return blueprintRequirement;
+                }
+            }
+            return null;
         }
 
         // Trigger action of the given type.

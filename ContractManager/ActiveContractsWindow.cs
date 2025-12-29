@@ -4,17 +4,15 @@ using ContractManager.ContractBlueprint;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static KSA.Rendering.PBR.PushConstants.PBRPushConstants;
 
 namespace ContractManager
 {
     internal class ActiveContractsWindow
     {
-        private List<Contract.Contract> _acceptedContracts { get; }
+        private List<Contract.Contract> _acceptedContracts { get { return ContractManager.data.acceptedContracts; } }
 
-        public ActiveContractsWindow(List<Contract.Contract> acceptedContracts)
-        {
-            this._acceptedContracts = acceptedContracts;
-        }
+        public ActiveContractsWindow() { }
 
         public Contract.Contract? DrawActiveContractsWindow()
         {

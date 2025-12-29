@@ -49,32 +49,44 @@ namespace ContractManager.Contract
         // Constructor for XML deserialization.
         public Contract() { }
 
-        // Set blueprint from uid. Used when contract is deserialized from XML. (because the blueprint is not serialized)
-        public bool SetBlueprintFromUID(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
+        // Clone, e.g after deserializing from a stream.
+        internal Contract? Clone(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
         {
-            //  Verify the data loaded.
-            if (this.blueprintUID == string.Empty) { return false; }  // blueprintUID is not set, so cannot set blueprint
-            // Add verification of the status
-            // Add verification of the offered (and other?) time
-
-            bool setBlueprint = this._contractBlueprint == null;
-            if (setBlueprint) { return setBlueprint; }  // already set
-            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprints)
+            Contract clonedContract = new Contract
             {
-                setBlueprint = contractBlueprint.uid == this.blueprintUID;
-                if (setBlueprint)
+                contractUID = this.contractUID,
+                blueprintUID = this.blueprintUID,
+                status = this.status,
+                offeredTimeS = this.offeredTimeS,
+                acceptedTimeS = this.acceptedTimeS,
+                finishedTimeS = this.finishedTimeS
+            };
+            foreach (string trackedVehicleName in trackedVehicleNames)
+            {
+                clonedContract.trackedVehicleNames.Add(trackedVehicleName);
+            }
+            clonedContract._contractBlueprint = ContractUtils.FindContractBlueprintFromUID(contractBlueprints, this.blueprintUID);
+            if (clonedContract._contractBlueprint != null)
+            {
+                foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
                 {
-                    this._contractBlueprint = contractBlueprint;
-                    // Set the tracked requirements.
-                    
-                    foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
-                    {
-                        setBlueprint = trackedRequirement.SetBlueprintRequirementFromUID(contractBlueprint.requirements);
+                    TrackedRequirement? clonedTrackedRequirement = trackedRequirement.Clone(clonedContract._contractBlueprint.requirements);
+                    if (clonedTrackedRequirement != null) {
+                        clonedContract.trackedRequirements.Add(clonedTrackedRequirement);
                     }
-                    break;
+                    else
+                    {
+                        Console.WriteLine($"[CM] [ERROR] Contract could not clone trackedRequirement '{trackedRequirement.requirementUID}'");
+                        return null;
+                    }
                 }
             }
-            return setBlueprint;
+            else
+            {
+                Console.WriteLine($"[CM] [ERROR] Contract could not find ContractBlueprint matching uid '{this.blueprintUID}'");
+                return null;
+            }
+            return clonedContract;
         }
 
         // Constructor to instantiate a contract from a blueprint. Used when a contract is offered.
