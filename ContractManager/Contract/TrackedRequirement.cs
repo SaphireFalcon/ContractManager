@@ -6,22 +6,46 @@ using System.Xml.Serialization;
 
 namespace ContractManager.Contract
 {
+    [XmlInclude(typeof(TrackedGroup)), XmlInclude(typeof(TrackedOrbit))]
     public class TrackedRequirement
     {
         // Internal handle to the blueprint requirement.
-        internal Requirement _blueprintRequirement { get; set; } = null;
+        internal Requirement? _blueprintRequirement { get; set; } = null;
         
         // Serializable fields.
         // Unique identifier which blueprint requirement is being tracked.
         [XmlElement("requirementUID")]
-        public string requirementUID { get; set; }
+        public string requirementUID { get; set; } = String.Empty;
 
         // Status of the tracked requirement.
         [XmlElement("status")]
-        public TrackedRequirementStatus status {  get; set; }
+        public TrackedRequirementStatus status {  get; set; } = TrackedRequirementStatus.NOT_STARTED;
 
         // Constructor, used when deserializing from XML.
         public TrackedRequirement() { }
+
+        // Clone, e.g after deserializing from a stream.
+        internal TrackedRequirement? Clone(List<ContractBlueprint.Requirement> blueprintRequirements)
+        {
+            ContractBlueprint.Requirement? blueprintRequirement = ContractUtils.FindRequirementFromUID(blueprintRequirements, this.requirementUID);
+            if (blueprintRequirement == null)
+            {
+                Console.WriteLine($"[CM] [ERROR] TrackedRequirement could not find blueprint requirement matching uid '{this.requirementUID}'");
+                return null;
+            }
+
+            if (blueprintRequirement.type == RequirementType.Orbit)
+            {
+                return ((TrackedOrbit)this).Clone(blueprintRequirement);
+            }
+            else
+            if (blueprintRequirement.type == RequirementType.Group)
+            {
+                return ((TrackedGroup)this).Clone(blueprintRequirement);
+            }
+            Console.WriteLine($"[CM] [ERROR] Unhandled type: '{blueprintRequirement.type}'");
+            return null;
+        }
 
         // Factory function to create a TrackedRequirement (sub-class types) from a blueprint requirement.
         public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement)
@@ -37,24 +61,6 @@ namespace ContractManager.Contract
                 return new TrackedGroup(blueprintRequirement);
             }
             return new TrackedRequirement(blueprintRequirement); 
-        }
-
-        // Set the blueprintRequirement, used when deserialized from XML.
-        public virtual bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
-        {
-            if (this.requirementUID == string.Empty) { return false; }  // requirementUID is not set, so cannot find matching blueprint requirement.
-            bool setBlueprintRequirement = this._blueprintRequirement == null;
-            if (setBlueprintRequirement) { return setBlueprintRequirement; }  // already set
-            foreach (ContractBlueprint.Requirement blueprintRequirement in blueprintRequirements)
-            {
-                setBlueprintRequirement = blueprintRequirement.uid == this.requirementUID;
-                if (setBlueprintRequirement)
-                {
-                    // Found matching blueprint requirement.
-                    this._blueprintRequirement = blueprintRequirement;
-                }
-            }
-            return setBlueprintRequirement;
         }
 
         // Constructor, used when contract is offered.
@@ -104,6 +110,20 @@ namespace ContractManager.Contract
         public double periapsis { get; set; } = double.NaN;
         // TODO: add all the other ones
         
+        // Constructor, used when deserializing from XML.
+        public TrackedOrbit() { }
+
+        internal TrackedOrbit? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        {
+            TrackedOrbit clonedTrackedOrbut = new TrackedOrbit
+            {
+                requirementUID = this.requirementUID,
+                status = this.status,
+                _blueprintRequirement = blueprintRequirement
+            };
+            return clonedTrackedOrbut;
+        }
+
         public TrackedOrbit(in Requirement requirement) : base(in requirement) { }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
@@ -171,6 +191,31 @@ namespace ContractManager.Contract
         [XmlArray("trackedRequirements")]
         public List<TrackedRequirement> trackedRequirements { get; set; } = new List<TrackedRequirement>();
 
+        public TrackedGroup() { }
+        
+        internal TrackedGroup? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        {
+            TrackedGroup clonedTrackedGroup = new TrackedGroup
+            {
+                requirementUID = this.requirementUID,
+                status = this.status,
+                _blueprintRequirement = blueprintRequirement
+            };
+            foreach (TrackedRequirement childTrackedRequirement in this.trackedRequirements)
+            {
+                TrackedRequirement? clonedTrackedRequirement = childTrackedRequirement.Clone(blueprintRequirement.group.requirements);
+                if (clonedTrackedRequirement != null) {
+                    clonedTrackedGroup.trackedRequirements.Add(clonedTrackedRequirement);
+                }
+                else
+                {
+                    Console.WriteLine($"[CM] [ERROR] TrackedGroup could not clone trackedRequirement '{childTrackedRequirement.requirementUID}'");
+                    return null;
+                }
+            }
+            return clonedTrackedGroup;
+        }
+
         public TrackedGroup(in Requirement requirement) : base(in requirement)
         {
             if (requirement.group == null) { return; }
@@ -178,21 +223,6 @@ namespace ContractManager.Contract
             {
                 this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
             }
-        }
-
-        // Set the blueprintRequirement, used when deserialized from XML.
-        public override bool SetBlueprintRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements)
-        {
-            bool setBlueprintRequirement = base.SetBlueprintRequirementFromUID(blueprintRequirements);
-            //  Set childs
-            if (this._blueprintRequirement.group != null)
-            {
-                foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
-                {
-                    setBlueprintRequirement &= trackedRequirement.SetBlueprintRequirementFromUID(this._blueprintRequirement.group.requirements);
-                }
-            }
-            return setBlueprintRequirement;
         }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)

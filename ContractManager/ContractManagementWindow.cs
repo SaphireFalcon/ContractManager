@@ -12,18 +12,13 @@ namespace ContractManager
     {
         private Contract.Contract? _contractToShowDetails { get; set; } = null;
         
-        private List<Contract.Contract> _offeredContracts { get; }
-        private List<Contract.Contract> _acceptedContracts { get; }
-        private List<Contract.Contract> _finishedContracts { get; }
+        private List<Contract.Contract> _offeredContracts { get { return ContractManager.data.offeredContracts; } }
+        private List<Contract.Contract> _acceptedContracts { get { return ContractManager.data.acceptedContracts; } }
+        private List<Contract.Contract> _finishedContracts { get { return ContractManager.data.finishedContracts; } }
 
         private string _lastActiveTab {  get; set; } = string.Empty;
         
-        public ContractManagementWindow(List<Contract.Contract> offeredContracts, List<Contract.Contract> acceptedContracts, List<Contract.Contract> finishedContracts)
-        {
-            this._offeredContracts = offeredContracts;
-            this._acceptedContracts = acceptedContracts;
-            this._finishedContracts = finishedContracts;
-        }
+        public ContractManagementWindow() { }
 
         public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
         {

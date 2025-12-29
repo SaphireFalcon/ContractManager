@@ -1,5 +1,6 @@
 ﻿using Brutal.ImGuiApi;
 using ContractManager.ContractBlueprint;
+using ContractManager.Patches;
 using KSA;
 using StarMap.API;
 using System;
@@ -13,43 +14,33 @@ namespace ContractManager
 [StarMapMod]
 public class ContractManager
 {
-    // XML serializable fields
-    // List of offered contracts, loaded from save game / file.
-    [XmlElement("offeredContracts")]
-    public List<Contract.Contract> offeredContracts {  get; set; } = new List<Contract.Contract>();
-
-    // List of accepted contracts, loaded from save game / file.
-    [XmlElement("acceptedContracts")]
-    public List<Contract.Contract> acceptedContracts {  get; set; } = new List<Contract.Contract>();
-        
-    // List of finished contracts, loaded from save game / file.
-    [XmlElement("finishedContracts")]
-    public List<Contract.Contract> finishedContracts {  get; set; } = new List<Contract.Contract>();
-
-    // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the launch site management building.
-    [XmlElement("maxNumberOfOfferedContracts")]
-    public int maxNumberOfOfferedContracts { get; set; } = 2;
-    
-    // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the launch site management building.
-    [XmlElement("maxNumberOfAcceptedContracts")]
-    public int maxNumberOfAcceptedContracts { get; set; } = 1;
-
     // Internal fields
     private double _lastUpdateTime = 0.0d;
     private double _updateInterval = 5.0d;
-    // List of all loaded contract blueprints
-    private List<ContractBlueprint.ContractBlueprint> _contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+    public static ContractManagerData data = new ContractManagerData();
         
-    private ActiveContractsWindow? _activeContractsWindow = null;
-    private ContractManagementWindow? _contractManagementWindow = null;
+    private ActiveContractsWindow _activeContractsWindow = new ActiveContractsWindow();
+    private ContractManagementWindow _contractManagementWindow = new ContractManagementWindow();
 
     [StarMapImmediateLoad]
     public void onImmediateLoad(Mod definingMod)
     {
         Console.WriteLine("[CM] 'onImmediateLoad'");
+    }
 
-        this._contractManagementWindow = new ContractManagementWindow(this.offeredContracts, this.acceptedContracts, this.finishedContracts);
-        this._activeContractsWindow = new ActiveContractsWindow(this.acceptedContracts);
+    [StarMapAllModsLoaded]
+    public void OnFullyLoaded()
+    {
+        Console.WriteLine("[CM] OnFullyLoaded");
+        Patches.UniverseDataPatchWriteTo.Patch();
+        Patches.UncompressedSavePatchLoad.Patch();
+    }
+
+    [StarMapUnload]
+    public void Unload()
+    {
+        Patches.UniverseDataPatchWriteTo.Unload();
+        Patches.UncompressedSavePatchLoad.Unload();
     }
 
     [StarMapAllModsLoaded]
@@ -60,7 +51,7 @@ public class ContractManager
         // Load contracts from disk here
         var blueprintContract1 = ContractBlueprint.ContractBlueprint.LoadFromFile("Content/ContractManager/contracts/example_contract_002.xml");
         blueprintContract1.WriteToConsole();
-        this._contractBlueprints.Add(blueprintContract1);
+        ContractManager.data.contractBlueprints.Add(blueprintContract1);
 
         // For testing: create and write an example contract to disk
         //Generate.Example002Contract();
@@ -69,10 +60,6 @@ public class ContractManager
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
-        // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
-        KSA.Vehicle? currentVehicle = Program.ControlledVehicle;
-        double playerTime = Program.GetPlayerTime();
-
         // Update contracts
         this.UpdateContracts();
 
@@ -92,17 +79,19 @@ public class ContractManager
     private void UpdateContracts()
     {
         double playerTime = Program.GetPlayerTime();
+        // Only update on the given interval.
         if (playerTime - this._lastUpdateTime < this._updateInterval) { return; }
 
         this._lastUpdateTime = playerTime;
-        Console.WriteLine($"[CM] Game time: {playerTime}s blueprints {this._contractBlueprints.Count} offered: {this.offeredContracts.Count} accepted: {this.acceptedContracts.Count} finished: {this.finishedContracts.Count}");
+        Console.WriteLine($"[CM] Game time: {playerTime}s blueprints {ContractManager.data.contractBlueprints.Count} offered: {ContractManager.data.offeredContracts.Count} accepted: {ContractManager.data.acceptedContracts.Count} finished: {ContractManager.data.finishedContracts.Count}");
 
         // offer contracts
         this.OfferContracts(playerTime);
 
         // Update accepted contracts
-        KSA.Vehicle currentVehicle = Program.ControlledVehicle;
-        foreach (Contract.Contract acceptedContract in this.acceptedContracts)
+        // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
+        KSA.Vehicle? currentVehicle = Program.ControlledVehicle;
+        foreach (Contract.Contract acceptedContract in ContractManager.data.acceptedContracts)
         {
             if (currentVehicle != null)
             {
@@ -114,16 +103,16 @@ public class ContractManager
                 // Check status and do something with it.
                 if (acceptedContract.status == Contract.ContractStatus.Completed)
                 {
-                    finishedContracts.Add(acceptedContract);
+                    ContractManager.data.finishedContracts.Add(acceptedContract);
                 }
             }
         } 
         // Cleanup accepted contracts
-        for (int acceptedContractIndex = 0; acceptedContractIndex < acceptedContracts.Count; acceptedContractIndex++)
+        for (int acceptedContractIndex = 0; acceptedContractIndex < ContractManager.data.acceptedContracts.Count; acceptedContractIndex++)
         {
-            if (this.acceptedContracts[acceptedContractIndex].status != Contract.ContractStatus.Accepted)
+            if (ContractManager.data.acceptedContracts[acceptedContractIndex].status != Contract.ContractStatus.Accepted)
             {
-                this.acceptedContracts.RemoveAt(acceptedContractIndex);
+                ContractManager.data.acceptedContracts.RemoveAt(acceptedContractIndex);
                 acceptedContractIndex--;
             }
         }
@@ -131,25 +120,25 @@ public class ContractManager
 
     private void OfferContracts(double playerTime)
     {
-        if (this.offeredContracts.Count >= this.maxNumberOfOfferedContracts) { return; }
+        if (ContractManager.data.offeredContracts.Count >= ContractManager.data.maxNumberOfOfferedContracts) { return; }
 
         List<ContractBlueprint.ContractBlueprint> contractBlueprintsToOffer = this.GetContractBlueprintsToOffer();
         Random randomGenerator = new Random();
-        while (contractBlueprintsToOffer.Count + this.offeredContracts.Count > this.maxNumberOfOfferedContracts)
+        while (contractBlueprintsToOffer.Count + ContractManager.data.offeredContracts.Count > ContractManager.data.maxNumberOfOfferedContracts)
         {
             // Randomly select a subset of contracts to be offered
             contractBlueprintsToOffer.RemoveAt(randomGenerator.Next(0, contractBlueprintsToOffer.Count));
         }
         foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprintsToOffer)
         {
-            this.offeredContracts.Add(new Contract.Contract(contractBlueprint, playerTime));
+            ContractManager.data.offeredContracts.Add(new Contract.Contract(contractBlueprint, playerTime));
         }
     }
         
     private List<ContractBlueprint.ContractBlueprint> GetContractBlueprintsToOffer()
     {
         List<ContractBlueprint.ContractBlueprint> contractBlueprintsToOffer = new List<ContractBlueprint.ContractBlueprint>();
-        foreach (ContractBlueprint.ContractBlueprint contractBlueprint in this._contractBlueprints)
+        foreach (ContractBlueprint.ContractBlueprint contractBlueprint in ContractManager.data.contractBlueprints)
         {
             if (this.CanOfferContractFromBlueprint(in contractBlueprint))
             {
@@ -164,12 +153,12 @@ public class ContractManager
         bool canOfferContract = true;
         foreach (ContractBlueprint.Prerequisite prerequisite in contractBlueprint.prerequisites)
         {
-            if (prerequisite.type == PrerequisiteType.MaxNumOfferedContracts && this.offeredContracts.Count >= prerequisite.maxNumOfferedContracts)
+            if (prerequisite.type == PrerequisiteType.MaxNumOfferedContracts && ContractManager.data.offeredContracts.Count >= prerequisite.maxNumOfferedContracts)
             {
                 canOfferContract = false;
                 break;
             }
-            if (prerequisite.type == PrerequisiteType.MaxNumAcceptedContracts && this.acceptedContracts.Count >= prerequisite.maxNumAcceptedContracts)
+            if (prerequisite.type == PrerequisiteType.MaxNumAcceptedContracts && ContractManager.data.acceptedContracts.Count >= prerequisite.maxNumAcceptedContracts)
             {
                 canOfferContract = false;
                 break;
