@@ -162,7 +162,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Accepted;
                 this.acceptedTimeS = playerTime;
-                // Utils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractAccept);
+                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractAccept);
             }
         }
         
@@ -174,7 +174,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Rejected;
                 this.finishedTimeS = playerTime;
-                // Utils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractReject);
+                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractReject);
             }
         }
 
@@ -186,7 +186,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Failed;
                 this.finishedTimeS = playerTime;
-                ContractUtils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractFail);
+                ContractUtils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractFail);
             }
         }
 
@@ -198,7 +198,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Completed;
                 this.finishedTimeS = playerTime;
-                ContractUtils.TriggerAction(this._contractBlueprint.actions, ContractBlueprint.Action.TriggerType.OnContractComplete);
+                ContractUtils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractComplete);
             }
         }
         

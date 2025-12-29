@@ -113,10 +113,11 @@ namespace ContractManager.Contract
         }
 
         // Trigger action of the given type.
-        internal static void TriggerAction(in List<ContractBlueprint.Action> actions, ContractBlueprint.Action.TriggerType triggerType) {
-            foreach (ContractBlueprint.Action action in actions) {
+        internal static void TriggerAction(Contract contract, ContractBlueprint.Action.TriggerType triggerType) {
+            if (contract._contractBlueprint == null) {  return; }
+            foreach (ContractBlueprint.Action action in contract._contractBlueprint.actions) {
                 if (action.trigger == triggerType) {
-                    // Do action
+                    action.DoAction(contract);
                 }
             }
         }
