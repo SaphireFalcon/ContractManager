@@ -9,11 +9,11 @@ namespace ContractManager.ContractBlueprint
         // Details of the contract
         // The version for which the contract was created.
         [XmlElement("version")]
-        public string version {  get; set; } = "0.0.1";
+        public string version { get; set; } = ContractManager.version;
 
         // The unique identifier for the contract
         [XmlElement("uid")]
-        public string uid {  get; set;  }
+        public string uid { get; set; }
 
         // The title of the contract
         [XmlElement("title")]

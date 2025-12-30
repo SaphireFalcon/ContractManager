@@ -201,8 +201,6 @@ namespace ContractManager.Contract
                 ContractUtils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractComplete);
             }
         }
-        
-        // TODO: Add GUI function(s) here
     }
     
     public enum ContractStatus

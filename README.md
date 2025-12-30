@@ -6,18 +6,34 @@ For modders, it provides a flexible API to create custom contracts and objective
 
 Finally, the end-goals of this mod are:
 - To create an intuitive and user-friendly interface for managing contracts.
-- To create a variety of community-driven contract to keep gameplay engaging and guide players beyond sending a rocket to space.
+- To create a variety of community-driven contracts to keep game-play engaging and guide players beyond sending a rocket to space.
 - To create a campaign mode where players can take on a series of contracts with increasing difficulty and complexity.
 
 ### Currently implemented features:
-- None yet, stay tuned! This mod is still in early development and not released.
+- Contract Manager Window to show offered, accepted and finished contracts and their details.
+- Active Contracts Window to show the tracked requirements for the accepted contracts to achieve.
+- Save/Load contract manager state with in-game save/load feature.
+- Additional contracts can be created by adding them to the contracts folder
+
+### Incomplete features:
+- Contract blueprints have a (very) incomplete set of features for prerequisites, requirements and actions.
+- Very simplistic example contracts.
+- Loading contracts from other mods.
 
 ### Far future features/ideas:
 - Multiplayer support for cooperative and competitive contract completion.
-- Have (multi-)player and AI-controlled space agencies that can compete, accept and complete contracts. (spacerace!!!)
+- Have (multi-)player and AI-controlled space agencies that can compete, accept and complete contracts. (space race!!!)
 - Have non-space agencies that will offer commercial contracts that can influence the KSA economy and reputation system.
 
 **Additional ideas and suggestions are welcome!**
+
+## Dependencies
+
+- [StarMap v0.3.6](https://github.com/StarMapLoader/StarMap/releases/tag/0.3.6)
+
+## How to install
+
+Follow the [StarMap
 
 ## API References:
 * [Contracts](docs/Contract.md)

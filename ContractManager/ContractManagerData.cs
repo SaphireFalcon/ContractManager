@@ -10,17 +10,21 @@ namespace ContractManager
     public class ContractManagerData
     {
         // XML serializable fields
+        // The version for which the data was saved.
+        [XmlElement("version")]
+        public string version { get; set; } = ContractManager.version;
+
         // List of offered contracts, loaded from save game / file.
         [XmlElement("offeredContracts")]
-        public List<Contract.Contract> offeredContracts {  get; set; } = new List<Contract.Contract>();
+        public List<Contract.Contract> offeredContracts { get; set; } = new List<Contract.Contract>();
 
         // List of accepted contracts, loaded from save game / file.
         [XmlElement("acceptedContracts")]
-        public List<Contract.Contract> acceptedContracts {  get; set; } = new List<Contract.Contract>();
+        public List<Contract.Contract> acceptedContracts { get; set; } = new List<Contract.Contract>();
         
         // List of finished contracts, loaded from save game / file.
         [XmlElement("finishedContracts")]
-        public List<Contract.Contract> finishedContracts {  get; set; } = new List<Contract.Contract>();
+        public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
 
         // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the launch site management building.
         [XmlElement("maxNumberOfOfferedContracts")]

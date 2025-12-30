@@ -95,7 +95,7 @@ namespace ContractManager.Contract
         [XmlEnum("TRACKED")]
         TRACKED = 2,  // Tracked until maintained, achieved, or failed.
         [XmlEnum("MAINTAINED")]
-        MAINTAINED = 3,  // Achieved, but tneed to hold the requirements until other requirements are achieved.
+        MAINTAINED = 3,  // Achieved, but need to hold the requirements until other requirements are achieved.
         [XmlEnum("ACHIEVED")]
         ACHIEVED = 4  // Achieved, final state
     }
