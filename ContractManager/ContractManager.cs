@@ -15,6 +15,9 @@ namespace ContractManager
 [StarMapMod]
 public class ContractManager
 {
+    // Version to be used across the code.
+    public static readonly string version = "0.0.1";
+
     // Internal fields
     private double _lastUpdateTime = 0.0d;
     private double _updateInterval = 5.0d;
