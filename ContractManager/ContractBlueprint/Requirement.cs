@@ -41,7 +41,8 @@ namespace ContractManager.ContractBlueprint
         // type: orbit - field for orbit requirement type.
         [XmlElement("Orbit")]
         public RequiredOrbit? orbit { get; set; } = null;
-
+        
+        // type: group - field for group requirement type.
         [XmlElement("Group")]
         public RequiredGroup? group { get; set; } = null;
 
