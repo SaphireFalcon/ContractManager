@@ -1,12 +1,13 @@
-﻿using System.Xml.Serialization;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Xml.Serialization;
 
 namespace ContractManager.ContractBlueprint
 {
     public class Requirement
     {
         // The unique identifier for the requirement.
-        [XmlElement("uid")]
+        [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
 
         // Type of the requirement.
@@ -14,27 +15,27 @@ namespace ContractManager.ContractBlueprint
         public RequirementType type { get; set; }
 
         // The title of the requirement.
-        [XmlElement("title")]
+        [XmlElement("title", DataType = "string")]
         public string title { get; set; } = string.Empty;
 
         // A brief synopsis of the requirement.
-        [XmlElement("synopsis")]
+        [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; } = string.Empty;
 
         // Detailed description of the requirement.
-        [XmlElement("description")]
+        [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
 
         // Flag if the requirement is completed upon achievement.
-        [XmlElement("isCompletedOnAchievement")]
+        [XmlElement("isCompletedOnAchievement", DataType = "boolean")]
         public bool isCompletedOnAchievement { get; set; } = true;
 
         // Flag if the requirement is hidden until previous requirement was achieved.
-        [XmlElement("isHidden")]
+        [XmlElement("isHidden", DataType = "boolean")]
         public bool isHidden { get; set; } = false;
 
         // Flag if the requirement can only be completed after previous requirement was achieved.
-        [XmlElement("completeInOrder")]
+        [XmlElement("completeInOrder", DataType = "boolean")]
         public bool completeInOrder { get; set; } = true;
 
         // Fields for specific requirement types.
@@ -93,23 +94,23 @@ namespace ContractManager.ContractBlueprint
         // Fields needed for the orbit requirement type.
 
         // The celestial body to orbit.
-        [XmlElement("targetBody")]
+        [XmlElement("targetBody", DataType = "string")]
         public string targetBody { get; set; } = string.Empty;
 
         // minimum apoapsis altitude in meters.
-        [XmlElement("minApoapsis")]
+        [XmlElement("minApoapsis", DataType = "double")]
         public double minApoapsis { get; set; } = double.NaN;
 
         // maximum apoapsis altitude in meters.
-        [XmlElement("maxApoapsis")]
+        [XmlElement("maxApoapsis", DataType = "double")]
         public double maxApoapsis { get; set; } = double.NaN;
 
         // minimum periapsis altitude in meters.
-        [XmlElement("minPeriapsis")]
+        [XmlElement("minPeriapsis", DataType = "double")]
         public double minPeriapsis { get; set; } = double.NaN;
 
         // maximum periapsis altitude in meters.
-        [XmlElement("maxPeriapsis")]
+        [XmlElement("maxPeriapsis", DataType = "double")]
         public double maxPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }

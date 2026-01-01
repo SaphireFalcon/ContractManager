@@ -16,11 +16,11 @@ namespace ContractManager.Contract
 
         // Serializable fields.
         // Unique identifier for the contract.
-        [XmlElement("contractUID")]
+        [XmlElement("contractUID", DataType = "string")]
         public string contractUID { get; set; } = string.Empty;
 
         // Unique identifier for which blueprint the contract was instantiated from.
-        [XmlElement("blueprintUID")]
+        [XmlElement("blueprintUID", DataType = "string")]
         public string blueprintUID { get; set; } = string.Empty;
         
         // Status of the contract.
@@ -28,13 +28,13 @@ namespace ContractManager.Contract
         public ContractStatus status { get; set; }
         
         // In-game (player) time when contract was offered.
-        [XmlElement("offeredTime")]
+        [XmlElement("offeredTime", DataType = "double")]
         public double offeredTimeS { get; set; }
         // In-game (player) time when contract was accepted.
-        [XmlElement("acceptedTime")]
+        [XmlElement("acceptedTime", DataType = "double")]
         public double acceptedTimeS { get; set; }
         // In-game (player) time when contract was finished, i.e. rejected, completed or failed .
-        [XmlElement("finishedTime")]
+        [XmlElement("finishedTime", DataType = "double")]
         public double finishedTimeS { get; set; }
 
         // list of tracked requirements
