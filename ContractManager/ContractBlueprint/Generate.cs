@@ -61,14 +61,14 @@ namespace ContractManager.ContractBlueprint
             
             contractToWrite.actions.Add(new Action
             {
-                trigger = Action.TriggerType.OnContractComplete,
-                type = Action.ActionType.ShowMessage,
+                trigger = TriggerType.OnContractComplete,
+                type = ActionType.ShowMessage,
                 showMessage = "Congratulations! You pounced the example contract."
             });
             contractToWrite.actions.Add(new Action
             {
-                trigger = Action.TriggerType.OnContractFail,
-                type = Action.ActionType.ShowMessage,
+                trigger = TriggerType.OnContractFail,
+                type = ActionType.ShowMessage,
                 showMessage = "Keep persevering; The road to success is pawed with failure."
             });
 
@@ -171,14 +171,14 @@ namespace ContractManager.ContractBlueprint
             
             contractToWrite.actions.Add(new Action
             {
-                trigger = Action.TriggerType.OnContractComplete,
-                type = Action.ActionType.ShowMessage,
+                trigger = TriggerType.OnContractComplete,
+                type = ActionType.ShowMessage,
                 showMessage = "Congratulations! You pounced the example contract."
             });
             contractToWrite.actions.Add(new Action
             {
-                trigger = Action.TriggerType.OnContractFail,
-                type = Action.ActionType.ShowMessage,
+                trigger = TriggerType.OnContractFail,
+                type = ActionType.ShowMessage,
                 showMessage = "Keep persevering; The road to success is pawed with failure."
             });
 

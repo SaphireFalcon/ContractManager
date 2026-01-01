@@ -113,7 +113,7 @@ namespace ContractManager.Contract
         }
 
         // Trigger action of the given type.
-        internal static void TriggerAction(Contract contract, ContractBlueprint.Action.TriggerType triggerType) {
+        internal static void TriggerAction(Contract contract, ContractBlueprint.TriggerType triggerType) {
             if (contract._contractBlueprint == null) {  return; }
             foreach (ContractBlueprint.Action action in contract._contractBlueprint.actions) {
                 if (action.trigger == triggerType) {

@@ -5,22 +5,6 @@ namespace ContractManager.ContractBlueprint
 {
     public class Action
     {
-        public enum ActionType
-        {
-            [XmlEnum("showMessage")]
-            ShowMessage,
-            [XmlEnum("showBlockingPopup")]
-            ShowBlockingPopup,
-        }
-
-        public enum TriggerType
-        {
-            [XmlEnum("onContractComplete")]
-            OnContractComplete,
-            [XmlEnum("onContractFail")]
-            OnContractFail
-        }
-
         // The trigger of the action.
         [XmlElement("trigger")]
         public TriggerType trigger { get; set; }
@@ -71,5 +55,21 @@ namespace ContractManager.ContractBlueprint
                 }
             );
         }
+    }
+
+    public enum ActionType
+    {
+        [XmlEnum("showMessage")]
+        ShowMessage,
+        [XmlEnum("showBlockingPopup")]
+        ShowBlockingPopup,
+    }
+
+    public enum TriggerType
+    {
+        [XmlEnum("onContractComplete")]
+        OnContractComplete,
+        [XmlEnum("onContractFail")]
+        OnContractFail
     }
 }
