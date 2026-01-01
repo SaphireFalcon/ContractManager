@@ -12,11 +12,11 @@ namespace ContractManager.ContractBlueprint
 
         // Fields for specific prerequisite types.
         // type: maxNumOfferedContracts - offer contract if number of offered contracts is less than this number.
-        [XmlElement("maxNumOfferedContracts")]
+        [XmlElement("maxNumOfferedContracts", DataType = "unsignedInt")]
         public uint maxNumOfferedContracts { get; set; } = uint.MaxValue;
 
         // type: maxNumAcceptedContracts  - offer contract if number of accept contracts is less than this number.
-        [XmlElement("maxNumAcceptedContracts")]
+        [XmlElement("maxNumAcceptedContracts", DataType = "unsignedInt")]
         public uint maxNumAcceptedContracts { get; set; } = uint.MaxValue;
 
         public Prerequisite() { }

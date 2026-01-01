@@ -31,7 +31,7 @@ namespace ContractManager.ContractBlueprint
 
         // Fields for specific action types.
         // type: [ShowMessage, ShowBlockingPopup] - message to show when triggered.
-        [XmlElement("showMessage")]
+        [XmlElement("showMessage", DataType = "string")]
         public string showMessage { get; set; }
 
         public Action() { }

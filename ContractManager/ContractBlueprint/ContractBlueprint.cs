@@ -8,23 +8,23 @@ namespace ContractManager.ContractBlueprint
     {
         // Details of the contract
         // The version for which the contract was created.
-        [XmlElement("version")]
+        [XmlElement("version", DataType = "string")]
         public string version { get; set; } = ContractManager.version;
 
         // The unique identifier for the contract
-        [XmlElement("uid")]
+        [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
 
         // The title of the contract
-        [XmlElement("title")]
+        [XmlElement("title", DataType = "string")]
         public string title { get; set; }
 
         // A brief synopsis of the contract
-        [XmlElement("synopsis")]
+        [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; }
 
         // Detailed description of the contract
-        [XmlElement("description")]
+        [XmlElement("description", DataType = "string")]
         public string description { get; set; }
 
         // List of prerequisites for the contract
