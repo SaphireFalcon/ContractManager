@@ -16,7 +16,7 @@ namespace ContractManager.ContractBlueprint
         // Fields for specific action types.
         // type: [ShowMessage, ShowBlockingPopup] - message to show when triggered.
         [XmlElement("showMessage", DataType = "string")]
-        public string showMessage { get; set; }
+        public string showMessage { get; set; } = string.Empty;
 
         public Action() { }
 
@@ -54,6 +54,17 @@ namespace ContractManager.ContractBlueprint
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
             );
+        }
+
+        internal bool Validate()
+        {
+            if ((type is ActionType.ShowMessage or ActionType.ShowBlockingPopup) && String.IsNullOrEmpty(this.showMessage))
+            {
+                Console.WriteLine($"[CM] [WARNING] action type = '{type}' `showMessage` field can't be empty.");
+                return false;
+            }
+            // ActionType and TriggerType don't need to be validated loading XML will throw an exception.
+            return true;
         }
     }
 

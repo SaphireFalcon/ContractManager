@@ -15,7 +15,7 @@ namespace ContractManager.Contract
         // Serializable fields.
         // Unique identifier which blueprint requirement is being tracked.
         [XmlElement("requirementUID", DataType = "string")]
-        public string requirementUID { get; set; } = String.Empty;
+        public string requirementUID { get; set; } = string.Empty;
 
         // Status of the tracked requirement.
         [XmlElement("status")]
