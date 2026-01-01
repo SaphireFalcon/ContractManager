@@ -186,7 +186,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Failed;
                 this.finishedTimeS = playerTime;
-                ContractUtils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractFail);
+                ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractFail);
             }
         }
 
@@ -198,7 +198,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Completed;
                 this.finishedTimeS = playerTime;
-                ContractUtils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractComplete);
+                ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractComplete);
             }
         }
     }
