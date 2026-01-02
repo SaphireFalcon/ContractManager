@@ -27,6 +27,14 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
 
+        // When an offered contract will expired, in seconds
+        [XmlElement("expiration", DataType = "double")]
+        public double expiration { get; set; } = double.PositiveInfinity;  // Never expires
+
+        // Flag if an offered contract from this blueprint can be rejected.
+        [XmlElement("isRejectable", DataType = "boolean")]
+        public bool isRejectable { get; set; } = true;
+
         // List of prerequisites for the contract
         [XmlArray("prerequisites")]
         public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();

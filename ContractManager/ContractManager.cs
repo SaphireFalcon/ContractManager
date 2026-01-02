@@ -20,7 +20,7 @@ public class ContractManager
 
     // Internal fields
     private double _lastUpdateTime = 0.0d;
-    private double _updateInterval = 5.0d;
+    private double _updateInterval = 1.0d; // once per second.
     public static ContractManagerData data = new ContractManagerData();
         
     private ActiveContractsWindow _activeContractsWindow = new ActiveContractsWindow();
@@ -91,15 +91,30 @@ public class ContractManager
     // Contract Management back-end functions
     private void UpdateContracts()
     {
+        KSA.SimTime simTime = Universe.GetElapsedSimTime();
         double playerTime = Program.GetPlayerTime();
         // Only update on the given interval.
         if (playerTime - this._lastUpdateTime < this._updateInterval) { return; }
 
         this._lastUpdateTime = playerTime;
-        Console.WriteLine($"[CM] Game time: {playerTime}s blueprints {ContractManager.data.contractBlueprints.Count} offered: {ContractManager.data.offeredContracts.Count} accepted: {ContractManager.data.acceptedContracts.Count} finished: {ContractManager.data.finishedContracts.Count}");
 
         // offer contracts
-        this.OfferContracts(playerTime);
+        this.OfferContracts(simTime);
+        // Update offered contracts (to be expired)
+        foreach (Contract.Contract offeredContract in ContractManager.data.offeredContracts)
+        {
+            offeredContract.Update(simTime);
+            // Rejected / Expired contracts don't need to be added to finished contracts.
+        }
+        // Cleanup accepted contracts
+        for (int offeredContractIndex = 0; offeredContractIndex < ContractManager.data.offeredContracts.Count; offeredContractIndex++)
+        {
+            if (ContractManager.data.offeredContracts[offeredContractIndex].status != Contract.ContractStatus.Offered)
+            {
+                ContractManager.data.offeredContracts.RemoveAt(offeredContractIndex);
+                offeredContractIndex--;
+            }
+        }
 
         // Update accepted contracts
         // Access the controlled vehicle, needed for periapsis/apoapsis checks etc.
@@ -110,7 +125,7 @@ public class ContractManager
             {
                 acceptedContract.UpdateStateWithVehicle(currentVehicle);
             }
-            bool statusUpdated = acceptedContract.Update(playerTime);
+            bool statusUpdated = acceptedContract.Update(simTime);
             if (statusUpdated)
             {
                 // Check status and do something with it.
@@ -131,7 +146,7 @@ public class ContractManager
         }
     }
 
-    private void OfferContracts(double playerTime)
+    private void OfferContracts(KSA.SimTime simTime)
     {
         if (ContractManager.data.offeredContracts.Count >= ContractManager.data.maxNumberOfOfferedContracts) { return; }
 
@@ -144,7 +159,7 @@ public class ContractManager
         }
         foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprintsToOffer)
         {
-            ContractManager.data.offeredContracts.Add(new Contract.Contract(contractBlueprint, playerTime));
+            ContractManager.data.offeredContracts.Add(new Contract.Contract(contractBlueprint, simTime));
         }
     }
         
