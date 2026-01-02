@@ -52,15 +52,7 @@ public class ContractManager
     {
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
-        // Load contracts from disk here
-        string contractsDirectoryPath = @"Content/ContractManager/contracts/";
-        string[] files = Directory.GetFiles(contractsDirectoryPath, "*.xml", SearchOption.AllDirectories);
-        foreach (string file in files)
-        {
-            var blueprintContract = ContractBlueprint.ContractBlueprint.LoadFromFile(file);
-            blueprintContract.WriteToConsole();
-            ContractManager.data.contractBlueprints.Add(blueprintContract);
-        }
+        this.LoadContractBlueprints();
 
         // For testing: create and write an example contract to disk
         //Generate.Example002Contract();
@@ -187,6 +179,32 @@ public class ContractManager
             // TODO: Add a check if the contract was recently offered and rejected.
         }
         return canOfferContract;
+    }
+
+    private void LoadContractBlueprints()
+    {
+        // Load contracts from disk here
+        string contractsDirectoryPath = @"Content/ContractManager/contracts/";
+        string[] files = Directory.GetFiles(contractsDirectoryPath, "*.xml", SearchOption.AllDirectories);
+        foreach (string file in files)
+        {
+            try
+            {
+                var blueprintContract = ContractBlueprint.ContractBlueprint.LoadFromFile(file);
+                if (blueprintContract.Validate())
+                {
+                    ContractManager.data.contractBlueprints.Add(blueprintContract);
+                }
+                else
+                {
+                    Console.WriteLine($"[CM] [WARNING] blueprint '{blueprintContract.title}' won't be loaded do to validation error(s).");
+                }
+            }
+            catch (InvalidOperationException exception)
+            {
+                Console.WriteLine($"[CM] [WARNING] blueprint '{file}' won't be loaded do to loading error:\n{exception.Message}");
+            }
+        }
     }
 }
 

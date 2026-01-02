@@ -5,6 +5,8 @@
 ### Added
 
 - Add typing for the supported primitives for XML serialization. (#66)
+- Add validation methods to contract blueprint and fields. (#68)
+- Add try-catch to catch XML serialization errors. (#68)
 
 ### Changes
 

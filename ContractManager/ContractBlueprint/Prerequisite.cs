@@ -32,6 +32,13 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"  - Require less than {maxNumAcceptedContracts} accepted contracts");
             }
         }
+
+        internal bool Validate()
+        {
+            // nothing to validate.
+            // PrerequisiteType doesn't need to be validated, loading XML will throw an exception.
+            return true;
+        }
     }
 
     public enum PrerequisiteType

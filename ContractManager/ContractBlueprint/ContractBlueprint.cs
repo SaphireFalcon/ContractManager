@@ -21,11 +21,11 @@ namespace ContractManager.ContractBlueprint
 
         // A brief synopsis of the contract
         [XmlElement("synopsis", DataType = "string")]
-        public string synopsis { get; set; }
+        public string synopsis { get; set; } = string.Empty;
 
         // Detailed description of the contract
         [XmlElement("description", DataType = "string")]
-        public string description { get; set; }
+        public string description { get; set; } = string.Empty;
 
         // List of prerequisites for the contract
         [XmlArray("prerequisites")]
@@ -89,6 +89,49 @@ namespace ContractManager.ContractBlueprint
             {
                 return (ContractBlueprint)serializer.Deserialize(reader);
             }
+        }
+
+        internal bool Validate()
+        {
+            // Validate the contract blueprint.
+            // The title can't be empty
+            if (String.IsNullOrEmpty(this.title))
+            {
+                Console.WriteLine("[CM] [WARNING] blueprint title has be to be defined.");
+                return false;
+            }
+            // The uid can't be empty
+            if (String.IsNullOrEmpty(this.uid))
+            {
+                Console.WriteLine("[CM] [WARNING] blueprint uid has be to be defined.");
+                return false;
+            }
+            // It should have at least one prerequisite to know when to offer a contract from the blueprint
+            if (this.prerequisites.Count == 0)
+            {
+                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                return false;
+            }
+            // It should have at least one requirement to know when to the contract should be completed.
+            if (this.requirements.Count == 0)
+            {
+                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                return false;
+            }
+            foreach (var prerequisite in prerequisites)
+            {
+                if (!prerequisite.Validate()) { return false; }
+            }
+            foreach (var requirement in requirements)
+            {
+                if (!requirement.Validate()) { return false; }
+            }
+            foreach (var action in actions)
+            {
+                if (!action.Validate()) { return false; }
+            }
+
+            return true;
         }
     }
 

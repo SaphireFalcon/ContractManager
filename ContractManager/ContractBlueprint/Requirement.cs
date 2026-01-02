@@ -16,7 +16,7 @@ namespace ContractManager.ContractBlueprint
 
         // The title of the requirement.
         [XmlElement("title", DataType = "string")]
-        public string title { get; set; } = string.Empty;
+        public string title { get; set; }
 
         // A brief synopsis of the requirement.
         [XmlElement("synopsis", DataType = "string")]
@@ -79,6 +79,46 @@ namespace ContractManager.ContractBlueprint
                 }
             }
         }
+
+        internal bool Validate()
+        {
+            // The title can't be empty
+            if (String.IsNullOrEmpty(this.title))
+            {
+                Console.WriteLine("[CM] [WARNING] requirement title has be to be defined.");
+                return false;
+            }
+            // The uid can't be empty
+            if (String.IsNullOrEmpty(this.uid))
+            {
+                Console.WriteLine("[CM] [WARNING] requirement uid has be to be defined.");
+                return false;
+            }
+            // Validate type and their fields.
+            if (type == RequirementType.Group && this.group == null)
+            {
+                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `group` field can't be empty.");
+                return false;
+            }
+            else
+            if (type == RequirementType.Orbit && this.orbit == null)
+            {
+                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `orbit` field can't be empty.");
+                return false;
+            }
+            if (type == RequirementType.Group && !this.group.Validate())
+            {
+                return false;
+            }
+            else
+            if (type == RequirementType.Orbit && !this.orbit.Validate())
+            {
+                return false;
+            }
+
+            // RequirementType doesn't need to be validated, loading XML will throw an exception.
+            return true;
+        }
     }
 
     public enum RequirementType
@@ -114,6 +154,27 @@ namespace ContractManager.ContractBlueprint
         public double maxPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
+        
+        internal bool Validate()
+        {
+            // The targetBody can't be empty
+            if (String.IsNullOrEmpty(this.targetBody))
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits targetBody has be to be defined.");
+                return false;
+            }
+            if (this.minApoapsis > this.maxApoapsis)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min Apoapsis has to be larger than max Apoapsis.");
+                return false;
+            }
+            if (this.minPeriapsis > this.maxPeriapsis)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min Periapsis has to be larger than max Apoapsis.");
+                return false;
+            }
+            return true;
+        }
     }
 
     public class RequiredGroup
@@ -127,5 +188,14 @@ namespace ContractManager.ContractBlueprint
         public List<Requirement> requirements { get; set; } = new List<Requirement>();
 
         public RequiredGroup() { }
+
+        internal bool Validate()
+        {
+            bool isValidated = true;
+            foreach (Requirement requirement in requirements) {
+                isValidated &= requirement.Validate();
+            }
+            return isValidated;
+        }
     }
 }
