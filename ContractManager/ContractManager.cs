@@ -129,7 +129,7 @@ public class ContractManager
             if (statusUpdated)
             {
                 // Check status and do something with it.
-                if (acceptedContract.status == Contract.ContractStatus.Completed)
+                if (acceptedContract.status is Contract.ContractStatus.Completed or Contract.ContractStatus.Failed)
                 {
                     ContractManager.data.finishedContracts.Add(acceptedContract);
                 }
@@ -151,10 +151,37 @@ public class ContractManager
         if (ContractManager.data.offeredContracts.Count >= ContractManager.data.maxNumberOfOfferedContracts) { return; }
 
         List<ContractBlueprint.ContractBlueprint> contractBlueprintsToOffer = this.GetContractBlueprintsToOffer();
+
+        // Auto-accept contracts when told to do so.
+        for ( int contractBlueprintIndex = 0; contractBlueprintIndex < contractBlueprintsToOffer.Count; contractBlueprintIndex++ ) {
+            if (contractBlueprintsToOffer[contractBlueprintIndex].isAutoAccepted)
+            {
+                // TODO: make sure that this contract is not offered multiple times after completing.
+                Contract.Contract? alreadyExistingAcceptedContract = Contract.ContractUtils.FindContractFromUID(
+                    ContractManager.data.acceptedContracts,
+                    contractBlueprintsToOffer[contractBlueprintIndex].uid);
+                if (alreadyExistingAcceptedContract != null)
+                {
+                    // already accepted, don't offer and autoaccept again
+                    contractBlueprintsToOffer.RemoveAt(contractBlueprintIndex);
+                    contractBlueprintIndex--;
+                }
+                else
+                {
+                    // auto-accept
+                    Contract.Contract contract = new Contract.Contract(contractBlueprintsToOffer[contractBlueprintIndex], simTime);
+                    contract.AcceptOfferedContract(simTime);
+                    ContractManager.data.acceptedContracts.Add(contract);
+                    contractBlueprintsToOffer.RemoveAt(contractBlueprintIndex);
+                    contractBlueprintIndex--;
+                }
+            }
+        }
+
+        // Randomly select a subset of contracts to be offered
         Random randomGenerator = new Random();
         while (contractBlueprintsToOffer.Count + ContractManager.data.offeredContracts.Count > ContractManager.data.maxNumberOfOfferedContracts)
         {
-            // Randomly select a subset of contracts to be offered
             contractBlueprintsToOffer.RemoveAt(randomGenerator.Next(0, contractBlueprintsToOffer.Count));
         }
         foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprintsToOffer)

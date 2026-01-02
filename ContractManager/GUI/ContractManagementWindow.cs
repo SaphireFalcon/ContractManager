@@ -139,6 +139,10 @@ namespace ContractManager.GUI
                         {
                             ImGui.Text("Status: Completed.");
                         }
+                        if (this._contractToShowDetails.status == ContractStatus.Failed)
+                        {
+                            ImGui.Text("Status: Failed.");
+                        }
                         
                         if (this._contractToShowDetails._contractBlueprint.synopsis != string.Empty)
                         {
@@ -165,6 +169,28 @@ namespace ContractManager.GUI
                         else
                         {
                             ImGui.Text("Offered contract does not expire.");
+                        }
+
+                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.deadline))
+                        {
+                            // Contract has a deadline
+                            if (this._contractToShowDetails.status == ContractStatus.Offered)
+                            {
+                                KSA.SimTime deadlineSimTime = new KSA.SimTime(this._contractToShowDetails._contractBlueprint.deadline);
+                                ImGui.Text(String.Format("Contract has a deadline of {0}", Utils.FormatSimTimeAsRelative(deadlineSimTime, true)));
+                            }
+                            else
+                            if (this._contractToShowDetails.status == ContractStatus.Accepted)
+                            {
+                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                                KSA.SimTime deadlineOnSimTime = this._contractToShowDetails.acceptedSimTime + this._contractToShowDetails._contractBlueprint.deadline;
+                                KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
+                                ImGui.Text(String.Format("Contract has a deadline on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(deadlineOnSimTime), Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
+                            }
+                        }
+                        else
+                        {
+                            ImGui.Text("Contract does not have a deadline.");
                         }
                         
                         ImGui.SeparatorText("Rewards");

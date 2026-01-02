@@ -90,8 +90,23 @@ namespace ContractManager.Contract
                 foundBlueprint = contractBlueprint.uid == blueprintUID;
                 if (foundBlueprint)
                 {
-                    // Found matching blueprint requirement.
+                    // Found matching contract blueprint.
                     return contractBlueprint;
+                }
+            }
+            return null;
+        }
+
+        internal static Contract? FindContractFromUID(List<Contract> contracts, string blueprintUID)
+        {
+            bool foundBlueprint = false;
+            foreach (Contract contract in contracts)
+            {
+                foundBlueprint = contract._contractBlueprint.uid == blueprintUID;
+                if (foundBlueprint)
+                {
+                    // Found matching contract.
+                    return contract;
                 }
             }
             return null;
