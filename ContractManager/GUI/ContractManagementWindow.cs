@@ -150,6 +150,22 @@ namespace ContractManager.GUI
                         {
                             ImGui.TextWrapped(this._contractToShowDetails._contractBlueprint.description);
                         }
+
+                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.expiration))
+                        {
+                            // Contract can expire
+                            if (this._contractToShowDetails.status == ContractStatus.Offered)
+                            {
+                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                                KSA.SimTime expireOnSimTime = this._contractToShowDetails.offeredSimTime + this._contractToShowDetails._contractBlueprint.expiration;
+                                KSA.SimTime expireInSimTime = expireOnSimTime - simTime;
+                                ImGui.Text(String.Format("Expire offered contract on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(expireOnSimTime), Utils.FormatSimTimeAsRelative(expireInSimTime, true)));
+                            }
+                        }
+                        else
+                        {
+                            ImGui.Text("Offered contract does not expire.");
+                        }
                         
                         ImGui.SeparatorText("Rewards");
                         ImGui.Text("None implemented yet.");
@@ -374,20 +390,32 @@ namespace ContractManager.GUI
             if (!(this._contractToShowDetails.status is ContractStatus.Offered or ContractStatus.Accepted)) { return; }
 
             // Show reject button
-            ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.1f, Z = 0.1f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.25f, Z = 0.25f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.1f, Z = 0.1f, W = 1.0f });
+            if (this._contractToShowDetails._contractBlueprint.isRejectable)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.redDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.redLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.red);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
             if (ImGui.Button("Reject Contract"))
             {
-                this._contractToShowDetails.RejectContract(Program.GetPlayerTime());
-                if (this._offeredContracts.Contains(this._contractToShowDetails))
+                if (this._contractToShowDetails._contractBlueprint.isRejectable)
                 {
-                    this._offeredContracts.Remove(this._contractToShowDetails);
-                }
-                if (this._acceptedContracts.Contains(this._contractToShowDetails))
-                {
-                    this._acceptedContracts.Remove(this._contractToShowDetails);
-                    this._finishedContracts.Add(this._contractToShowDetails);  // If accepted and then rejected add to finished?
+                    this._contractToShowDetails.RejectContract(Universe.GetElapsedSimTime());
+                    if (this._offeredContracts.Contains(this._contractToShowDetails))
+                    {
+                        this._offeredContracts.Remove(this._contractToShowDetails);
+                    }
+                    if (this._acceptedContracts.Contains(this._contractToShowDetails))
+                    {
+                        this._acceptedContracts.Remove(this._contractToShowDetails);
+                        this._finishedContracts.Add(this._contractToShowDetails);  // If accepted and then rejected add to finished?
+                    }
                 }
             }
             ImGui.PopStyleColor(3);
@@ -405,15 +433,26 @@ namespace ContractManager.GUI
             float buttonWidthAccept = ImGui.CalcTextSize("Accept Contract").X + style.FramePadding.X * 2.0f;
             float resizeTriangleWidth = 25.0f;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightPanelRegionSize.X - buttonWidthReject - buttonWidthAccept - resizeTriangleWidth);
-            ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.5f, Z = 0.2f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.35f, Y = 0.75f, Z = 0.35f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
+            if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.greenDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.greenLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.green);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
             if (ImGui.Button("Accept Contract"))
             {
-                // TODO: only call accept if it is possible to accept by checking maxNumberOfAcceptedContracts
-                this._contractToShowDetails.AcceptOfferedContract(Program.GetPlayerTime());
-                this._offeredContracts.Remove(this._contractToShowDetails);
-                this._acceptedContracts.Add(this._contractToShowDetails);
+                if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+                {
+                    this._contractToShowDetails.AcceptOfferedContract(Universe.GetElapsedSimTime());
+                    this._offeredContracts.Remove(this._contractToShowDetails);
+                    this._acceptedContracts.Add(this._contractToShowDetails);
+                }
             }
             ImGui.PopStyleColor(3);
         }

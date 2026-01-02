@@ -8,6 +8,8 @@
 First, change the Periapsis to within 150 and 200 km altitude. 
 Next, change the Apoapsis to within 150 and 200 km altitude.
   </description>
+  <expiration>3600.0</expiration>
+  <expiration>3600.0</expiration>
   <prerequisites>
     <Prerequisite>
       <type>maxNumOfferedContracts</type>

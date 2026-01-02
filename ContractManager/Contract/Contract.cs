@@ -27,15 +27,19 @@ namespace ContractManager.Contract
         [XmlElement("status")]
         public ContractStatus status { get; set; }
         
-        // In-game (player) time when contract was offered.
+        // In-game (sim) time when contract was offered in seconds.
         [XmlElement("offeredTime", DataType = "double")]
-        public double offeredTimeS { get; set; }
-        // In-game (player) time when contract was accepted.
+        public double offeredTimeS { get { return offeredSimTime.Seconds(); } set; } = double.NaN;
+        // In-game (sim) time when contract was accepted in seconds.
         [XmlElement("acceptedTime", DataType = "double")]
-        public double acceptedTimeS { get; set; }
-        // In-game (player) time when contract was finished, i.e. rejected, completed or failed .
+        public double acceptedTimeS { get { return acceptedSimTime.Seconds(); } set; } = double.NaN;
+        // In-game (sim) time when contract was finished in seconds, i.e. rejected, completed or failed.
         [XmlElement("finishedTime", DataType = "double")]
-        public double finishedTimeS { get; set; }
+        public double finishedTimeS { get { return finishedSimTime.Seconds(); } set; } = double.NaN;
+        
+        internal KSA.SimTime offeredSimTime { get; set; } = new KSA.SimTime(double.NaN);
+        internal KSA.SimTime acceptedSimTime { get; set; } = new KSA.SimTime(double.NaN);
+        internal KSA.SimTime finishedSimTime { get; set; } = new KSA.SimTime(double.NaN);
 
         // list of tracked requirements
         [XmlArray("trackedRequirements")]
@@ -59,7 +63,10 @@ namespace ContractManager.Contract
                 status = this.status,
                 offeredTimeS = this.offeredTimeS,
                 acceptedTimeS = this.acceptedTimeS,
-                finishedTimeS = this.finishedTimeS
+                finishedTimeS = this.finishedTimeS,
+                offeredSimTime = new KSA.SimTime(this.offeredTimeS),
+                acceptedSimTime = new KSA.SimTime(this.acceptedTimeS),
+                finishedSimTime = new KSA.SimTime(this.finishedTimeS)
             };
             foreach (string trackedVehicleName in trackedVehicleNames)
             {
@@ -90,14 +97,13 @@ namespace ContractManager.Contract
         }
 
         // Constructor to instantiate a contract from a blueprint. Used when a contract is offered.
-        public Contract(in ContractBlueprint.ContractBlueprint contractBlueprint, double playerTime)
+        public Contract(in ContractBlueprint.ContractBlueprint contractBlueprint, KSA.SimTime simTime)
         {
-            Console.WriteLine($"[CM] Contract({contractBlueprint.uid}, {playerTime})");
             this.blueprintUID = contractBlueprint.uid;
             this._contractBlueprint = contractBlueprint;
-            this.offeredTimeS = playerTime;
+            this.offeredSimTime = simTime;
             this.status = ContractStatus.Offered;
-            this.contractUID = String.Format("{0}_{1:N3}", contractBlueprint.uid, playerTime);
+            this.contractUID = String.Format("{0}_{1:F0}", contractBlueprint.uid, this.offeredSimTime.Seconds());
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
@@ -120,9 +126,18 @@ namespace ContractManager.Contract
         }
 
         // Update the contract. To be called in game-loop.
-        public bool Update(double playerTime)
+        public bool Update(KSA.SimTime simTime)
         {
-            // TODO: Check if offered contract expired -> Rejected
+            // Check if offered contract expired -> Rejected
+            if (!Double.IsPositiveInfinity(this._contractBlueprint.expiration))
+            {
+                KSA.SimTime expireOnSimTime = this.offeredSimTime + this._contractBlueprint.expiration;
+                if (expireOnSimTime < simTime)
+                {
+                    this.ExpireOfferedContract(simTime);
+                    return true;
+                }
+            }
 
             // Only check if status is Accepted, because that is the only situation the status can change through tracked requirements.
             if (this.status != ContractStatus.Accepted) { return false; }
@@ -142,62 +157,69 @@ namespace ContractManager.Contract
             if (worstRequirementStatus == TrackedRequirementStatus.FAILED)
             {
                 Console.WriteLine($"[CM] Contract.Update() Failed");
-                this.FailAcceptedContract(playerTime);
+                this.FailAcceptedContract(simTime);
             }
             else
             if (worstRequirementStatus is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED)
             {
                 Console.WriteLine($"[CM] Contract.Update() Achieved");
-                this.CompleteAcceptedContract(playerTime);
+                this.CompleteAcceptedContract(simTime);
             }
 
             return previousStatus != this.status;  // return true if the status changed (to let the manager know)
         }
 
         //  Accept offered contract, to be called from GUI accept button.
-        public void AcceptOfferedContract(double playerTime)
+        public void AcceptOfferedContract(KSA.SimTime simTime)
         {
-            Console.WriteLine($"[CM] Contract.AcceptOfferedContract({playerTime})");
             if (this.status == ContractStatus.Offered)
             {
                 this.status = ContractStatus.Accepted;
-                this.acceptedTimeS = playerTime;
+                this.acceptedSimTime = simTime;
                 // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractAccept);
             }
         }
         
-        //  Reject offered contract, to be called from GUI accept button, or on expire.
-        public void RejectContract(double playerTime)
+        //  Reject contract, to be called from GUI reject button.
+        public void RejectContract(KSA.SimTime simTime)
         {
-            Console.WriteLine($"[CM] Contract.RejectContract({playerTime})");
             if (this.status is ContractStatus.Offered or ContractStatus.Accepted)
             {
                 this.status = ContractStatus.Rejected;
-                this.finishedTimeS = playerTime;
+                this.finishedSimTime = simTime;
                 // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractReject);
+            }
+        }
+        
+        //  Expire offered contract, to be called on expire.
+        public void ExpireOfferedContract(KSA.SimTime simTime)
+        {
+            if (this.status is ContractStatus.Offered)
+            {
+                this.status = ContractStatus.Rejected;
+                this.finishedSimTime = simTime;
+                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractExpire);
             }
         }
 
         // Fail accepted contract, to be called on expire or requirement failing.
-        private void FailAcceptedContract(double playerTime)
+        private void FailAcceptedContract(KSA.SimTime simTime)
         {
-            Console.WriteLine($"[CM] Contract.FailAcceptedContract({playerTime})");
             if (this.status == ContractStatus.Accepted)
             {
                 this.status = ContractStatus.Failed;
-                this.finishedTimeS = playerTime;
+                this.finishedSimTime = simTime;
                 ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractFail);
             }
         }
 
         // Complete accepted contract, to be called when all requirements are achieved.
-        private void CompleteAcceptedContract(double playerTime)
+        private void CompleteAcceptedContract(KSA.SimTime simTime)
         {
-            Console.WriteLine($"[CM] Contract.CompleteAcceptedContract({playerTime})");
             if (this.status == ContractStatus.Accepted)
             {
                 this.status = ContractStatus.Completed;
-                this.finishedTimeS = playerTime;
+                this.finishedSimTime = simTime;
                 ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractComplete);
             }
         }

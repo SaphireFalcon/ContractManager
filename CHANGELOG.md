@@ -8,11 +8,19 @@
 - Add validation methods to contract blueprint and fields. (#68)
 - Add try-catch to catch XML serialization errors. (#68)
 - Add loading contract blueprints from other (mod) folders. (#69)
+- Add expiration of an offered contract. (#71)
+- Add 'expiration' as a field to contract blueprint, and show in contract details. (#71)
+- Add 'isRejectable' as a field to contract blueprint, and gray-out the reject button if the offered contract cannot be rejected. (#71)
+- Add gray-out the accept button if the offered contract cannot be accepted because of `maxNumberOfAcceptedContracts`. (#71)
 
-### Changes
+### Changed
 
 - Moved `ActionType` outside the `Action` class definition. (#67)
 - Moved `TriggerType` outside the `Action` class definition. (#67)
+
+### Fixed
+- Fix using `Universe.GetElapsedSimTime()` instead of `Program.GetPlayerTime()` to get the in-game time. (#71)
+- Fix use Colors constants for the acept and reject button. (#71)
 
 ## [0.1.0] - 2025-12-30
 
