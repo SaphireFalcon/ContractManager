@@ -143,7 +143,16 @@ namespace ContractManager.Contract
             if (this.status != ContractStatus.Accepted) { return false; }
 
             ContractStatus previousStatus = this.status;
-            // TODO: Check if accepted contract expired -> Failed
+            // Check if accepted contract expired -> Failed
+            if (!Double.IsPositiveInfinity(this._contractBlueprint.deadline))
+            {
+                KSA.SimTime failOnSimTime = this.acceptedSimTime + this._contractBlueprint.deadline;
+                if (failOnSimTime < simTime)
+                {
+                    this.FailAcceptedContract(simTime);
+                    return true;
+                }
+            }
 
             // Update the tracked requirements, e.g. change the status
             ContractUtils.UpdateTrackedRequirements(this.trackedRequirements);

@@ -4,14 +4,25 @@
 
 ### Added
 
+GUI
+- Show expiration of an offered contract in contract details of *Contract Management Window*. (#71)
+- Gray-out the accept button if the offered contract cannot be accepted because of `maxNumberOfAcceptedContracts`. (#71)
+- Gray-out the reject button if the offered contract cannot be rejected because of `isRejectable`. (#71)
+- Show deadline of an accepted contract in contract details of *Contract Management Window*. (#72)
+- Show deadline of an accepted contract in *Active Contracts Window*. (#72)
+
+Core
 - Add typing for the supported primitives for XML serialization. (#66)
 - Add validation methods to contract blueprint and fields. (#68)
 - Add try-catch to catch XML serialization errors. (#68)
 - Add loading contract blueprints from other (mod) folders. (#69)
-- Add expiration of an offered contract. (#71)
-- Add 'expiration' as a field to contract blueprint, and show in contract details. (#71)
-- Add 'isRejectable' as a field to contract blueprint, and gray-out the reject button if the offered contract cannot be rejected. (#71)
-- Add gray-out the accept button if the offered contract cannot be accepted because of `maxNumberOfAcceptedContracts`. (#71)
+- Add 'expiration' as a field to contract blueprint. (#71)
+- Add expiring an offered contract. (#71)
+- Add 'isRejectable' as a field to contract blueprint. (#71)
+- Add 'deadline' as a field to contract blueprint. (#72)
+- Add failing of an accepted contract after the deadline passed. (#72)
+- Add 'isAutoAccepted' as field to contract blueprint. (#72)
+- Add when offering a contract to auto-accept when `isAutoAccepted` is true. (#72)
 
 ### Changed
 

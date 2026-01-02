@@ -35,6 +35,14 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("isRejectable", DataType = "boolean")]
         public bool isRejectable { get; set; } = true;
 
+        // When an accepted contract will fail, in seconds
+        [XmlElement("deadline", DataType = "double")]
+        public double deadline { get; set; } = double.PositiveInfinity;  // No deadline
+
+        // Flag if an offered contract is automatically accepted.
+        [XmlElement("isAutoAccepted", DataType = "boolean")]
+        public bool isAutoAccepted { get; set; } = false;
+
         // List of prerequisites for the contract
         [XmlArray("prerequisites")]
         public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();

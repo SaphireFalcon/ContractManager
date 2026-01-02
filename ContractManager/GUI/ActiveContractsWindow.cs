@@ -1,6 +1,7 @@
 ﻿using Brutal.ImGuiApi;
 using ContractManager.Contract;
 using ContractManager.ContractBlueprint;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -62,6 +63,14 @@ namespace ContractManager.GUI
                     if (ImGui.SmallButton("Details"))
                     {
                         contractToShowDetails = contract;
+                    }
+
+                    if (!Double.IsPositiveInfinity(contract._contractBlueprint.deadline))
+                    {
+                        KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                        KSA.SimTime deadlineOnSimTime = contract.acceptedSimTime + contract._contractBlueprint.deadline;
+                        KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
+                        ImGui.Text(String.Format("Deadline in {0}", Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
                     }
 
                     ImGui.Text(String.Format("Complete {0} requirement{1}", contract._contractBlueprint.completionCondition, contract._contractBlueprint.completionCondition == CompletionCondition.All ? "s" : ""));
