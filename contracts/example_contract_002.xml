@@ -13,7 +13,7 @@ Then, change both Apoapsis and Periapsis to with 200 and 220km altitude.</descri
   <prerequisites>
     <Prerequisite>
       <type>maxNumOfferedContracts</type>
-      <maxNumOfferedContracts>1</maxNumOfferedContracts>
+      <maxNumOfferedContracts>2</maxNumOfferedContracts>
     </Prerequisite>
     <Prerequisite>
       <type>maxNumAcceptedContracts</type>

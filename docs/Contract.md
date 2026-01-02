@@ -13,6 +13,10 @@ The base xml tag for the contract blueprint is `<Contract>`. The following table
 | `title`        | `<title>`    | Title of the contract                       |
 | `synopsis`     | `<synopsis>` | Short summary of the contract               |
 | `description`  | `<description>` | Description of the contract              |
+| `expiration`  | `<expiration>` | Time in seconds after which the offered contract expires, default is to never expire. |
+| `isRejectable`  | `<isRejectable>` | Flag to allow rejecting a contract, default is true. |
+| `deadline`  | `<deadline>` | Time in seconds after which the accepted contract fails, default is no deadline. |
+| `isAutoAccepted`  | `<isAutoAccepted>` | Flag to auto-accept an offered contract, default is false. |
 | `prerequisites` | `<prerequisites>` | Prerequisites for the contract, contains [`Prerequisite`](#prerequisite-class) |
 | `completionCondition` | `<completionCondition>` | Completion condition of the contract based on the requirements. One of [`CompletionConditions`](#completionconditions) |
 | `requirements` | `<requirements>` | Requirements for the contract, contains [`Requirement`](#requirement-class)       |
@@ -37,20 +41,29 @@ The following table describes the mapping between the `Prerequisite` class varia
 | :------------- | :--------- | :------------------------------------------ |
 | `type`         | `<type>`   | Type of the prerequisite. One of [`PrerequisiteType`](#prerequisitetype) |
 | | |  Below fields as needed by `PrerequisiteType` |
-| `maxNumOfferedContracts` | `<maxNumOfferedContracts>` | Offer contract if number of offered contracts is less than this number. Used if `prerequisiteType` is `maxNumOfferedContracts` |
-| `maxNumAcceptedContracts` | `<maxNumAcceptedContracts>` | Offer contract if number of accepted contracts is less than this number.  Used if `prerequisiteType` is `maxNumAcceptedContracts` |
+| `maxNumOfferedContracts` | `<maxNumOfferedContracts>` | Offer contract if number of offered contracts is less than this number (Default: unlimited). Used if `prerequisiteType` is `maxNumOfferedContracts` |
+| `maxNumAcceptedContracts` | `<maxNumAcceptedContracts>` | Offer contract if number of accepted contracts is less than this number (Default: unlimited).  Used if `prerequisiteType` is `maxNumAcceptedContracts` |
+| `maxCompleteCount` | `<maxCompleteCount>` | Offer contract if number of completed instances of this contract blueprint is less than this number (Default: 0). Used if `prerequisiteType` is `maxCompleteCount` |
+| `maxFailedCount` | `<maxFailedCount>` | Offer contract if number of failed instances of this contract blueprint is less than this number (Default: unlimited). Used if `prerequisiteType` is `maxFailedCount` |
+| `maxConcurrentCount` | `<maxConcurrentCount>` | Offer contract if number of accepted contracts of this contract blueprint is less than this number (Default: 0). Used if `prerequisiteType` is `maxConcurrentCount` |
+| `hasCompletedContract` | `<hasCompletedContract>` | Offer contract if a contract with the defined contract blueprint uid has been completed. Used if `prerequisiteType` is `hasCompletedContract` |
+| `hasFailedContract` | `<hasFailedContract>` | Offer contract if a contract with the defined contract blueprint uid has been failed. Used if `prerequisiteType` is `hasFailedContract` |
+| `hasAcceptedContract` | `<hasAcceptedContract>` | Offer contract if a contract with the defined contract blueprint uid has been accepted (and not yet completed). Used if `prerequisiteType` is `hasAcceptedContract` |
 
 #### `PrerequisiteType`
 
 The following types are supported:
 * `maxNumOfferedContracts`: Offer contract if number of offered contracts is less than number defined in `maxNumOfferedContracts` field.
-* `maxNumAcceptedContracts`:  Offer contract if number of accepted contracts is less than number defined in `maxNumAcceptedContracts` field.
+* `maxNumAcceptedContracts`: Offer contract if number of accepted contracts is less than number defined in `maxNumAcceptedContracts` field.
+* `maxCompleteCount`: Offer contract if number of completed instances of this contract blueprint  is less than number defined in `maxCompleteCount` field.
+* `maxFailedCount`: Offer contract if number of failed instances of this contract blueprint is less than number defined in `maxFailedCount` field.
+* `maxConcurrentCount`: Offer contract if number of accepted contracts of this contract blueprint is less than number defined in `maxConcurrentCount` field.
+* `hasCompletedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasCompletedContract` field has been completed.
+* `hasFailedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasFailedContract` field has been failed.
+* `hasAcceptedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasAcceptedContract` field has been accepted (and not yet completed).
 
 In the future more types will be added, such as:
 
-* `maxCompleteCount`: contract has been completed less than this int number of times.
-* `maxConcurrentCount`: contract has less than this int number of accepted instances of this contract.
-* `maxOfferCount`: contract has less than this int number of offered instances of this contract.
 * `unlockedTech`: Unlocked technology / node in science tree.
 * `minMoney`: player has more than this amount of money.
 * `maxMoney`: player has less than this amount of money.
