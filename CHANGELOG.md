@@ -27,10 +27,12 @@ Core
 - Add checks to offer contract only if the contract has not been completed/failed/accepted a number of times. (#74)
 - Add 'hasCompletedContract', 'hasFailedContract', 'hasAcceptedContract' as `PrerequisiteType`. (#74)
 - Add checks to offer contract only if a specified contract blueprint has been completed/failed/accepted. (#74)
+- Add 'minNumberOfVessels', 'maxNumberOfVessels' as `PrerequisiteType`. (#74)
+- Add checks to offer contract only if a specified number of vehicles are present in the current celestial system. (#74)
 
 Doc
 - Updated the documentation for the added fields in `ContractBlueprint`. (#74)
-- Updated the documentation for the added `PrerequisiteTypes`: 'maxCompleteCount', 'maxFailedCount', 'maxConcurrentCount', 'hasCompletedContract', 'hasFailedContract', 'hasAcceptedContract'. (#74)
+- Updated the documentation for the added `PrerequisiteTypes`. (#74)
 
 ### Changed
 

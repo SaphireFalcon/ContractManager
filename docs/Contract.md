@@ -49,6 +49,10 @@ The following table describes the mapping between the `Prerequisite` class varia
 | `hasCompletedContract` | `<hasCompletedContract>` | Offer contract if a contract with the defined contract blueprint uid has been completed. Used if `prerequisiteType` is `hasCompletedContract` |
 | `hasFailedContract` | `<hasFailedContract>` | Offer contract if a contract with the defined contract blueprint uid has been failed. Used if `prerequisiteType` is `hasFailedContract` |
 | `hasAcceptedContract` | `<hasAcceptedContract>` | Offer contract if a contract with the defined contract blueprint uid has been accepted (and not yet completed). Used if `prerequisiteType` is `hasAcceptedContract` |
+| `minNumberOfVessels` | `<minNumberOfVessels>` | Offer contract if there are more than this number of vessels in the current celestial system. Used if `prerequisiteType` is `minNumberOfVessels` |
+| `maxNumberOfVessels` | `<maxNumberOfVessels>` | Offer contract if there are less than this number of vessels in the current celestial system. Used if `prerequisiteType` is `maxNumberOfVessels` |
+
+> The number of vessels is determined only within the current celestial system. It also does not differentiate between actual vessels and kittens in EVA. Also, it does not differentiate if the vessel is owned/controllable by the player.
 
 #### `PrerequisiteType`
 
@@ -61,6 +65,8 @@ The following types are supported:
 * `hasCompletedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasCompletedContract` field has been completed.
 * `hasFailedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasFailedContract` field has been failed.
 * `hasAcceptedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasAcceptedContract` field has been accepted (and not yet completed).
+* `minNumberOfVessels`: There are more than this number of vessels in the current celestial system.
+* `maxNumberOfVessels`: There are less than this number of vessels in the current celestial system.
 
 In the future more types will be added, such as:
 
@@ -69,8 +75,6 @@ In the future more types will be added, such as:
 * `maxMoney`: player has less than this amount of money.
 * `minFame`: player has more than this amount of fame.
 * `maxMoney`: player has less than this amount of fame.
-* `minNumberOfVessels`: player has more than this amount of active vessels
-* `maxNumberOfVessels`: player has less than this amount of active vessels
 
 
 ### `Requirement` Class

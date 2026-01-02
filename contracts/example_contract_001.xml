@@ -20,10 +20,6 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <type>maxNumAcceptedContracts</type>
       <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
     </Prerequisite>
-    <Prerequisite>
-      <type>maxFailedCount</type>
-      <maxFailedCount>0</maxFailedCount>
-    </Prerequisite>
   </prerequisites>
   <requirements>
     <Requirement>

@@ -205,11 +205,13 @@ public class ContractManager
 
     private bool CanOfferContractFromBlueprint(in ContractBlueprint.ContractBlueprint contractBlueprint)
     {
+        // Check if the contract is already being offered.
         {
             string blueprintUID = contractBlueprint.uid;
             List<Contract.Contract> offeredContracts = data.offeredContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Offered).ToList();
             if (offeredContracts.Count > 0) { return false; }  // already offered!
         }
+        // TODO: Add a check if the contract was recently offered and rejected.
         bool canOfferContract = true;
         foreach (ContractBlueprint.Prerequisite prerequisite in contractBlueprint.prerequisites)
         {
@@ -284,7 +286,16 @@ public class ContractManager
                     break;
                 }
             }
-            // TODO: Add a check if the contract was recently offered and rejected.
+            if (prerequisite.type == PrerequisiteType.MinNumberOfVessels && Universe.CurrentSystem.VehicleCount < prerequisite.minNumberOfVessels)
+            {
+                canOfferContract = false;
+                break;
+            }
+            if (prerequisite.type == PrerequisiteType.MaxNumberOfVessels && Universe.CurrentSystem.VehicleCount > prerequisite.maxNumberOfVessels)
+            {
+                canOfferContract = false;
+                break;
+            }
         }
         return canOfferContract;
     }
