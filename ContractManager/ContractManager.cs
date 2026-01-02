@@ -184,27 +184,36 @@ public class ContractManager
     private void LoadContractBlueprints()
     {
         // Load contracts from disk here
-        string contractsDirectoryPath = @"Content/ContractManager/contracts/";
-        string[] files = Directory.GetFiles(contractsDirectoryPath, "*.xml", SearchOption.AllDirectories);
-        foreach (string file in files)
+        const string contentDirectoryPath = @"Content";
+        string[] contentDirectoryDirectories = Directory.GetDirectories(contentDirectoryPath);
+        foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
-            try
+            string contractsDirectoryPath = Path.Combine(contentSubDirectoryPath, @"contracts");
+            if (Directory.Exists(contractsDirectoryPath))
             {
-                var blueprintContract = ContractBlueprint.ContractBlueprint.LoadFromFile(file);
-                if (blueprintContract.Validate())
+                string[] files = Directory.GetFiles(contractsDirectoryPath, "*.xml", SearchOption.AllDirectories);
+                foreach (string file in files)
                 {
-                    ContractManager.data.contractBlueprints.Add(blueprintContract);
+                    try
+                    {
+                        var blueprintContract = ContractBlueprint.ContractBlueprint.LoadFromFile(file);
+                        if (blueprintContract.Validate())
+                        {
+                            ContractManager.data.contractBlueprints.Add(blueprintContract);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[CM] [WARNING] blueprint '{blueprintContract.title}' won't be loaded do to validation error(s).");
+                        }
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        Console.WriteLine($"[CM] [WARNING] blueprint '{file}' won't be loaded do to loading error:\n{exception.Message}");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine($"[CM] [WARNING] blueprint '{blueprintContract.title}' won't be loaded do to validation error(s).");
-                }
-            }
-            catch (InvalidOperationException exception)
-            {
-                Console.WriteLine($"[CM] [WARNING] blueprint '{file}' won't be loaded do to loading error:\n{exception.Message}");
             }
         }
+        Console.WriteLine($"[CM] loaded {ContractManager.data.contractBlueprints.Count} contract blueprints.");
     }
 }
 
