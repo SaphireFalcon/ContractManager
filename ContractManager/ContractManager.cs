@@ -205,6 +205,13 @@ public class ContractManager
 
     private bool CanOfferContractFromBlueprint(in ContractBlueprint.ContractBlueprint contractBlueprint)
     {
+        // Check if the contract is already being offered.
+        {
+            string blueprintUID = contractBlueprint.uid;
+            List<Contract.Contract> offeredContracts = data.offeredContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Offered).ToList();
+            if (offeredContracts.Count > 0) { return false; }  // already offered!
+        }
+        // TODO: Add a check if the contract was recently offered and rejected.
         bool canOfferContract = true;
         foreach (ContractBlueprint.Prerequisite prerequisite in contractBlueprint.prerequisites)
         {
@@ -218,7 +225,77 @@ public class ContractManager
                 canOfferContract = false;
                 break;
             }
-            // TODO: Add a check if the contract was recently offered and rejected.
+            if (prerequisite.type == PrerequisiteType.MaxCompleteCount)
+            {
+                string blueprintUID = contractBlueprint.uid;
+                List<Contract.Contract> completedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Completed).ToList();
+                if (completedContracts.Count > prerequisite.maxCompleteCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.MaxFailedCount)
+            {
+                string blueprintUID = contractBlueprint.uid;
+                List<Contract.Contract> failedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Failed).ToList();
+                if (failedContracts.Count > prerequisite.maxFailedCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.MaxConcurrentCount)
+            {
+                string blueprintUID = contractBlueprint.uid;
+                List<Contract.Contract> acceptedContracts = data.acceptedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Accepted).ToList();
+                if (acceptedContracts.Count > prerequisite.maxConcurrentCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasCompletedContract)
+            {
+                string blueprintUID = prerequisite.hasCompletedContract;
+                List<Contract.Contract> completedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Completed).ToList();
+                if (completedContracts.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasFailedContract)
+            {
+
+                string blueprintUID = prerequisite.hasFailedContract;
+                List<Contract.Contract> failedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Failed).ToList();
+                if (failedContracts.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasAcceptedContract)
+            {
+                string blueprintUID = prerequisite.hasAcceptedContract;
+                List<Contract.Contract> acceptedContracts = data.acceptedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Accepted).ToList();
+                if (acceptedContracts.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.MinNumberOfVessels && Universe.CurrentSystem.VehicleCount < prerequisite.minNumberOfVessels)
+            {
+                canOfferContract = false;
+                break;
+            }
+            if (prerequisite.type == PrerequisiteType.MaxNumberOfVessels && Universe.CurrentSystem.VehicleCount > prerequisite.maxNumberOfVessels)
+            {
+                canOfferContract = false;
+                break;
+            }
         }
         return canOfferContract;
     }

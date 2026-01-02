@@ -23,6 +23,16 @@ Core
 - Add failing of an accepted contract after the deadline passed. (#72)
 - Add 'isAutoAccepted' as field to contract blueprint. (#72)
 - Add when offering a contract to auto-accept when `isAutoAccepted` is true. (#72)
+- Add 'maxCompleteCount', 'maxFailedCount', 'maxConcurrentCount' as `PrerequisiteType`. (#74)
+- Add checks to offer contract only if the contract has not been completed/failed/accepted a number of times. (#74)
+- Add 'hasCompletedContract', 'hasFailedContract', 'hasAcceptedContract' as `PrerequisiteType`. (#74)
+- Add checks to offer contract only if a specified contract blueprint has been completed/failed/accepted. (#74)
+- Add 'minNumberOfVessels', 'maxNumberOfVessels' as `PrerequisiteType`. (#74)
+- Add checks to offer contract only if a specified number of vehicles are present in the current celestial system. (#74)
+
+Doc
+- Updated the documentation for the added fields in `ContractBlueprint`. (#74)
+- Updated the documentation for the added `PrerequisiteTypes`. (#74)
 
 ### Changed
 
@@ -32,6 +42,7 @@ Core
 ### Fixed
 - Fix using `Universe.GetElapsedSimTime()` instead of `Program.GetPlayerTime()` to get the in-game time. (#71)
 - Fix use Colors constants for the acept and reject button. (#71)
+- Fix to not offer the same contract multiple times. (#74)
 
 ## [0.1.0] - 2025-12-30
 
