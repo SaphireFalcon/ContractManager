@@ -28,11 +28,11 @@ namespace ContractManager
 
         // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the launch site management building.
         [XmlElement("maxNumberOfOfferedContracts")]
-        public int maxNumberOfOfferedContracts { get; set; } = 2;
+        public int maxNumberOfOfferedContracts { get; set; } = 4;
     
         // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the launch site management building.
         [XmlElement("maxNumberOfAcceptedContracts")]
-        public int maxNumberOfAcceptedContracts { get; set; } = 1;
+        public int maxNumberOfAcceptedContracts { get; set; } = 2;
         
         // internal variables
         // List of all loaded contract blueprints

@@ -1,4 +1,5 @@
 ﻿using ContractManager.ContractBlueprint;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -104,11 +105,25 @@ namespace ContractManager.Contract
     {
         // The body the vehicle is curently orbiting
         public string orbitedBody { get; set; } = string.Empty;
-        // The orbit Apoapsis
+        // The orbit Apoapsis in meters
         public double apoapsis { get; set; } = double.NaN;
-        // The orbit Periapsis
+        // The orbit Periapsis in meters 
         public double periapsis { get; set; } = double.NaN;
-        // TODO: add all the other ones
+        // The eccentricity of the orbit (ratio)
+        public double eccentricity { get; set; } = double.NaN;
+        // The period of the orbit in seconds
+        public double period { get; set; } = double.NaN;
+        // The longitude of the ascending node; angle in degrees from reference frame of the parent body to the ascending node in reference plane.
+        public double longitudeOfAscendingNode { get; set; } = double.NaN;
+        // The inclination of the orbit; the angle in degrees between the reference plane of the parent body and the orbital plane.
+        public double inclination { get; set; } = double.NaN;
+        // The argument of Periapsis; the angle in degrees between the ascending node and the periapsis in orbital plane.
+        public double argumentOfPeriapsis { get; set; } = double.NaN;
+        // The type of orbit.
+        public OrbitType type { get; set; } = OrbitType.Invalid;
+        
+        // Note: SemiMajorAxis and SemiMinorAxis can be derived from the other parameters.
+        //   Currently, the ease of use for the player seems limited, so not adding for now.
         
         // Constructor, used when deserializing from XML.
         public TrackedOrbit() { }
@@ -128,9 +143,39 @@ namespace ContractManager.Contract
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
+            KSA.Orbit orbit = vehicle.Orbit;
             this.orbitedBody = vehicle.Orbit.Parent.Id;
             this.apoapsis = vehicle.Orbit.Apoapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
             this.periapsis = vehicle.Orbit.Periapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
+            this.eccentricity = orbit.Eccentricity;
+            this.period = orbit.Period;
+            this.longitudeOfAscendingNode = Double.RadiansToDegrees(orbit.LongitudeOfAscendingNode);
+            this.inclination = Double.RadiansToDegrees(orbit.Inclination);
+            this.argumentOfPeriapsis = Double.RadiansToDegrees(orbit.ArgumentOfPeriapsis);
+            if (orbit.GetOrbitType() == KSA.Orbit.OrbitType.Invalid)
+            {
+                this.type = OrbitType.Invalid;
+            }
+            else
+            if (orbit.GetOrbitType() == KSA.Orbit.OrbitType.Elliptical)
+            {
+                if (orbit.Periapsis < vehicle.Orbit.Parent.MeanRadius)
+                {
+                    this.type = OrbitType.Suborbit;
+                }
+                else
+                {
+                    this.type = OrbitType.Elliptical;
+                }
+            }
+            if (
+                (orbit.GetOrbitType() is KSA.Orbit.OrbitType.Hyperbolic or KSA.Orbit.OrbitType.Parabolic) &&
+                vehicle.FlightPlan.Patches.Count > 0 && vehicle.FlightPlan.Patches[0].EndTransition == PatchTransition.Escape  // not sure if this condition is needed.
+            )
+            {
+                this.type = OrbitType.Escape;
+            }
+
             return;
         }
         

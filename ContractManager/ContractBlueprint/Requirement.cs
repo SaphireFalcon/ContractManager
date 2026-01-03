@@ -64,10 +64,23 @@ namespace ContractManager.ContractBlueprint
             {
                 Console.WriteLine($"{indent}  Required Orbit:");
                 Console.WriteLine($"{indent}    targetBody: {orbit.targetBody}");
+                Console.WriteLine($"{indent}    type: {orbit.type}");
                 Console.WriteLine($"{indent}    minApoapsis: {orbit.minApoapsis}");
                 Console.WriteLine($"{indent}    maxApoapsis: {orbit.maxApoapsis}");
                 Console.WriteLine($"{indent}    minPeriapsis: {orbit.minPeriapsis}");
                 Console.WriteLine($"{indent}    maxPeriapsis: {orbit.maxPeriapsis}");
+
+                Console.WriteLine($"{indent}    minEccentricity: {orbit.minEccentricity}");
+                Console.WriteLine($"{indent}    maxEccentricity: {orbit.maxEccentricity}");
+                Console.WriteLine($"{indent}    minPeriod: {orbit.minPeriod}");
+                Console.WriteLine($"{indent}    maxPeriod: {orbit.maxPeriod}");
+                
+                Console.WriteLine($"{indent}    minLongitudeOfAscendingNode: {orbit.minLongitudeOfAscendingNode}");
+                Console.WriteLine($"{indent}    maxLongitudeOfAscendingNode: {orbit.maxLongitudeOfAscendingNode}");
+                Console.WriteLine($"{indent}    minInclination: {orbit.minInclination}");
+                Console.WriteLine($"{indent}    maxInclination: {orbit.maxInclination}");
+                Console.WriteLine($"{indent}    minArgumentOfPeriapsis: {orbit.minArgumentOfPeriapsis}");
+                Console.WriteLine($"{indent}    maxArgumentOfPeriapsis: {orbit.maxArgumentOfPeriapsis}");
             }
             if (type == RequirementType.Group && group != null)
             {
@@ -128,14 +141,29 @@ namespace ContractManager.ContractBlueprint
         [XmlEnum("group")]
         Group
     }
-
+    
+    public enum OrbitType
+    {
+        [XmlEnum("invalid")]
+        Invalid = 0,
+        [XmlEnum("elliptical")]
+        Elliptical = 1,
+        [XmlEnum("suborbit")]
+        Suborbit = 2,
+        [XmlEnum("escape")]
+        Escape = 3
+    }
     public class RequiredOrbit
     {
         // Fields needed for the orbit requirement type.
-
+        
         // The celestial body to orbit.
         [XmlElement("targetBody", DataType = "string")]
         public string targetBody { get; set; } = string.Empty;
+
+        // The orbit type.
+        [XmlElement("type")]
+        public OrbitType type { get; set; } = OrbitType.Invalid;
 
         // minimum apoapsis altitude in meters.
         [XmlElement("minApoapsis", DataType = "double")]
@@ -152,6 +180,46 @@ namespace ContractManager.ContractBlueprint
         // maximum periapsis altitude in meters.
         [XmlElement("maxPeriapsis", DataType = "double")]
         public double maxPeriapsis { get; set; } = double.NaN;
+
+        // minimum Eccentricity (ratio)
+        [XmlElement("minEccentricity", DataType = "double")]
+        public double minEccentricity { get; set; } = double.NaN;
+        
+        // maximum Eccentricity (ratio)
+        [XmlElement("maxEccentricity", DataType = "double")]
+        public double maxEccentricity { get; set; } = double.NaN;
+
+        // minimum Period in seconds
+        [XmlElement("minPeriod", DataType = "double")]
+        public double minPeriod { get; set; } = double.NaN;
+
+        // maximum Period in seconds
+        [XmlElement("maxPeriod", DataType = "double")]
+        public double maxPeriod { get; set; } = double.NaN;
+
+        // minimum LongitudeOfAscendingNode in degrees
+        [XmlElement("minLongitudeOfAscendingNode", DataType = "double")]
+        public double minLongitudeOfAscendingNode { get; set; } = double.NaN;
+
+        // maximum LongitudeOfAscendingNode in degrees
+        [XmlElement("maxLongitudeOfAscendingNode", DataType = "double")]
+        public double maxLongitudeOfAscendingNode { get; set; } = double.NaN;
+
+        // minimum Inclination in degrees
+        [XmlElement("minInclination", DataType = "double")]
+        public double minInclination { get; set; } = double.NaN;
+
+        // maximum Inclination in degrees
+        [XmlElement("maxInclination", DataType = "double")]
+        public double maxInclination { get; set; } = double.NaN;
+
+        // minimum ArgumentOfPeriapsis in degrees
+        [XmlElement("minArgumentOfPeriapsis", DataType = "double")]
+        public double minArgumentOfPeriapsis { get; set; } = double.NaN;
+
+        // maximum ArgumentOfPeriapsis in degrees
+        [XmlElement("maxArgumentOfPeriapsis", DataType = "double")]
+        public double maxArgumentOfPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
         
@@ -170,9 +238,35 @@ namespace ContractManager.ContractBlueprint
             }
             if (this.minPeriapsis > this.maxPeriapsis)
             {
-                Console.WriteLine($"[CM] [WARNING] orbits min Periapsis has to be larger than max Apoapsis.");
+                Console.WriteLine($"[CM] [WARNING] orbits min Periapsis has to be larger than max Periapsis.");
                 return false;
             }
+            if (this.minEccentricity > this.maxEccentricity)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min eccentricity has to be larger than max eccentricity.");
+                return false;
+            }
+            if (this.minPeriod > this.maxPeriod)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min period has to be larger than max period.");
+                return false;
+            }
+            if (this.minLongitudeOfAscendingNode > this.maxLongitudeOfAscendingNode)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min longitude of ascending node has to be larger than max longitude of ascending node.");
+                return false;
+            }
+            if (this.minInclination > this.maxInclination)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min Inclination has to be larger than max Inclination.");
+                return false;
+            }
+            if (this.minArgumentOfPeriapsis > this.maxArgumentOfPeriapsis)
+            {
+                Console.WriteLine($"[CM] [WARNING] orbits min argument of Periapsis has to be larger than max argument of Periapsis.");
+                return false;
+            }
+
             return true;
         }
     }

@@ -126,22 +126,25 @@ The following table describes the mapping between the `RequiredOrbit` class vari
 | `maxApoapsis` | `<maxApoapsis>` | Maximum apoapsis altitude in meters.    |
 | `minPeriapsis` | `<minPeriapsis>` | Minimum periapsis altitude in meters.  |
 | `maxPeriapsis` | `<maxPeriapsis>` | Maximum periapsis altitude in meters.  |
+| `minEccentricity` | `<minEccentricity>` | Minimum eccentricity, ratio: `0.0`: circular, `< 1.0` elliptical, `1.0` parabolic, `> 1.0` hyperbolic. |
+| `maxEccentricity` | `<maxEccentricity>` | Maximum eccentricity, ratio: `0.0`: circular, `< 1.0` elliptical, `1.0` parabolic, `> 1.0` hyperbolic. |
+| `minPeriod` | `<minPeriod>` | Minimum period, orbiting time in seconds. |
+| `maxPeriod` | `<maxPeriod>` | Maximum period, orbiting time in seconds. |
+| `minLongitudeOfAscendingNode` | `<minLongitudeOfAscendingNode>` | Minimum longitude of ascending node, angle (0-360 degrees) from reference frame of the parent body to the ascending node in reference plane. |
+| `maxLongitudeOfAscendingNode` | `<maxLongitudeOfAscendingNode>` | Maximum longitude of ascending node, angle (0-360 degrees) from reference frame of the parent body to the ascending node in reference plane. |
+| `minInclination` | `<minInclination>` | Minimum inclination, angle (?-? degrees) from the reference plane of the parent body to the orbital plane. |
+| `maxInclination` | `<maxInclination>` | Maximum inclination, angle (?-? degrees) from the reference plane of the parent body to the orbital plane. |
+| `minArgumentOfPeriapsis` | `<minArgumentOfPeriapsis>` | Minimum argument of periapsis, angle (0-360 degrees) from the ascending node to the periapsis in orbital plane. |
+| `maxArgumentOfPeriapsis` | `<maxArgumentOfPeriapsis>` | Maximum argument of periapsis, angle (0-360 degrees) from the ascending node to the periapsis in orbital plane. |
+| `orbitType` | `<orbitType>` | The type of orbit, one of [`OrbitType`](#orbittype). |
 
-In the future more orbit parameters will be added:
+#### `OrbitType`
 
-* `status`: one of `orbiting`, `suborbit`, `escape` (subject to change)
-* `minInclination`: minimum inclination
-* `maxInclination`: maximum inclination
-* `minEccentricity`: minimum eccentricity (related to Apoapsis and Periapsis)
-* `maxEccentricity`: maximum eccentricity (related to Apoapsis and Periapsis)
-* `minOrbitTime`: minimum orbit time
-* `maxOrbitTime`: maximum orbit time
-* `minLongitudeOfAscendingNode`: minimum angle between body reference and ascending node
-* `maxLongitudeOfAscendingNode`: maximum angle between body reference and ascending node
-* `minArgumentOfPeriapsis`: minimum angle between ascending node and Periapsis
-* `maxArgumentOfPeriapsis`: maximum angle between ascending node and Periapsis
-* `minSemiMajorAxis`: minimum semi major axis (related to Apoapsis and Periapsis)
-* `maxSemiMajorAxis`: maximum semi major axis (related to Apoapsis and Periapsis)
+The type of orbit, defined as:
+
+* `elliptical`: An elliptical orbit around a body.
+* `suborbit`: An orbit with the Periapsis within the radius of the orbited body.
+* `escape`: An orbit with the Apoapsis outside the Sphere of Influence (SOI) of the orbited body.
 
 #### `RequiredGroup` Class
 
