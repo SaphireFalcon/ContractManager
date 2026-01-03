@@ -95,7 +95,7 @@ namespace ContractManager.GUI
                             titleForButton = titleForButton[0..^3] + "..";
                             textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
                         }
-                        if (ImGui.Button(titleForButton, buttonSize))
+                        if (ImGui.Button(titleForButton + String.Format("##{0}", contractForTab.contractUID), buttonSize))
                         {
                             // Toggle the contract to show.
                             if (this._contractToShowDetails == contractForTab)
