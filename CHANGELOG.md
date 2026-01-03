@@ -10,6 +10,7 @@ GUI
 - Gray-out the reject button if the offered contract cannot be rejected because of `isRejectable`. (#71)
 - Show deadline of an accepted contract in contract details of *Contract Management Window*. (#72)
 - Show deadline of an accepted contract in *Active Contracts Window*. (#72)
+- Show the added orbit requirements in *Contract Management Window* and *Active Contracts Window*. (#76)
 
 Core
 - Add typing for the supported primitives for XML serialization. (#66)
@@ -29,10 +30,12 @@ Core
 - Add checks to offer contract only if a specified contract blueprint has been completed/failed/accepted. (#74)
 - Add 'minNumberOfVessels', 'maxNumberOfVessels' as `PrerequisiteType`. (#74)
 - Add checks to offer contract only if a specified number of vehicles are present in the current celestial system. (#74)
+- Add the remaining orbit parameters to `RequiredOrbit` and `TrackedOrbit` types. (#76)
 
 Doc
 - Updated the documentation for the added fields in `ContractBlueprint`. (#74)
 - Updated the documentation for the added `PrerequisiteTypes`. (#74)
+- Updated the documentation for the added fields in `RequiredOrbit`. (#76)
 
 ### Changed
 

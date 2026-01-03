@@ -318,6 +318,245 @@ namespace ContractManager.GUI
                     ImGui.TextColored(requiredOrbit.maxPeriapsis > periapsis ? Colors.green : Colors.orange, Utils.FormatDistance(periapsis));
                 }
             }
+            // Eccentricity
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minEccentricity))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Eccentricity < {0}", requiredOrbit.minEccentricity));
+            }
+            else
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxEccentricity))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Eccentricity > {0}", requiredOrbit.maxEccentricity));
+            }
+            else
+            if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minEccentricity) && !Double.IsNaN(requiredOrbit.maxEccentricity))
+            {
+                double eccentricity = ((TrackedOrbit)trackedRequirement).eccentricity;
+                ImGui.Text("Eccentricity:");
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minEccentricity < eccentricity ? Colors.green : Colors.red, String.Format("{0} <", requiredOrbit.minEccentricity));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minEccentricity < eccentricity && eccentricity < requiredOrbit.maxEccentricity ? Colors.green : Colors.orange, eccentricity.ToString("F3"));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.maxEccentricity > eccentricity ? Colors.green : Colors.red, String.Format("< {0}", requiredOrbit.maxEccentricity));
+            }
+            else
+            {
+                if (!Double.IsNaN(requiredOrbit.minEccentricity))
+                {
+                    double eccentricity = ((TrackedOrbit)trackedRequirement).eccentricity;
+                    ImGui.Text("Eccentricity:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.minEccentricity < eccentricity ? Colors.green : Colors.red,
+                        String.Format("{0} <", requiredOrbit.minEccentricity));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.minEccentricity < eccentricity ? Colors.green : Colors.orange, eccentricity.ToString("F3"));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxEccentricity))
+                {
+                    double eccentricity = ((TrackedOrbit)trackedRequirement).eccentricity;
+                    ImGui.Text("Eccentricity:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.maxEccentricity > eccentricity ? Colors.green : Colors.red,
+                        String.Format("{0} >", requiredOrbit.maxEccentricity));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.maxEccentricity > eccentricity ? Colors.green : Colors.orange, eccentricity.ToString("F3"));
+                }
+            }
+
+            // Period
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minPeriod))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Period < {0}", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true)));
+            }
+            else
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxPeriod))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Period > {0}", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true)));
+            }
+            else
+            if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minPeriod) && !Double.IsNaN(requiredOrbit.maxPeriod))
+            {
+                double period = ((TrackedOrbit)trackedRequirement).period;
+                ImGui.Text("Period:");
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minPeriod < period ? Colors.green : Colors.red, String.Format("{0} <", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true)));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minPeriod < period && period < requiredOrbit.maxPeriod ? Colors.green : Colors.orange, Utils.FormatSimTimeAsRelative(new KSA.SimTime(period), true));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.maxPeriod > period ? Colors.green : Colors.red, String.Format("< {0}", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true)));
+            }
+            else
+            {
+                if (!Double.IsNaN(requiredOrbit.minPeriod))
+                {
+                    double period = ((TrackedOrbit)trackedRequirement).period;
+                    ImGui.Text("Period:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.minPeriod < period ? Colors.green : Colors.red,
+                        String.Format("{0} <", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true)));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.minPeriod < period ? Colors.green : Colors.orange, Utils.FormatSimTimeAsRelative(new KSA.SimTime(period), true));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxPeriod))
+                {
+                    double period = ((TrackedOrbit)trackedRequirement).period;
+                    ImGui.Text("Period:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.maxPeriod > period ? Colors.green : Colors.red,
+                        String.Format("{0} >", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true)));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.maxPeriod > period ? Colors.green : Colors.orange, Utils.FormatSimTimeAsRelative(new KSA.SimTime(period), true));
+                }
+            }
+
+            // Longitude of Ascending Node
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Lon Asc Node < {0:F1}°", requiredOrbit.minLongitudeOfAscendingNode));
+            }
+            else
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Lon Asc Node > {0:F1}°", requiredOrbit.maxLongitudeOfAscendingNode));
+            }
+            else
+            if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode) && !Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+            {
+                double lonAscNode = ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode;
+                ImGui.Text("Lon Asc Node:");
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minLongitudeOfAscendingNode < lonAscNode ? Colors.green : Colors.red, String.Format("{0:F1}° <", requiredOrbit.minLongitudeOfAscendingNode));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minLongitudeOfAscendingNode < lonAscNode && lonAscNode < requiredOrbit.maxLongitudeOfAscendingNode ? Colors.green : Colors.orange, String.Format("{0:F1}°", lonAscNode));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.maxLongitudeOfAscendingNode > lonAscNode ? Colors.green : Colors.red, String.Format("< {0:F1}°", requiredOrbit.maxLongitudeOfAscendingNode));
+            }
+            else
+            {
+                if (!Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode))
+                {
+                    double lonAscNode = ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode;
+                    ImGui.Text("Lon Asc Node:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.minLongitudeOfAscendingNode < lonAscNode ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° <", requiredOrbit.minLongitudeOfAscendingNode));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.minLongitudeOfAscendingNode < lonAscNode ? Colors.green : Colors.orange, String.Format("{0:F1}°", lonAscNode));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+                {
+                    double lonAscNode = ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode;
+                    ImGui.Text("Lon Asc Node:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.maxLongitudeOfAscendingNode > lonAscNode ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° >", requiredOrbit.maxLongitudeOfAscendingNode));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.maxLongitudeOfAscendingNode > lonAscNode ? Colors.green : Colors.orange, String.Format("{0:F1}°", lonAscNode));
+                }
+            }
+
+            // Inclination
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minInclination))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Inclination < {0:F1}°", requiredOrbit.minInclination));
+            }
+            else
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxInclination))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Inclination > {0:F1}°", requiredOrbit.maxInclination));
+            }
+            else
+            if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minInclination) && !Double.IsNaN(requiredOrbit.maxInclination))
+            {
+                double inclination = ((TrackedOrbit)trackedRequirement).inclination;
+                ImGui.Text("Inclination:");
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minInclination < inclination ? Colors.green : Colors.red, String.Format("{0:F1}° <", requiredOrbit.minInclination));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minInclination < inclination && inclination < requiredOrbit.maxInclination ? Colors.green : Colors.orange, String.Format("{0:F1}°", inclination));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.maxInclination > inclination ? Colors.green : Colors.red, String.Format("< {0:F1}°", requiredOrbit.maxInclination));
+            }
+            else
+            {
+                if (!Double.IsNaN(requiredOrbit.minInclination))
+                {
+                    double inclination = ((TrackedOrbit)trackedRequirement).inclination;
+                    ImGui.Text("Inclination:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.minInclination < inclination ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° <", requiredOrbit.minInclination));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.minInclination < inclination ? Colors.green : Colors.orange, String.Format("{0:F1}°", inclination));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxInclination))
+                {
+                    double inclination = ((TrackedOrbit)trackedRequirement).inclination;
+                    ImGui.Text("Inclination:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.maxInclination > inclination ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° >", requiredOrbit.maxInclination));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.maxInclination > inclination ? Colors.green : Colors.orange, String.Format("{0:F1}°", inclination));
+                }
+            }
+
+            // Argument of Periapsis
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Arg Periapsis < {0:F1}°", requiredOrbit.minArgumentOfPeriapsis));
+            }
+            else
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Arg Periapsis > {0:F1}°", requiredOrbit.maxArgumentOfPeriapsis));
+            }
+            else
+            if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis) && !Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+            {
+                double argPeriapsis = ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis;
+                ImGui.Text("Arg Periapsis:");
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minArgumentOfPeriapsis < argPeriapsis ? Colors.green : Colors.red, String.Format("{0:F1}° <", requiredOrbit.minArgumentOfPeriapsis));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.minArgumentOfPeriapsis < argPeriapsis && argPeriapsis < requiredOrbit.maxArgumentOfPeriapsis ? Colors.green : Colors.orange, String.Format("{0:F1}°", argPeriapsis));
+                ImGui.SameLine();
+                ImGui.TextColored(requiredOrbit.maxArgumentOfPeriapsis > argPeriapsis ? Colors.green : Colors.red, String.Format("< {0:F1}°", requiredOrbit.maxArgumentOfPeriapsis));
+            }
+            else
+            {
+                if (!Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis))
+                {
+                    double argPeriapsis = ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis;
+                    ImGui.Text("Arg Periapsis:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.minArgumentOfPeriapsis < argPeriapsis ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° <", requiredOrbit.minArgumentOfPeriapsis));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.minArgumentOfPeriapsis < argPeriapsis ? Colors.green : Colors.orange, String.Format("{0:F1}°", argPeriapsis));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+                {
+                    double argPeriapsis = ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis;
+                    ImGui.Text("Arg Periapsis:");
+                    ImGui.SameLine();
+                    ImGui.TextColored(
+                        requiredOrbit.maxArgumentOfPeriapsis > argPeriapsis ? Colors.green : Colors.red,
+                        String.Format("{0:F1}° >", requiredOrbit.maxArgumentOfPeriapsis));
+                    ImGui.SameLine();
+                    ImGui.TextColored(requiredOrbit.maxArgumentOfPeriapsis > argPeriapsis ? Colors.green : Colors.orange, String.Format("{0:F1}°", argPeriapsis));
+                }
+            }
         }
     }
 }
