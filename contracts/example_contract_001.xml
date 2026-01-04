@@ -56,6 +56,26 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
   <completionCondition>all</completionCondition>
   <actions>
     <Action>
+      <trigger>onContractOffer</trigger>
+      <type>showMessage</type>
+      <showMessage>onContractOffer</showMessage>
+    </Action>
+    <Action>
+      <trigger>onContractAccept</trigger>
+      <type>showMessage</type>
+      <showMessage>onContractAccept</showMessage>
+    </Action>
+    <Action>
+      <trigger>onContractExpire</trigger>
+      <type>showMessage</type>
+      <showMessage>onContractExpire</showMessage>
+    </Action>
+    <Action>
+      <trigger>onContractReject</trigger>
+      <type>showMessage</type>
+      <showMessage>onContractReject</showMessage>
+    </Action>
+    <Action>
       <trigger>onContractComplete</trigger>
       <type>showMessage</type>
       <showMessage>Congratulations! You pounced the example contract.</showMessage>
@@ -64,6 +84,36 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <trigger>onContractFail</trigger>
       <type>showMessage</type>
       <showMessage>Keep persevering; The road to success is pawed with failure.</showMessage>
+    </Action>
+    <Action>
+      <trigger>onRequirementStarted</trigger>
+      <type>showMessage</type>
+      <showMessage>onRequirementStarted: change_apoapsis_150_200km</showMessage>
+	  <onRequirement>change_apoapsis_150_200km</onRequirement>
+    </Action>
+    <Action>
+      <trigger>onRequirementMaintained</trigger>
+      <type>showMessage</type>
+      <showMessage>onRequirementMaintained: change_periapsis_150_200km</showMessage>
+	  <onRequirement>change_periapsis_150_200km</onRequirement>
+    </Action>
+    <Action>
+      <trigger>onRequirementReverted</trigger>
+      <type>showMessage</type>
+      <showMessage>onRequirementReverted: change_periapsis_150_200km</showMessage>
+	  <onRequirement>change_periapsis_150_200km</onRequirement>
+    </Action>
+    <Action>
+      <trigger>onRequirementAchieved</trigger>
+      <type>showMessage</type>
+      <showMessage>onRequirementAchieved: change_periapsis_150_200km</showMessage>
+	  <onRequirement>change_periapsis_150_200km</onRequirement>
+    </Action>
+    <Action>
+      <trigger>onRequirementAchieved</trigger>
+      <type>showMessage</type>
+      <showMessage>onRequirementAchieved: change_apoapsis_150_200km</showMessage>
+	  <onRequirement>change_apoapsis_150_200km</onRequirement>
     </Action>
   </actions>
 </Contract>

@@ -1,5 +1,6 @@
 ﻿using System.Xml.Serialization;
 using System.Collections.Generic;
+using ContractManager.Contract;
 
 namespace ContractManager.ContractBlueprint
 {
@@ -17,6 +18,10 @@ namespace ContractManager.ContractBlueprint
         // type: [ShowMessage, ShowBlockingPopup] - message to show when triggered.
         [XmlElement("showMessage", DataType = "string")]
         public string showMessage { get; set; } = string.Empty;
+        
+        // trigger: onRequirement* type of trigger - which requirement should trigger this action.
+        [XmlElement("onRequirement", DataType = "string")]
+        public string onRequirement { get; set; }
 
         public Action() { }
 
@@ -49,8 +54,9 @@ namespace ContractManager.ContractBlueprint
             ContractManager.data.popupWindows.Add(
                 new GUI.PopupWindow
                 {
-                    contract = contract,
-                    action = this,
+                    title = contract._contractBlueprint.title,
+                    uid = String.Format("{0}_{1}", contract.contractUID, this.trigger),
+                    messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
             );
@@ -78,9 +84,27 @@ namespace ContractManager.ContractBlueprint
 
     public enum TriggerType
     {
+        [XmlEnum("onContractOffer")]
+        OnContractOffer,  // transition to ContractStatus.Offered
+        [XmlEnum("onContractAccept")]
+        OnContractAccept,  // transition to ContractStatus.Accepted
+        [XmlEnum("onContractExpire")]
+        OnContractExpire,  // transition to ContractStatus.Rejected when expire time passed
+        [XmlEnum("onContractReject")]
+        OnContractReject,  // transition to ContractStatus.Rejected when reject button pressed
         [XmlEnum("onContractComplete")]
-        OnContractComplete,
+        OnContractComplete,  // transition to ContractStatus.Completed
         [XmlEnum("onContractFail")]
-        OnContractFail
+        OnContractFail,  // transition to ContractStatus.Failed
+        [XmlEnum("onRequirementStarted")]
+        OnRequirementTracked,  // transition to TrackedRequirementStatus.TRACKED
+        [XmlEnum("onRequirementMaintained")]
+        OnRequirementMaintained,  // transition to TrackedRequirementStatus.MAINTAINED
+        [XmlEnum("onRequirementReverted")]
+        OnRequirementReverted,  // transition from TrackedRequirementStatus.MAINTAINED back to TrackedRequirementStatus.TRACKED
+        [XmlEnum("onRequirementAchieved")]
+        OnRequirementAchieved,  // transition to TrackedRequirementStatus.ACHIEVED
+        [XmlEnum("onRequirementFailed")]
+        OnRequirementFailed  // transition to TrackedRequirementStatus.FAILED
     }
 }
