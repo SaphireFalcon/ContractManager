@@ -1,4 +1,5 @@
 ﻿using ContractManager.ContractBlueprint;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,11 +12,13 @@ namespace ContractManager.Contract
     {
         // Internal handle to the blueprint requirement.
         internal Requirement? _blueprintRequirement { get; set; } = null;
+        // Internal handle to the contract holding the requirement.
+        internal Contract? _contract { get; set; } = null;
         
         // Serializable fields.
         // Unique identifier which blueprint requirement is being tracked.
-        [XmlElement("requirementUID")]
-        public string requirementUID { get; set; } = String.Empty;
+        [XmlElement("requirementUID", DataType = "string")]
+        public string requirementUID { get; set; } = string.Empty;
 
         // Status of the tracked requirement.
         [XmlElement("status")]
@@ -25,7 +28,7 @@ namespace ContractManager.Contract
         public TrackedRequirement() { }
 
         // Clone, e.g after deserializing from a stream.
-        internal TrackedRequirement? Clone(List<ContractBlueprint.Requirement> blueprintRequirements)
+        internal TrackedRequirement? Clone(List<ContractBlueprint.Requirement> blueprintRequirements, in Contract contract)
         {
             ContractBlueprint.Requirement? blueprintRequirement = ContractUtils.FindRequirementFromUID(blueprintRequirements, this.requirementUID);
             if (blueprintRequirement == null)
@@ -36,37 +39,38 @@ namespace ContractManager.Contract
 
             if (blueprintRequirement.type == RequirementType.Orbit)
             {
-                return ((TrackedOrbit)this).Clone(blueprintRequirement);
+                return ((TrackedOrbit)this).Clone(blueprintRequirement, contract);
             }
             else
             if (blueprintRequirement.type == RequirementType.Group)
             {
-                return ((TrackedGroup)this).Clone(blueprintRequirement);
+                return ((TrackedGroup)this).Clone(blueprintRequirement, contract);
             }
             Console.WriteLine($"[CM] [ERROR] Unhandled type: '{blueprintRequirement.type}'");
             return null;
         }
 
         // Factory function to create a TrackedRequirement (sub-class types) from a blueprint requirement.
-        public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement)
+        public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement, in Contract contract)
         {
             // Construct a tracked requirement from blueprint.
             if (blueprintRequirement.type == RequirementType.Orbit)
             {
-                return new TrackedOrbit(in blueprintRequirement);
+                return new TrackedOrbit(in blueprintRequirement, in contract);
             }
             else
             if (blueprintRequirement.type == RequirementType.Group)
             {
-                return new TrackedGroup(blueprintRequirement);
+                return new TrackedGroup(blueprintRequirement, in contract);
             }
-            return new TrackedRequirement(blueprintRequirement); 
+            return new TrackedRequirement(blueprintRequirement, in contract); 
         }
 
         // Constructor, used when contract is offered.
-        public TrackedRequirement(in Requirement blueprintRequirement)
+        public TrackedRequirement(in Requirement blueprintRequirement, in Contract contract)
         {
             this._blueprintRequirement = blueprintRequirement;
+            this._contract = contract;
             this.requirementUID = blueprintRequirement.uid;
             
             // Set the initial status of the tracked requirement.
@@ -75,6 +79,7 @@ namespace ContractManager.Contract
                 this.status = TrackedRequirementStatus.NOT_STARTED;
             } else {
                 this.status = TrackedRequirementStatus.TRACKED;
+                ContractUtils.TriggerAction(contract, ContractBlueprint.TriggerType.OnRequirementTracked, this);
             }
         }
 
@@ -104,33 +109,78 @@ namespace ContractManager.Contract
     {
         // The body the vehicle is curently orbiting
         public string orbitedBody { get; set; } = string.Empty;
-        // The orbit Apoapsis
+        // The orbit Apoapsis in meters
         public double apoapsis { get; set; } = double.NaN;
-        // The orbit Periapsis
+        // The orbit Periapsis in meters 
         public double periapsis { get; set; } = double.NaN;
-        // TODO: add all the other ones
+        // The eccentricity of the orbit (ratio)
+        public double eccentricity { get; set; } = double.NaN;
+        // The period of the orbit in seconds
+        public double period { get; set; } = double.NaN;
+        // The longitude of the ascending node; angle in degrees from reference frame of the parent body to the ascending node in reference plane.
+        public double longitudeOfAscendingNode { get; set; } = double.NaN;
+        // The inclination of the orbit; the angle in degrees between the reference plane of the parent body and the orbital plane.
+        public double inclination { get; set; } = double.NaN;
+        // The argument of Periapsis; the angle in degrees between the ascending node and the periapsis in orbital plane.
+        public double argumentOfPeriapsis { get; set; } = double.NaN;
+        // The type of orbit.
+        public OrbitType type { get; set; } = OrbitType.Invalid;
+        
+        // Note: SemiMajorAxis and SemiMinorAxis can be derived from the other parameters.
+        //   Currently, the ease of use for the player seems limited, so not adding for now.
         
         // Constructor, used when deserializing from XML.
         public TrackedOrbit() { }
 
-        internal TrackedOrbit? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        internal TrackedOrbit? Clone(in ContractBlueprint.Requirement blueprintRequirement, in Contract contract)
         {
             TrackedOrbit clonedTrackedOrbut = new TrackedOrbit
             {
                 requirementUID = this.requirementUID,
                 status = this.status,
-                _blueprintRequirement = blueprintRequirement
+                _blueprintRequirement = blueprintRequirement,
+                _contract = contract
             };
             return clonedTrackedOrbut;
         }
 
-        public TrackedOrbit(in Requirement requirement) : base(in requirement) { }
+        public TrackedOrbit(in Requirement requirement, in Contract contract) : base(in requirement, contract) { }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
+            KSA.Orbit vehicleOrbit = vehicle.Orbit;
             this.orbitedBody = vehicle.Orbit.Parent.Id;
             this.apoapsis = vehicle.Orbit.Apoapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
             this.periapsis = vehicle.Orbit.Periapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
+            this.eccentricity = vehicleOrbit.Eccentricity;
+            this.period = vehicleOrbit.Period;
+            this.longitudeOfAscendingNode = Double.RadiansToDegrees(vehicleOrbit.LongitudeOfAscendingNode);
+            this.inclination = Double.RadiansToDegrees(vehicleOrbit.Inclination);
+            this.argumentOfPeriapsis = Double.RadiansToDegrees(vehicleOrbit.ArgumentOfPeriapsis);
+            if (vehicleOrbit.GetOrbitType() == KSA.Orbit.OrbitType.Invalid)
+            {
+                this.type = OrbitType.Invalid;
+            }
+            else
+            if (vehicleOrbit.GetOrbitType() == KSA.Orbit.OrbitType.Elliptical)
+            {
+                if (vehicleOrbit.Periapsis < vehicle.Orbit.Parent.MeanRadius)
+                {
+                    this.type = OrbitType.Suborbit;
+                }
+                else
+                {
+                    this.type = OrbitType.Elliptical;
+                }
+            }
+            if (
+                (vehicleOrbit.GetOrbitType() is KSA.Orbit.OrbitType.Hyperbolic or KSA.Orbit.OrbitType.Parabolic) &&
+                vehicle.FlightPlan.Patches.Count > 0 && vehicle.FlightPlan.Patches[0].EndTransition == PatchTransition.Escape  // not sure if this condition is needed.
+            )
+            {
+                this.type = OrbitType.Escape;
+            }
+
             return;
         }
         
@@ -170,10 +220,12 @@ namespace ContractManager.Contract
                 if (this._blueprintRequirement.isCompletedOnAchievement)
                 {
                     this.status = TrackedRequirementStatus.ACHIEVED;
+                    ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementAchieved, this);
                 }
                 else
                 {
                     this.status = TrackedRequirementStatus.MAINTAINED;
+                    ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementMaintained, this);
                 }
             }
             else
@@ -181,6 +233,7 @@ namespace ContractManager.Contract
             {
                 // requirement is not maintained anymore, set back to tracked.
                 this.status = TrackedRequirementStatus.TRACKED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementReverted, this);
             }
         }
     }
@@ -193,7 +246,7 @@ namespace ContractManager.Contract
 
         public TrackedGroup() { }
         
-        internal TrackedGroup? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        internal TrackedGroup? Clone(in ContractBlueprint.Requirement blueprintRequirement, in Contract contract)
         {
             TrackedGroup clonedTrackedGroup = new TrackedGroup
             {
@@ -203,7 +256,7 @@ namespace ContractManager.Contract
             };
             foreach (TrackedRequirement childTrackedRequirement in this.trackedRequirements)
             {
-                TrackedRequirement? clonedTrackedRequirement = childTrackedRequirement.Clone(blueprintRequirement.group.requirements);
+                TrackedRequirement? clonedTrackedRequirement = childTrackedRequirement.Clone(blueprintRequirement.group.requirements, contract);
                 if (clonedTrackedRequirement != null) {
                     clonedTrackedGroup.trackedRequirements.Add(clonedTrackedRequirement);
                 }
@@ -216,12 +269,12 @@ namespace ContractManager.Contract
             return clonedTrackedGroup;
         }
 
-        public TrackedGroup(in Requirement requirement) : base(in requirement)
+        public TrackedGroup(in Requirement requirement, in Contract contract) : base(in requirement, contract)
         {
             if (requirement.group == null) { return; }
             foreach (Requirement blueprintRequirement in requirement.group.requirements)
             {
-                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
+                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement, in contract));
             }
         }
 
@@ -248,12 +301,14 @@ namespace ContractManager.Contract
             if (worstRequirementStatus == TrackedRequirementStatus.FAILED && this._blueprintRequirement.group.completionCondition == CompletionCondition.All)
             {
                 this.status = TrackedRequirementStatus.FAILED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementFailed, this);
             }
             else
             // FIXME: If completion condition is any, than only one achieved should be sufficient
             if (worstRequirementStatus is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED)
             {
                 this.status = TrackedRequirementStatus.ACHIEVED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementAchieved, this);
             }
         }
     }

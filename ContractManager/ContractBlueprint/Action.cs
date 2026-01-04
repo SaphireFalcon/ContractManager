@@ -1,26 +1,11 @@
 ﻿using System.Xml.Serialization;
 using System.Collections.Generic;
+using ContractManager.Contract;
 
 namespace ContractManager.ContractBlueprint
 {
     public class Action
     {
-        public enum ActionType
-        {
-            [XmlEnum("showMessage")]
-            ShowMessage,
-            [XmlEnum("showBlockingPopup")]
-            ShowBlockingPopup,
-        }
-
-        public enum TriggerType
-        {
-            [XmlEnum("onContractComplete")]
-            OnContractComplete,
-            [XmlEnum("onContractFail")]
-            OnContractFail
-        }
-
         // The trigger of the action.
         [XmlElement("trigger")]
         public TriggerType trigger { get; set; }
@@ -31,8 +16,12 @@ namespace ContractManager.ContractBlueprint
 
         // Fields for specific action types.
         // type: [ShowMessage, ShowBlockingPopup] - message to show when triggered.
-        [XmlElement("showMessage")]
-        public string showMessage { get; set; }
+        [XmlElement("showMessage", DataType = "string")]
+        public string showMessage { get; set; } = string.Empty;
+        
+        // trigger: onRequirement* type of trigger - which requirement should trigger this action.
+        [XmlElement("onRequirement", DataType = "string")]
+        public string onRequirement { get; set; }
 
         public Action() { }
 
@@ -66,10 +55,56 @@ namespace ContractManager.ContractBlueprint
                 new GUI.PopupWindow
                 {
                     title = contract._contractBlueprint.title,
+                    uid = String.Format("{0}_{1}", contract.contractUID, this.trigger),
                     messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
             );
         }
+
+        internal bool Validate()
+        {
+            if ((type is ActionType.ShowMessage or ActionType.ShowBlockingPopup) && String.IsNullOrEmpty(this.showMessage))
+            {
+                Console.WriteLine($"[CM] [WARNING] action type = '{type}' `showMessage` field can't be empty.");
+                return false;
+            }
+            // ActionType and TriggerType don't need to be validated loading XML will throw an exception.
+            return true;
+        }
+    }
+
+    public enum ActionType
+    {
+        [XmlEnum("showMessage")]
+        ShowMessage,
+        [XmlEnum("showBlockingPopup")]
+        ShowBlockingPopup,
+    }
+
+    public enum TriggerType
+    {
+        [XmlEnum("onContractOffer")]
+        OnContractOffer,  // transition to ContractStatus.Offered
+        [XmlEnum("onContractAccept")]
+        OnContractAccept,  // transition to ContractStatus.Accepted
+        [XmlEnum("onContractExpire")]
+        OnContractExpire,  // transition to ContractStatus.Rejected when expire time passed
+        [XmlEnum("onContractReject")]
+        OnContractReject,  // transition to ContractStatus.Rejected when reject button pressed
+        [XmlEnum("onContractComplete")]
+        OnContractComplete,  // transition to ContractStatus.Completed
+        [XmlEnum("onContractFail")]
+        OnContractFail,  // transition to ContractStatus.Failed
+        [XmlEnum("onRequirementStarted")]
+        OnRequirementTracked,  // transition to TrackedRequirementStatus.TRACKED
+        [XmlEnum("onRequirementMaintained")]
+        OnRequirementMaintained,  // transition to TrackedRequirementStatus.MAINTAINED
+        [XmlEnum("onRequirementReverted")]
+        OnRequirementReverted,  // transition from TrackedRequirementStatus.MAINTAINED back to TrackedRequirementStatus.TRACKED
+        [XmlEnum("onRequirementAchieved")]
+        OnRequirementAchieved,  // transition to TrackedRequirementStatus.ACHIEVED
+        [XmlEnum("onRequirementFailed")]
+        OnRequirementFailed  // transition to TrackedRequirementStatus.FAILED
     }
 }

@@ -95,7 +95,7 @@ namespace ContractManager.GUI
                             titleForButton = titleForButton[0..^3] + "..";
                             textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
                         }
-                        if (ImGui.Button(titleForButton, buttonSize))
+                        if (ImGui.Button(titleForButton + String.Format("##{0}", contractForTab.contractUID), buttonSize))
                         {
                             // Toggle the contract to show.
                             if (this._contractToShowDetails == contractForTab)
@@ -139,6 +139,10 @@ namespace ContractManager.GUI
                         {
                             ImGui.Text("Status: Completed.");
                         }
+                        if (this._contractToShowDetails.status == ContractStatus.Failed)
+                        {
+                            ImGui.Text("Status: Failed.");
+                        }
                         
                         if (this._contractToShowDetails._contractBlueprint.synopsis != string.Empty)
                         {
@@ -149,6 +153,44 @@ namespace ContractManager.GUI
                         if (this._contractToShowDetails._contractBlueprint.description != string.Empty)
                         {
                             ImGui.TextWrapped(this._contractToShowDetails._contractBlueprint.description);
+                        }
+
+                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.expiration))
+                        {
+                            // Contract can expire
+                            if (this._contractToShowDetails.status == ContractStatus.Offered)
+                            {
+                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                                KSA.SimTime expireOnSimTime = this._contractToShowDetails.offeredSimTime + this._contractToShowDetails._contractBlueprint.expiration;
+                                KSA.SimTime expireInSimTime = expireOnSimTime - simTime;
+                                ImGui.Text(String.Format("Expire offered contract on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(expireOnSimTime), Utils.FormatSimTimeAsRelative(expireInSimTime, true)));
+                            }
+                        }
+                        else
+                        {
+                            ImGui.Text("Offered contract does not expire.");
+                        }
+
+                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.deadline))
+                        {
+                            // Contract has a deadline
+                            if (this._contractToShowDetails.status == ContractStatus.Offered)
+                            {
+                                KSA.SimTime deadlineSimTime = new KSA.SimTime(this._contractToShowDetails._contractBlueprint.deadline);
+                                ImGui.Text(String.Format("Contract has a deadline of {0}", Utils.FormatSimTimeAsRelative(deadlineSimTime, true)));
+                            }
+                            else
+                            if (this._contractToShowDetails.status == ContractStatus.Accepted)
+                            {
+                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                                KSA.SimTime deadlineOnSimTime = this._contractToShowDetails.acceptedSimTime + this._contractToShowDetails._contractBlueprint.deadline;
+                                KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
+                                ImGui.Text(String.Format("Contract has a deadline on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(deadlineOnSimTime), Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
+                            }
+                        }
+                        else
+                        {
+                            ImGui.Text("Contract does not have a deadline.");
                         }
                         
                         ImGui.SeparatorText("Rewards");
@@ -250,21 +292,66 @@ namespace ContractManager.GUI
             if (this._contractToShowDetails.status == ContractStatus.Offered)
             {
                 // Show the requirement details
+                ImGui.Text(String.Format("Target body {0}", requiredOrbit.targetBody));
+                if (requiredOrbit.type != OrbitType.Invalid)
+                {
+                    ImGui.Text(String.Format("Orbit type {0}", requiredOrbit.type));
+                }
                 if (!Double.IsNaN(requiredOrbit.minApoapsis))
                 {
-                    ImGui.Text(String.Format("Min Apoapsis {0:F0} m altitude", requiredOrbit.minApoapsis));
+                    ImGui.Text(String.Format("Min apoapsis {0:F0} m altitude", requiredOrbit.minApoapsis));
                 }
                 if (!Double.IsNaN(requiredOrbit.maxApoapsis))
                 {
-                    ImGui.Text(String.Format("Max Apoapsis {0:F0} m altitude", requiredOrbit.maxApoapsis));
+                    ImGui.Text(String.Format("Max apoapsis {0:F0} m altitude", requiredOrbit.maxApoapsis));
                 }
                 if (!Double.IsNaN(requiredOrbit.minPeriapsis))
                 {
-                    ImGui.Text(String.Format("Min Periapsis {0:F0} m altitude", requiredOrbit.minPeriapsis));
+                    ImGui.Text(String.Format("Min periapsis {0:F0} m altitude", requiredOrbit.minPeriapsis));
                 }
                 if (!Double.IsNaN(requiredOrbit.maxPeriapsis))
                 {
-                    ImGui.Text(String.Format("Max Periapsis {0:F0} m altitude", requiredOrbit.maxPeriapsis));
+                    ImGui.Text(String.Format("Max periapsis {0:F0} m altitude", requiredOrbit.maxPeriapsis));
+                }
+                if (!Double.IsNaN(requiredOrbit.minEccentricity))
+                {
+                    ImGui.Text(String.Format("Min eccentricity {0:F6}", requiredOrbit.minEccentricity));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxEccentricity))
+                {
+                    ImGui.Text(String.Format("Max eccentricity {0:F6}", requiredOrbit.maxEccentricity));
+                }
+                if (!Double.IsNaN(requiredOrbit.minPeriod))
+                {
+                    ImGui.Text(String.Format("Max period {0}", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true)));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxPeriod))
+                {
+                    ImGui.Text(String.Format("Max period {0}", Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true)));
+                }
+                if (!Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode))
+                {
+                    ImGui.Text(String.Format("Max longitude of ascending node {0:F1}°", requiredOrbit.minLongitudeOfAscendingNode));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+                {
+                    ImGui.Text(String.Format("Max longitude of ascending node {0:F1}°", requiredOrbit.maxLongitudeOfAscendingNode));
+                }
+                if (!Double.IsNaN(requiredOrbit.minInclination))
+                {
+                    ImGui.Text(String.Format("Max inclination {0:F1}°", requiredOrbit.minInclination));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxInclination))
+                {
+                    ImGui.Text(String.Format("Max inclination {0:F1}°", requiredOrbit.maxInclination));
+                }
+                if (!Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis))
+                {
+                    ImGui.Text(String.Format("Max argument of perapsis {0:F1}°", requiredOrbit.minArgumentOfPeriapsis));
+                }
+                if (!Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+                {
+                    ImGui.Text(String.Format("Max argument of perapsis {0:F1}°", requiredOrbit.maxArgumentOfPeriapsis));
                 }
             }
             else
@@ -274,6 +361,13 @@ namespace ContractManager.GUI
 
                 // Show requirement(s) and current tracked state
                 var color = Colors.GetTrackedRequirementStatusColor(trackedRequirement.status);
+                // target body
+                ImGui.TextColored(color, String.Format("Target body {0}", requiredOrbit.targetBody));
+                // orbit type
+                if (requiredOrbit.type != OrbitType.Invalid)
+                {
+                    ImGui.TextColored(color, String.Format("Orbit type {0}", requiredOrbit.type));
+                }
                 // Apoapsis
                 if (!Double.IsNaN(requiredOrbit.minApoapsis) && !Double.IsNaN(requiredOrbit.maxApoapsis))
                 {
@@ -336,6 +430,161 @@ namespace ContractManager.GUI
                             Utils.FormatDistance(requiredOrbit.maxPeriapsis),
                             Utils.FormatDistance(((TrackedOrbit)trackedRequirement).periapsis)));
                 }
+                // Eccentricity
+                if (!Double.IsNaN(requiredOrbit.minEccentricity) && !Double.IsNaN(requiredOrbit.maxEccentricity))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Eccentricity {0:F6} < {1:F6} < {2:F6}",
+                            requiredOrbit.minEccentricity,
+                            ((TrackedOrbit)trackedRequirement).eccentricity,
+                            requiredOrbit.maxEccentricity));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.minEccentricity))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Eccentricity {0:F6} < {1:F6}",
+                            requiredOrbit.minEccentricity,
+                            ((TrackedOrbit)trackedRequirement).eccentricity));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.maxEccentricity))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Eccentricity {0:F6} > {1:F6}",
+                            requiredOrbit.maxEccentricity,
+                            ((TrackedOrbit)trackedRequirement).eccentricity));
+                }
+                // Period
+                if (!Double.IsNaN(requiredOrbit.minPeriod) && !Double.IsNaN(requiredOrbit.maxPeriod))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Period {0} < {1} < {2}",
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true),
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(((TrackedOrbit)trackedRequirement).period), true),
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true)));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.minPeriod))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Period {0} < {1}",
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.minPeriod), true),
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(((TrackedOrbit)trackedRequirement).period), true)));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.maxPeriod))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Period {0} > {1}",
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(requiredOrbit.maxPeriod), true),
+                            Utils.FormatSimTimeAsRelative(new KSA.SimTime(((TrackedOrbit)trackedRequirement).period), true)));
+                }
+                // Longitude of Ascending Node
+                if (!Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode) && !Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Longitude of Ascending Node {0:F1}° < {1:F1}° < {2:F1}°",
+                            requiredOrbit.minLongitudeOfAscendingNode,
+                            ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode,
+                            requiredOrbit.maxLongitudeOfAscendingNode));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Longitude of Ascending Node {0:F1}° < {1:F1}°",
+                            requiredOrbit.minLongitudeOfAscendingNode,
+                            ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Longitude of Ascending Node {0:F1}° > {1:F1}°",
+                            requiredOrbit.maxLongitudeOfAscendingNode,
+                            ((TrackedOrbit)trackedRequirement).longitudeOfAscendingNode));
+                }
+                // Inclination
+                if (!Double.IsNaN(requiredOrbit.minInclination) && !Double.IsNaN(requiredOrbit.maxInclination))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Inclination {0:F1}° < {1:F1}° < {2:F1}°",
+                            requiredOrbit.minInclination,
+                            ((TrackedOrbit)trackedRequirement).inclination,
+                            requiredOrbit.maxInclination));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.minInclination))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Inclination {0:F1}° < {1:F1}°",
+                            requiredOrbit.minInclination,
+                            ((TrackedOrbit)trackedRequirement).inclination));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.maxInclination))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Inclination {0:F1}° > {1:F1}°",
+                            requiredOrbit.maxInclination,
+                            ((TrackedOrbit)trackedRequirement).inclination));
+                }
+                // Argument of Periapsis
+                if (!Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis) && !Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Argument of Periapsis {0:F1}° < {1:F1}° < {2:F1}°",
+                            requiredOrbit.minArgumentOfPeriapsis,
+                            ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis,
+                            requiredOrbit.maxArgumentOfPeriapsis));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Argument of Periapsis {0:F1}° < {1:F1}°",
+                            requiredOrbit.minArgumentOfPeriapsis,
+                            ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis));
+                }
+                else
+                if (!Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis))
+                {
+                    ImGui.TextColored(
+                        color,
+                        String.Format(
+                            "Argument of Periapsis {0:F1}° > {1:F1}°",
+                            requiredOrbit.maxArgumentOfPeriapsis,
+                            ((TrackedOrbit)trackedRequirement).argumentOfPeriapsis));
+                }
             }
         }
 
@@ -374,20 +623,32 @@ namespace ContractManager.GUI
             if (!(this._contractToShowDetails.status is ContractStatus.Offered or ContractStatus.Accepted)) { return; }
 
             // Show reject button
-            ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.5f, Y = 0.1f, Z = 0.1f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.25f, Z = 0.25f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.75f, Y = 0.1f, Z = 0.1f, W = 1.0f });
+            if (this._contractToShowDetails._contractBlueprint.isRejectable)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.redDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.redLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.red);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
             if (ImGui.Button("Reject Contract"))
             {
-                this._contractToShowDetails.RejectContract(Program.GetPlayerTime());
-                if (this._offeredContracts.Contains(this._contractToShowDetails))
+                if (this._contractToShowDetails._contractBlueprint.isRejectable)
                 {
-                    this._offeredContracts.Remove(this._contractToShowDetails);
-                }
-                if (this._acceptedContracts.Contains(this._contractToShowDetails))
-                {
-                    this._acceptedContracts.Remove(this._contractToShowDetails);
-                    this._finishedContracts.Add(this._contractToShowDetails);  // If accepted and then rejected add to finished?
+                    this._contractToShowDetails.RejectContract(Universe.GetElapsedSimTime());
+                    if (this._offeredContracts.Contains(this._contractToShowDetails))
+                    {
+                        this._offeredContracts.Remove(this._contractToShowDetails);
+                    }
+                    if (this._acceptedContracts.Contains(this._contractToShowDetails))
+                    {
+                        this._acceptedContracts.Remove(this._contractToShowDetails);
+                        this._finishedContracts.Add(this._contractToShowDetails);  // If accepted and then rejected add to finished?
+                    }
                 }
             }
             ImGui.PopStyleColor(3);
@@ -405,15 +666,26 @@ namespace ContractManager.GUI
             float buttonWidthAccept = ImGui.CalcTextSize("Accept Contract").X + style.FramePadding.X * 2.0f;
             float resizeTriangleWidth = 25.0f;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightPanelRegionSize.X - buttonWidthReject - buttonWidthAccept - resizeTriangleWidth);
-            ImGui.PushStyleColor(ImGuiCol.Button, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.5f, Z = 0.2f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Brutal.Numerics.float4 { X = 0.35f, Y = 0.75f, Z = 0.35f, W = 1.0f });
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Brutal.Numerics.float4 { X = 0.2f, Y = 0.75f, Z = 0.2f, W = 1.0f });
+            if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.greenDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.greenLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.green);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
             if (ImGui.Button("Accept Contract"))
             {
-                // TODO: only call accept if it is possible to accept by checking maxNumberOfAcceptedContracts
-                this._contractToShowDetails.AcceptOfferedContract(Program.GetPlayerTime());
-                this._offeredContracts.Remove(this._contractToShowDetails);
-                this._acceptedContracts.Add(this._contractToShowDetails);
+                if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+                {
+                    this._contractToShowDetails.AcceptOfferedContract(Universe.GetElapsedSimTime());
+                    this._offeredContracts.Remove(this._contractToShowDetails);
+                    this._acceptedContracts.Add(this._contractToShowDetails);
+                }
             }
             ImGui.PopStyleColor(3);
         }

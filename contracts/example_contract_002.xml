@@ -1,58 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <uid>example_contract_002</uid>
   <title>Example Contract 002</title>
-  <synopsis>This is an example contract, changing the orbit 2 times.</synopsis>
+  <synopsis>This is an example contract, changing all attributes of an orbit.</synopsis>
   <description>Complete the objectives to fulfill this contract. 
-First, change the Periapsis to within 150 and 200 km altitude. 
-Next, change the Apoapsis to within 150 and 200 km altitude.
-Then, change both Apoapsis and Periapsis to with 200 and 220km altitude.</description>
+Try to achieve all the orbit attributes.</description>
+  <isRejectable>false</isRejectable>
+  <deadline>3600.0</deadline>
   <prerequisites>
     <Prerequisite>
       <type>maxNumOfferedContracts</type>
-      <maxNumOfferedContracts>1</maxNumOfferedContracts>
+      <maxNumOfferedContracts>4</maxNumOfferedContracts>
     </Prerequisite>
     <Prerequisite>
       <type>maxNumAcceptedContracts</type>
-      <maxNumAcceptedContracts>1</maxNumAcceptedContracts>
+      <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
     </Prerequisite>
   </prerequisites>
   <completionCondition>all</completionCondition>
   <requirements>
-    <Requirement>
-      <uid>change_periapsis_150_200km</uid>
-      <type>group</type>
-      <title>Change Orbit</title>
-      <Group>
-        <completionCondition>all</completionCondition>
-        <requirements>
-          <uid>change_periapsis_150_200km</uid>
-          <type>orbit</type>
-          <title>Change Periapsis</title>
-          <synopsis>Change Periapsis to 150~200km.</synopsis>
-          <description>Change the orbit to a low orbit with a Periapsis between 150.000 and 200.000 meter.</description>
-          <isCompletedOnAchievement>false</isCompletedOnAchievement>
-          <Orbit>
-            <targetBody>Earth</targetBody>
-            <minPeriapsis>150000</minPeriapsis>
-            <maxPeriapsis>200000</maxPeriapsis>
-          </Orbit>
-        </requirements>
-        <requirements>
-          <uid>change_apoapsis_150_200km</uid>
-          <type>orbit</type>
-          <title>Change Apoapsis</title>
-          <synopsis>Change Apoapsis to 150~200km.</synopsis>
-          <description>Change the orbit to a low orbit with a Apoapsis between 150.000 and 200.000 meter.</description>
-          <Orbit>
-            <targetBody>Earth</targetBody>
-            <minApoapsis>150000</minApoapsis>
-            <maxApoapsis>200000</maxApoapsis>
-          </Orbit>
-        </requirements>
-      </Group>
-    </Requirement>
     <Requirement>
       <uid>change_apoapsis_150_200km</uid>
       <type>orbit</type>
@@ -62,10 +29,21 @@ Then, change both Apoapsis and Periapsis to with 200 and 220km altitude.</descri
       <isHidden>true</isHidden>
       <Orbit>
         <targetBody>Earth</targetBody>
+		<type>elliptical</type>
         <minApoapsis>200000</minApoapsis>
-        <maxApoapsis>220000</maxApoapsis>
+        <maxApoapsis>205000</maxApoapsis>
         <minPeriapsis>200000</minPeriapsis>
-        <maxPeriapsis>220000</maxPeriapsis>
+        <maxPeriapsis>205000</maxPeriapsis>
+        <minEccentricity>0.01</minEccentricity>
+        <maxEccentricity>0.1</maxEccentricity>
+        <minPeriod>5400</minPeriod>
+        <maxPeriod>6000</maxPeriod>
+        <minLongitudeOfAscendingNode>-360</minLongitudeOfAscendingNode>
+        <maxLongitudeOfAscendingNode>360</maxLongitudeOfAscendingNode>
+        <minInclination>30</minInclination>
+        <maxInclination>180</maxInclination>
+        <minArgumentOfPeriapsis>0</minArgumentOfPeriapsis>
+        <maxArgumentOfPeriapsis>360</maxArgumentOfPeriapsis>
       </Orbit>
     </Requirement>
   </requirements>

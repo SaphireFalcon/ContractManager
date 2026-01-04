@@ -13,6 +13,10 @@ The base xml tag for the contract blueprint is `<Contract>`. The following table
 | `title`        | `<title>`    | Title of the contract                       |
 | `synopsis`     | `<synopsis>` | Short summary of the contract               |
 | `description`  | `<description>` | Description of the contract              |
+| `expiration`  | `<expiration>` | Time in seconds after which the offered contract expires, default is to never expire. |
+| `isRejectable`  | `<isRejectable>` | Flag to allow rejecting a contract, default is true. |
+| `deadline`  | `<deadline>` | Time in seconds after which the accepted contract fails, default is no deadline. |
+| `isAutoAccepted`  | `<isAutoAccepted>` | Flag to auto-accept an offered contract, default is false. |
 | `prerequisites` | `<prerequisites>` | Prerequisites for the contract, contains [`Prerequisite`](#prerequisite-class) |
 | `completionCondition` | `<completionCondition>` | Completion condition of the contract based on the requirements. One of [`CompletionConditions`](#completionconditions) |
 | `requirements` | `<requirements>` | Requirements for the contract, contains [`Requirement`](#requirement-class)       |
@@ -37,28 +41,40 @@ The following table describes the mapping between the `Prerequisite` class varia
 | :------------- | :--------- | :------------------------------------------ |
 | `type`         | `<type>`   | Type of the prerequisite. One of [`PrerequisiteType`](#prerequisitetype) |
 | | |  Below fields as needed by `PrerequisiteType` |
-| `maxNumOfferedContracts` | `<maxNumOfferedContracts>` | Offer contract if number of offered contracts is less than this number. Used if `prerequisiteType` is `maxNumOfferedContracts` |
-| `maxNumAcceptedContracts` | `<maxNumAcceptedContracts>` | Offer contract if number of accepted contracts is less than this number.  Used if `prerequisiteType` is `maxNumAcceptedContracts` |
+| `maxNumOfferedContracts` | `<maxNumOfferedContracts>` | Offer contract if number of offered contracts is less than this number (Default: unlimited). Used if `prerequisiteType` is `maxNumOfferedContracts` |
+| `maxNumAcceptedContracts` | `<maxNumAcceptedContracts>` | Offer contract if number of accepted contracts is less than this number (Default: unlimited).  Used if `prerequisiteType` is `maxNumAcceptedContracts` |
+| `maxCompleteCount` | `<maxCompleteCount>` | Offer contract if number of completed instances of this contract blueprint is less than this number (Default: 0). Used if `prerequisiteType` is `maxCompleteCount` |
+| `maxFailedCount` | `<maxFailedCount>` | Offer contract if number of failed instances of this contract blueprint is less than this number (Default: unlimited). Used if `prerequisiteType` is `maxFailedCount` |
+| `maxConcurrentCount` | `<maxConcurrentCount>` | Offer contract if number of accepted contracts of this contract blueprint is less than this number (Default: 0). Used if `prerequisiteType` is `maxConcurrentCount` |
+| `hasCompletedContract` | `<hasCompletedContract>` | Offer contract if a contract with the defined contract blueprint uid has been completed. Used if `prerequisiteType` is `hasCompletedContract` |
+| `hasFailedContract` | `<hasFailedContract>` | Offer contract if a contract with the defined contract blueprint uid has been failed. Used if `prerequisiteType` is `hasFailedContract` |
+| `hasAcceptedContract` | `<hasAcceptedContract>` | Offer contract if a contract with the defined contract blueprint uid has been accepted (and not yet completed). Used if `prerequisiteType` is `hasAcceptedContract` |
+| `minNumberOfVessels` | `<minNumberOfVessels>` | Offer contract if there are more than this number of vessels in the current celestial system. Used if `prerequisiteType` is `minNumberOfVessels` |
+| `maxNumberOfVessels` | `<maxNumberOfVessels>` | Offer contract if there are less than this number of vessels in the current celestial system. Used if `prerequisiteType` is `maxNumberOfVessels` |
+
+> The number of vessels is determined only within the current celestial system. It also does not differentiate between actual vessels and kittens in EVA. Also, it does not differentiate if the vessel is owned/controllable by the player.
 
 #### `PrerequisiteType`
 
 The following types are supported:
 * `maxNumOfferedContracts`: Offer contract if number of offered contracts is less than number defined in `maxNumOfferedContracts` field.
-* `maxNumAcceptedContracts`:  Offer contract if number of accepted contracts is less than number defined in `maxNumAcceptedContracts` field.
+* `maxNumAcceptedContracts`: Offer contract if number of accepted contracts is less than number defined in `maxNumAcceptedContracts` field.
+* `maxCompleteCount`: Offer contract if number of completed instances of this contract blueprint  is less than number defined in `maxCompleteCount` field.
+* `maxFailedCount`: Offer contract if number of failed instances of this contract blueprint is less than number defined in `maxFailedCount` field.
+* `maxConcurrentCount`: Offer contract if number of accepted contracts of this contract blueprint is less than number defined in `maxConcurrentCount` field.
+* `hasCompletedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasCompletedContract` field has been completed.
+* `hasFailedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasFailedContract` field has been failed.
+* `hasAcceptedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasAcceptedContract` field has been accepted (and not yet completed).
+* `minNumberOfVessels`: There are more than this number of vessels in the current celestial system.
+* `maxNumberOfVessels`: There are less than this number of vessels in the current celestial system.
 
 In the future more types will be added, such as:
 
-* `maxCompleteCount`: contract has been completed less than this int number of times.
-* `maxConcurrentCount`: contract has less than this int number of accepted instances of this contract.
-* `maxOfferCount`: contract has less than this int number of offered instances of this contract.
 * `unlockedTech`: Unlocked technology / node in science tree.
 * `minMoney`: player has more than this amount of money.
 * `maxMoney`: player has less than this amount of money.
 * `minFame`: player has more than this amount of fame.
 * `maxMoney`: player has less than this amount of fame.
-* `minNumberOfVessels`: player has more than this amount of active vessels
-* `maxNumberOfVessels`: player has less than this amount of active vessels
-
 
 ### `Requirement` Class
 
@@ -109,22 +125,25 @@ The following table describes the mapping between the `RequiredOrbit` class vari
 | `maxApoapsis` | `<maxApoapsis>` | Maximum apoapsis altitude in meters.    |
 | `minPeriapsis` | `<minPeriapsis>` | Minimum periapsis altitude in meters.  |
 | `maxPeriapsis` | `<maxPeriapsis>` | Maximum periapsis altitude in meters.  |
+| `minEccentricity` | `<minEccentricity>` | Minimum eccentricity, ratio: `0.0`: circular, `< 1.0` elliptical, `1.0` parabolic, `> 1.0` hyperbolic. |
+| `maxEccentricity` | `<maxEccentricity>` | Maximum eccentricity, ratio: `0.0`: circular, `< 1.0` elliptical, `1.0` parabolic, `> 1.0` hyperbolic. |
+| `minPeriod` | `<minPeriod>` | Minimum period, orbiting time in seconds. |
+| `maxPeriod` | `<maxPeriod>` | Maximum period, orbiting time in seconds. |
+| `minLongitudeOfAscendingNode` | `<minLongitudeOfAscendingNode>` | Minimum longitude of ascending node, angle (0-360 degrees) from reference frame of the parent body to the ascending node in reference plane. |
+| `maxLongitudeOfAscendingNode` | `<maxLongitudeOfAscendingNode>` | Maximum longitude of ascending node, angle (0-360 degrees) from reference frame of the parent body to the ascending node in reference plane. |
+| `minInclination` | `<minInclination>` | Minimum inclination, angle (?-? degrees) from the reference plane of the parent body to the orbital plane. |
+| `maxInclination` | `<maxInclination>` | Maximum inclination, angle (?-? degrees) from the reference plane of the parent body to the orbital plane. |
+| `minArgumentOfPeriapsis` | `<minArgumentOfPeriapsis>` | Minimum argument of periapsis, angle (0-360 degrees) from the ascending node to the periapsis in orbital plane. |
+| `maxArgumentOfPeriapsis` | `<maxArgumentOfPeriapsis>` | Maximum argument of periapsis, angle (0-360 degrees) from the ascending node to the periapsis in orbital plane. |
+| `orbitType` | `<orbitType>` | The type of orbit, one of [`OrbitType`](#orbittype). |
 
-In the future more orbit parameters will be added:
+#### `OrbitType`
 
-* `status`: one of `orbiting`, `suborbit`, `escape` (subject to change)
-* `minInclination`: minimum inclination
-* `maxInclination`: maximum inclination
-* `minEccentricity`: minimum eccentricity (related to Apoapsis and Periapsis)
-* `maxEccentricity`: maximum eccentricity (related to Apoapsis and Periapsis)
-* `minOrbitTime`: minimum orbit time
-* `maxOrbitTime`: maximum orbit time
-* `minLongitudeOfAscendingNode`: minimum angle between body reference and ascending node
-* `maxLongitudeOfAscendingNode`: maximum angle between body reference and ascending node
-* `minArgumentOfPeriapsis`: minimum angle between ascending node and Periapsis
-* `maxArgumentOfPeriapsis`: maximum angle between ascending node and Periapsis
-* `minSemiMajorAxis`: minimum semi major axis (related to Apoapsis and Periapsis)
-* `maxSemiMajorAxis`: maximum semi major axis (related to Apoapsis and Periapsis)
+The type of orbit, defined as:
+
+* `elliptical`: An elliptical orbit around a body.
+* `suborbit`: An orbit with the Periapsis within the radius of the orbited body.
+* `escape`: An orbit with the Apoapsis outside the Sphere of Influence (SOI) of the orbited body.
 
 #### `RequiredGroup` Class
 
@@ -147,25 +166,27 @@ The following table describes the mapping between the `Action` class variables a
 | :------------- | :--------- | :------------------------------------------ |
 | `trigger`      | `<trigger>` | Trigger for the action. One of [`TriggerType`](#triggertype) |
 | `type`         | `<type>`   | Type of the action to execute. One of [`ActionType`](#actiontype) |
-| | |  Below fields as needed by `ActionType` |
+| | |  Below fields as needed by `ActionType` or `TriggerType` |
 | `showMessage` | `<showMessage>` | Message to show to the player. Used when `ActionType` is `showMessage` or `showBlockingPopup`. |
+| `onRequirement` | `<onRequirement>` | The requirement `uid` that is used to trigger this action. Used when `TriggerType` is any of `OnRequirement*`.. |
 
 #### `TriggerType`
 
 The triggers for the actions. The following triggers are supported:
 
-* `onContractComplete`: when the contract is completed.
-* `onContractFail`: when the contract is failed. (for now also when canceled)
-
-In the futrure more triggers will be added:
-
 * `onContractOffer`: when the contract is offered.
-* `onContractAccepted`: when the contract is accepted.
-* `onContractDecline`: when the contract is declined.
-* `onContractCancel`: when the contract is canceled.
-* `onRequirementActivated`: When the requirement activated (i.e. became active as the next one to execute).
-* `onRequirementComplete`: When the requirement completed.
-* `onRequirementFail`: When the requirement failed.
+* `onContractAccepted`: when the offered contract is accepted.
+* `onContractExpire`: when the offered contract expired.
+* `onContractReject`: when the offered or accepted contract is rejected.
+* `onContractComplete`: when the accepted contract is completed.
+* `onContractFail`: when the accepted contract is failed or passed the deadline.
+* `onRequirementTracked`: When the requirement activated (i.e. became active as the next one to execute).
+* `onRequirementMaintained`: When the requirement was achieved but needs to be maintained until other requirements are achieved.
+* `onRequirementReverted`: When the requirement was being maintained and went back to be tracked.
+* `onRequirementAchieved`: When the requirement was achieved.
+* `onRequirementFailed`: When the requirement failed.
+
+In the futrure more triggers can be added, please make a request.
 
 #### `ActionType`
 
@@ -177,4 +198,5 @@ The type of action to be executed. The following action types are supported:
 In the futrure more triggers will be added in the future, such as:
 * `spawnVessel`: Spawn a vessel.
 * `giveReward`: Give a reward to the player. Can be used to give reward for completing/failing contract but also requirements.
+* `offerContract`: Offer (and auto-accept?) contract.
 

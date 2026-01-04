@@ -8,24 +8,40 @@ namespace ContractManager.ContractBlueprint
     {
         // Details of the contract
         // The version for which the contract was created.
-        [XmlElement("version")]
+        [XmlElement("version", DataType = "string")]
         public string version { get; set; } = ContractManager.version;
 
         // The unique identifier for the contract
-        [XmlElement("uid")]
+        [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
 
         // The title of the contract
-        [XmlElement("title")]
+        [XmlElement("title", DataType = "string")]
         public string title { get; set; }
 
         // A brief synopsis of the contract
-        [XmlElement("synopsis")]
-        public string synopsis { get; set; }
+        [XmlElement("synopsis", DataType = "string")]
+        public string synopsis { get; set; } = string.Empty;
 
         // Detailed description of the contract
-        [XmlElement("description")]
-        public string description { get; set; }
+        [XmlElement("description", DataType = "string")]
+        public string description { get; set; } = string.Empty;
+
+        // When an offered contract will expired, in seconds
+        [XmlElement("expiration", DataType = "double")]
+        public double expiration { get; set; } = double.PositiveInfinity;  // Never expires
+
+        // Flag if an offered contract from this blueprint can be rejected.
+        [XmlElement("isRejectable", DataType = "boolean")]
+        public bool isRejectable { get; set; } = true;
+
+        // When an accepted contract will fail, in seconds
+        [XmlElement("deadline", DataType = "double")]
+        public double deadline { get; set; } = double.PositiveInfinity;  // No deadline
+
+        // Flag if an offered contract is automatically accepted.
+        [XmlElement("isAutoAccepted", DataType = "boolean")]
+        public bool isAutoAccepted { get; set; } = false;
 
         // List of prerequisites for the contract
         [XmlArray("prerequisites")]
@@ -89,6 +105,75 @@ namespace ContractManager.ContractBlueprint
             {
                 return (ContractBlueprint)serializer.Deserialize(reader);
             }
+        }
+
+        internal bool Validate()
+        {
+            // Validate the contract blueprint.
+            // The title can't be empty
+            if (String.IsNullOrEmpty(this.title))
+            {
+                Console.WriteLine("[CM] [WARNING] blueprint title has be to be defined.");
+                return false;
+            }
+            // The uid can't be empty
+            if (String.IsNullOrEmpty(this.uid))
+            {
+                Console.WriteLine("[CM] [WARNING] blueprint uid has be to be defined.");
+                return false;
+            }
+            // It should have at least one prerequisite to know when to offer a contract from the blueprint
+            if (this.prerequisites.Count == 0)
+            {
+                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                return false;
+            }
+            // It should have at least one requirement to know when to the contract should be completed.
+            if (this.requirements.Count == 0)
+            {
+                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                return false;
+            }
+            foreach (var prerequisite in prerequisites)
+            {
+                if (!prerequisite.Validate()) { return false; }
+            }
+            foreach (var requirement in requirements)
+            {
+                if (!requirement.Validate()) { return false; }
+            }
+            foreach (var action in actions)
+            {
+                if (!action.Validate()) { return false; }
+            }
+
+            // FIXME(#78): flattening prerequisites would not require creating this entry to not offer multiple of the same contract (by default)
+            // Use validation to add certain prerequisites if they were not defined.
+            // Add a maxCompleteCount prerequisite if not already defined. Otherwise by default the same contract can be offered again after completion.
+            List<Prerequisite> maxCompletePrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            if (maxCompletePrerequisites.Count == 0)
+            {
+                // Add defaulted prerequisite for maxCompleteCount
+                this.prerequisites.Add(new Prerequisite
+                {
+                    type = PrerequisiteType.MaxCompleteCount
+                    // maxCompleteCount = 0 // default value
+                }
+                );
+            }
+            // Add a maxConcurrentCount prerequisite if not already defined. Otherwise by default the same contract can be offered again while accepted.
+            List<Prerequisite> maxConcurrentPrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            if (maxConcurrentPrerequisites.Count == 0)
+            {
+                // Add defaulted prerequisite for maxConcurrentCount
+                this.prerequisites.Add(new Prerequisite
+                {
+                    type = PrerequisiteType.MaxConcurrentCount
+                    // maxConcurrentCount = 0 // default value
+                }
+                );
+            }
+            return true;
         }
     }
 

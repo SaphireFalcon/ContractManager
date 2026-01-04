@@ -1,4 +1,5 @@
 ﻿using ContractManager.Contract;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,6 +28,76 @@ namespace ContractManager
                 unit = "";
             }
             return String.Format(format, distance, unit);
+        }
+
+        public static string FormatSimTimeAsYearDayTime(KSA.SimTime simTime)
+        {
+            if (simTime.IsNaN())
+            {
+                return "NaN";
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendFormat("{0:0000} ", Math.Floor(simTime.Years));
+            stringBuilder.AppendFormat("{0:000} ", Math.Floor(simTime.Days) % TimeConstants.daysInMonth);
+
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Hours) % TimeConstants.hoursInDay);
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Minutes) % TimeConstants.minutesInHour);
+            stringBuilder.AppendFormat("{0:00}", Math.Floor(simTime.Seconds()) % TimeConstants.secondsInMinute);
+
+            return stringBuilder.ToString();
+        }
+
+        public static string FormatSimTimeAsDateTime(KSA.SimTime simTime)
+        {
+            if (simTime.IsNaN())
+            {
+                return "NaN";
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendFormat("{0:0000}-", Math.Floor(simTime.Years));
+            stringBuilder.AppendFormat("{0:00}-", Math.Floor(simTime.Months) % TimeConstants.monthsInYear);
+            stringBuilder.AppendFormat("{0:00} ", Math.Floor(simTime.Days) % TimeConstants.daysInMonth);
+
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Hours) % TimeConstants.hoursInDay);
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Minutes) % TimeConstants.minutesInHour);
+            stringBuilder.AppendFormat("{0:00}", Math.Floor(simTime.Seconds()) % TimeConstants.secondsInMinute);
+
+            return stringBuilder.ToString();
+        }
+
+        public static string FormatSimTimeAsRelative(KSA.SimTime simTime, bool showOnlyNonZero = false)
+        {
+            if (simTime.IsNaN())
+            {
+                return "NaN";
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            if (!showOnlyNonZero) {
+                stringBuilder.AppendFormat("{0:0000} ", Math.Floor(simTime.Years));
+                stringBuilder.AppendFormat("{0:000} ", Math.Floor(simTime.Days) % TimeConstants.daysInMonth);
+            }
+            else
+            {
+                if (simTime.Years >= 1)
+                {
+                    stringBuilder.AppendFormat("{0:0} ", Math.Floor(simTime.Years));
+                    stringBuilder.AppendFormat("{0:000} ", Math.Floor(simTime.Days));
+                }
+                else
+                if (simTime.Days >= 1)
+                {
+                    stringBuilder.AppendFormat("{0:0} ", Math.Floor(simTime.Days));
+                }
+            }
+
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Hours) % TimeConstants.hoursInDay);
+            stringBuilder.AppendFormat("{0:00}:", Math.Floor(simTime.Minutes) % TimeConstants.minutesInHour);
+            stringBuilder.AppendFormat("{0:00}", Math.Floor(simTime.Seconds()) % TimeConstants.secondsInMinute);
+
+            return stringBuilder.ToString();
         }
     }
     internal class Colors
@@ -102,4 +173,15 @@ namespace ContractManager
             return Colors.gray;
         }
     }
+
+    public class TimeConstants
+    {
+        public static double secondsInMinute = 60;
+        public static double minutesInHour = 60;
+        public static int hoursInDay = 24;
+        public static int daysInMonth = 30;
+        public static int monthsInYear = 12;
+        public static int daysInYear = 360;
+    }
+
 }

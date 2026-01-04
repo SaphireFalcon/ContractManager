@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <uid>example_contract_001</uid>
   <title>Example Contract 001</title>
   <synopsis>This is an example contract, changing the orbit in 2 steps.</synopsis>
@@ -8,14 +8,17 @@
 First, change the Periapsis to within 150 and 200 km altitude. 
 Next, change the Apoapsis to within 150 and 200 km altitude.
   </description>
+  <expiration>3600.0</expiration>
+  <deadline>1800.0</deadline>
+  <isAutoAccepted>true</isAutoAccepted>
   <prerequisites>
     <Prerequisite>
       <type>maxNumOfferedContracts</type>
-      <maxNumOfferedContracts>1</maxNumOfferedContracts>
+      <maxNumOfferedContracts>4</maxNumOfferedContracts>
     </Prerequisite>
     <Prerequisite>
       <type>maxNumAcceptedContracts</type>
-      <maxNumAcceptedContracts>1</maxNumAcceptedContracts>
+      <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
     </Prerequisite>
   </prerequisites>
   <requirements>
@@ -53,6 +56,11 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
   <completionCondition>all</completionCondition>
   <actions>
     <Action>
+      <trigger>onContractReject</trigger>
+      <type>showMessage</type>
+      <showMessage>Oh no, you are going to ignore this contract?</showMessage>
+    </Action>
+    <Action>
       <trigger>onContractComplete</trigger>
       <type>showMessage</type>
       <showMessage>Congratulations! You pounced the example contract.</showMessage>
@@ -61,6 +69,12 @@ Next, change the Apoapsis to within 150 and 200 km altitude.
       <trigger>onContractFail</trigger>
       <type>showMessage</type>
       <showMessage>Keep persevering; The road to success is pawed with failure.</showMessage>
+    </Action>
+    <Action>
+      <trigger>onRequirementMaintained</trigger>
+      <type>showMessage</type>
+      <showMessage>Now the next ball of yarn!</showMessage>
+	  <onRequirement>change_periapsis_150_200km</onRequirement>
     </Action>
   </actions>
 </Contract>
