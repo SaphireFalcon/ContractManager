@@ -156,7 +156,6 @@ namespace ContractManager.ContractBlueprint
     public class RequiredOrbit
     {
         // Fields needed for the orbit requirement type.
-        
         // The celestial body to orbit.
         [XmlElement("targetBody", DataType = "string")]
         public string targetBody { get; set; } = string.Empty;

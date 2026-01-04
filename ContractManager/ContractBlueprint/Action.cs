@@ -49,8 +49,8 @@ namespace ContractManager.ContractBlueprint
             ContractManager.data.popupWindows.Add(
                 new GUI.PopupWindow
                 {
-                    title = contract._contractBlueprint.title,
-                    messageToShow = this.showMessage,
+                    contract = contract,
+                    action = this,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
             );

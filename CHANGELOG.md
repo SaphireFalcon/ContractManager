@@ -46,6 +46,9 @@ Doc
 - Fix using `Universe.GetElapsedSimTime()` instead of `Program.GetPlayerTime()` to get the in-game time. (#71)
 - Fix use Colors constants for the acept and reject button. (#71)
 - Fix to not offer the same contract multiple times. (#74)
+- Fix ImGui issue when showing multiple contracts with the same title in the same contracts tab. (#79)
+- Fix ImGui issue when showing popup multiple times for contracts with the same title. (#79)
+- Fix issue offering same contract multiple times. (#79)
 
 ## [0.1.0] - 2025-12-30
 

@@ -147,6 +147,32 @@ namespace ContractManager.ContractBlueprint
                 if (!action.Validate()) { return false; }
             }
 
+            // FIXME(#78): flattening prerequisites would not require creating this entry to not offer multiple of the same contract (by default)
+            // Use validation to add certain prerequisites if they were not defined.
+            // Add a maxCompleteCount prerequisite if not already defined. Otherwise by default the same contract can be offered again after completion.
+            List<Prerequisite> maxCompletePrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            if (maxCompletePrerequisites.Count == 0)
+            {
+                // Add defaulted prerequisite for maxCompleteCount
+                this.prerequisites.Add(new Prerequisite
+                {
+                    type = PrerequisiteType.MaxCompleteCount
+                    // maxCompleteCount = 0 // default value
+                }
+                );
+            }
+            // Add a maxConcurrentCount prerequisite if not already defined. Otherwise by default the same contract can be offered again while accepted.
+            List<Prerequisite> maxConcurrentPrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            if (maxConcurrentPrerequisites.Count == 0)
+            {
+                // Add defaulted prerequisite for maxConcurrentCount
+                this.prerequisites.Add(new Prerequisite
+                {
+                    type = PrerequisiteType.MaxConcurrentCount
+                    // maxConcurrentCount = 0 // default value
+                }
+                );
+            }
             return true;
         }
     }
