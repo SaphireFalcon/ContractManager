@@ -1,10 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0] - 2026-01-04
 
 ### Added
 
-GUI
+#### GUI
 - Show expiration of an offered contract in contract details of *Contract Management Window*. (#71)
 - Gray-out the accept button if the offered contract cannot be accepted because of `maxNumberOfAcceptedContracts`. (#71)
 - Gray-out the reject button if the offered contract cannot be rejected because of `isRejectable`. (#71)
@@ -12,7 +12,7 @@ GUI
 - Show deadline of an accepted contract in *Active Contracts Window*. (#72)
 - Show the added orbit requirements in *Contract Management Window* and *Active Contracts Window*. (#76)
 
-Core
+#### Core
 - Add typing for the supported primitives for XML serialization. (#66)
 - Add validation methods to contract blueprint and fields. (#68)
 - Add try-catch to catch XML serialization errors. (#68)
@@ -34,7 +34,7 @@ Core
 - Add additional trigger types to `Action`. (#81)
 - Add triggering the newly added `TriggerType`. (#81)
 
-Doc
+#### Doc
 - Updated the documentation for the added fields in `ContractBlueprint`. (#74)
 - Updated the documentation for the added `PrerequisiteTypes`. (#74)
 - Updated the documentation for the added fields in `RequiredOrbit`. (#76)
@@ -48,7 +48,7 @@ Doc
 
 ### Fixed
 - Fix using `Universe.GetElapsedSimTime()` instead of `Program.GetPlayerTime()` to get the in-game time. (#71)
-- Fix use Colors constants for the acept and reject button. (#71)
+- Fix use Colors constants for the accept and reject button. (#71)
 - Fix to not offer the same contract multiple times. (#74)
 - Fix ImGui issue when showing multiple contracts with the same title in the same contracts tab. (#79)
 - Fix ImGui issue when showing popup multiple times for contracts with the same title. (#79)
@@ -59,7 +59,7 @@ Doc
 
 ### Added
 
-GUI
+#### GUI
 - Add **Contract Management Window** to allow users to view offered, accepted, and finished contracts.
 - Add viewing details of a selected contract to *Contract Management Window*.
 - Add accepting and rejecting contracts to *Contract Management Window*.
@@ -70,7 +70,7 @@ GUI
 - Add functionality to show a small window for the `ShowMessage` action
 - Add functionality to show a blocking popup (modal) for the `ShowBlockingPopup` action, and pause the game.
 
-Core
+#### Core
 - Add `ContractBlueprint` data structure readable (and writable) from disk used as a blue print to create offered contracts.
 - Add `Prerequisite` data structure used by `ContractBlueprint` to determine when a contract can be offered templated by this blueprint.
 - Add `Requirement` data structure used by `ContractBlueprint` to configure what conditions need to be achieved to complete the contract.
@@ -95,5 +95,5 @@ Core
 - Add `ContractManagerData` data structure holding the internal data used by `ContractManager` mod.
 - Add functionality to save and load the `ContractManagerData` data as part of the in-game load/save method.
 
-Doc
+#### Doc
 - Add documentation of the Contract Blueprint data structure [Contract](https://github.com/SaphireFalcon/ContractManager/blob/master/docs/Contract.md).
