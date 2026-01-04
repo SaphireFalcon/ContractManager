@@ -77,7 +77,7 @@ namespace ContractManager.Contract
             {
                 foreach (TrackedRequirement trackedRequirement in this.trackedRequirements)
                 {
-                    TrackedRequirement? clonedTrackedRequirement = trackedRequirement.Clone(clonedContract._contractBlueprint.requirements);
+                    TrackedRequirement? clonedTrackedRequirement = trackedRequirement.Clone(clonedContract._contractBlueprint.requirements, clonedContract);
                     if (clonedTrackedRequirement != null) {
                         clonedContract.trackedRequirements.Add(clonedTrackedRequirement);
                     }
@@ -108,7 +108,7 @@ namespace ContractManager.Contract
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
                 // Construct a tracked requirement from blueprint.
-                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
+                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement, this));
             }
         }
 
@@ -155,7 +155,7 @@ namespace ContractManager.Contract
             }
 
             // Update the tracked requirements, e.g. change the status
-            ContractUtils.UpdateTrackedRequirements(this.trackedRequirements);
+            ContractUtils.UpdateTrackedRequirements(this.trackedRequirements, this);
 
             // TODO: Add vehicleName to the trackedVehicleNames when the first requirement is achieved
 
@@ -185,7 +185,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Accepted;
                 this.acceptedSimTime = simTime;
-                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractAccept);
+                 ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractAccept);
             }
         }
         
@@ -196,7 +196,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Rejected;
                 this.finishedSimTime = simTime;
-                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractReject);
+                 ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractReject);
             }
         }
         
@@ -207,7 +207,7 @@ namespace ContractManager.Contract
             {
                 this.status = ContractStatus.Rejected;
                 this.finishedSimTime = simTime;
-                // Utils.TriggerAction(this, ContractBlueprint.Action.TriggerType.OnContractExpire);
+                 ContractUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractExpire);
             }
         }
 

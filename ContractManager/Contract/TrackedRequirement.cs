@@ -12,6 +12,8 @@ namespace ContractManager.Contract
     {
         // Internal handle to the blueprint requirement.
         internal Requirement? _blueprintRequirement { get; set; } = null;
+        // Internal handle to the contract holding the requirement.
+        internal Contract? _contract { get; set; } = null;
         
         // Serializable fields.
         // Unique identifier which blueprint requirement is being tracked.
@@ -26,7 +28,7 @@ namespace ContractManager.Contract
         public TrackedRequirement() { }
 
         // Clone, e.g after deserializing from a stream.
-        internal TrackedRequirement? Clone(List<ContractBlueprint.Requirement> blueprintRequirements)
+        internal TrackedRequirement? Clone(List<ContractBlueprint.Requirement> blueprintRequirements, in Contract contract)
         {
             ContractBlueprint.Requirement? blueprintRequirement = ContractUtils.FindRequirementFromUID(blueprintRequirements, this.requirementUID);
             if (blueprintRequirement == null)
@@ -37,37 +39,38 @@ namespace ContractManager.Contract
 
             if (blueprintRequirement.type == RequirementType.Orbit)
             {
-                return ((TrackedOrbit)this).Clone(blueprintRequirement);
+                return ((TrackedOrbit)this).Clone(blueprintRequirement, contract);
             }
             else
             if (blueprintRequirement.type == RequirementType.Group)
             {
-                return ((TrackedGroup)this).Clone(blueprintRequirement);
+                return ((TrackedGroup)this).Clone(blueprintRequirement, contract);
             }
             Console.WriteLine($"[CM] [ERROR] Unhandled type: '{blueprintRequirement.type}'");
             return null;
         }
 
         // Factory function to create a TrackedRequirement (sub-class types) from a blueprint requirement.
-        public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement)
+        public static TrackedRequirement CreateFromBlueprintRequirement(Requirement blueprintRequirement, in Contract contract)
         {
             // Construct a tracked requirement from blueprint.
             if (blueprintRequirement.type == RequirementType.Orbit)
             {
-                return new TrackedOrbit(in blueprintRequirement);
+                return new TrackedOrbit(in blueprintRequirement, in contract);
             }
             else
             if (blueprintRequirement.type == RequirementType.Group)
             {
-                return new TrackedGroup(blueprintRequirement);
+                return new TrackedGroup(blueprintRequirement, in contract);
             }
-            return new TrackedRequirement(blueprintRequirement); 
+            return new TrackedRequirement(blueprintRequirement, in contract); 
         }
 
         // Constructor, used when contract is offered.
-        public TrackedRequirement(in Requirement blueprintRequirement)
+        public TrackedRequirement(in Requirement blueprintRequirement, in Contract contract)
         {
             this._blueprintRequirement = blueprintRequirement;
+            this._contract = contract;
             this.requirementUID = blueprintRequirement.uid;
             
             // Set the initial status of the tracked requirement.
@@ -76,6 +79,7 @@ namespace ContractManager.Contract
                 this.status = TrackedRequirementStatus.NOT_STARTED;
             } else {
                 this.status = TrackedRequirementStatus.TRACKED;
+                ContractUtils.TriggerAction(contract, ContractBlueprint.TriggerType.OnRequirementTracked, this);
             }
         }
 
@@ -128,18 +132,19 @@ namespace ContractManager.Contract
         // Constructor, used when deserializing from XML.
         public TrackedOrbit() { }
 
-        internal TrackedOrbit? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        internal TrackedOrbit? Clone(in ContractBlueprint.Requirement blueprintRequirement, in Contract contract)
         {
             TrackedOrbit clonedTrackedOrbut = new TrackedOrbit
             {
                 requirementUID = this.requirementUID,
                 status = this.status,
-                _blueprintRequirement = blueprintRequirement
+                _blueprintRequirement = blueprintRequirement,
+                _contract = contract
             };
             return clonedTrackedOrbut;
         }
 
-        public TrackedOrbit(in Requirement requirement) : base(in requirement) { }
+        public TrackedOrbit(in Requirement requirement, in Contract contract) : base(in requirement, contract) { }
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
@@ -215,10 +220,12 @@ namespace ContractManager.Contract
                 if (this._blueprintRequirement.isCompletedOnAchievement)
                 {
                     this.status = TrackedRequirementStatus.ACHIEVED;
+                    ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementAchieved, this);
                 }
                 else
                 {
                     this.status = TrackedRequirementStatus.MAINTAINED;
+                    ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementMaintained, this);
                 }
             }
             else
@@ -226,6 +233,7 @@ namespace ContractManager.Contract
             {
                 // requirement is not maintained anymore, set back to tracked.
                 this.status = TrackedRequirementStatus.TRACKED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementReverted, this);
             }
         }
     }
@@ -238,7 +246,7 @@ namespace ContractManager.Contract
 
         public TrackedGroup() { }
         
-        internal TrackedGroup? Clone(ContractBlueprint.Requirement blueprintRequirement)
+        internal TrackedGroup? Clone(in ContractBlueprint.Requirement blueprintRequirement, in Contract contract)
         {
             TrackedGroup clonedTrackedGroup = new TrackedGroup
             {
@@ -248,7 +256,7 @@ namespace ContractManager.Contract
             };
             foreach (TrackedRequirement childTrackedRequirement in this.trackedRequirements)
             {
-                TrackedRequirement? clonedTrackedRequirement = childTrackedRequirement.Clone(blueprintRequirement.group.requirements);
+                TrackedRequirement? clonedTrackedRequirement = childTrackedRequirement.Clone(blueprintRequirement.group.requirements, contract);
                 if (clonedTrackedRequirement != null) {
                     clonedTrackedGroup.trackedRequirements.Add(clonedTrackedRequirement);
                 }
@@ -261,12 +269,12 @@ namespace ContractManager.Contract
             return clonedTrackedGroup;
         }
 
-        public TrackedGroup(in Requirement requirement) : base(in requirement)
+        public TrackedGroup(in Requirement requirement, in Contract contract) : base(in requirement, contract)
         {
             if (requirement.group == null) { return; }
             foreach (Requirement blueprintRequirement in requirement.group.requirements)
             {
-                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement));
+                this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement, in contract));
             }
         }
 
@@ -293,12 +301,14 @@ namespace ContractManager.Contract
             if (worstRequirementStatus == TrackedRequirementStatus.FAILED && this._blueprintRequirement.group.completionCondition == CompletionCondition.All)
             {
                 this.status = TrackedRequirementStatus.FAILED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementFailed, this);
             }
             else
             // FIXME: If completion condition is any, than only one achieved should be sufficient
             if (worstRequirementStatus is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED)
             {
                 this.status = TrackedRequirementStatus.ACHIEVED;
+                ContractUtils.TriggerAction(this._contract, ContractBlueprint.TriggerType.OnRequirementAchieved, this);
             }
         }
     }

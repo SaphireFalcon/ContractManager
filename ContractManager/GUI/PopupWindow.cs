@@ -8,11 +8,14 @@ namespace ContractManager.GUI
 {
     internal class PopupWindow
     {
-        // Contract that triggered the popup
-        internal Contract.Contract? contract { get; set;} = null;
+        // Title of popup window, used when contract is null
+        internal string title { get; set; } = string.Empty;
+        
+        // UID of popup window, used when action is null
+        internal string uid {  get; set; } = string.Empty;
 
-        // Action that triggered the popup
-        internal ContractBlueprint.Action? action { get; set; } = null;
+        // Message to show in popup window, used when action is null
+        internal string messageToShow {  get; set; } = string.Empty;
 
         // type of popup to show.
         internal PopupType popupType { get; set; } = PopupType.Popup;
@@ -24,7 +27,7 @@ namespace ContractManager.GUI
 
         internal void DrawPopup()
         {
-            string popupTitle = String.Format("Contract: {0}##{1}_{2}", this.contract._contractBlueprint.title, this.contract.contractUID, this.action.trigger);
+            string popupTitle = String.Format("Contract: {0}##{1}", this.title, this.uid);
             bool isDrawing = false;
             ImGui.SetNextWindowSizeConstraints(
                 new Brutal.Numerics.float2 { X = 300.0f, Y = 200.0f },
@@ -46,7 +49,7 @@ namespace ContractManager.GUI
             }
             if(isDrawing)
             {
-                ImGui.TextWrapped(this.action.showMessage);
+                ImGui.TextWrapped(this.messageToShow);
                 if (ImGui.Button("OK"))
                 {
                     if (this.popupType == PopupType.Modal)

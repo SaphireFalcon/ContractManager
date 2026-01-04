@@ -8,37 +8,38 @@ namespace ContractManager.Contract
     internal static class ContractUtils
     {
         // Update tracked requirements based on the tracked state (updated through UpdateStateX functions)
-        internal static void UpdateTrackedRequirements(List<TrackedRequirement> trackedRequirements)
+        internal static void UpdateTrackedRequirements(List<TrackedRequirement> trackedRequirements, in Contract contract)
         {
             // Call update of the requirement
             for (int trackedRequirementIndex = 0; trackedRequirementIndex < trackedRequirements.Count; trackedRequirementIndex++)
             {
                 // Update the tracked requirements
-                if (trackedRequirements[trackedRequirementIndex].status
-                    is TrackedRequirementStatus.TRACKED
-                    or TrackedRequirementStatus.MAINTAINED)
+                TrackedRequirement trackedRequirement = trackedRequirements[trackedRequirementIndex];
+                if (trackedRequirement.status is TrackedRequirementStatus.TRACKED or TrackedRequirementStatus.MAINTAINED)
                 {
-                    trackedRequirements[trackedRequirementIndex].Update();
+                    trackedRequirement.Update();
                 }
                 // Start first requirement (at all times).
-                if (trackedRequirementIndex == 0 && trackedRequirements[trackedRequirementIndex].status == TrackedRequirementStatus.NOT_STARTED)
+                if (trackedRequirementIndex == 0 && trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
                 {
-                    trackedRequirements[trackedRequirementIndex].status = TrackedRequirementStatus.TRACKED;
+                    trackedRequirement.status = TrackedRequirementStatus.TRACKED;
+                    ContractUtils.TriggerAction(contract, ContractBlueprint.TriggerType.OnRequirementTracked, trackedRequirement);
                 }
                 // Start next requirement when previous maintained/achieved.
                 if (
                     trackedRequirementIndex > 0 &&
-                    trackedRequirements[trackedRequirementIndex].status == TrackedRequirementStatus.NOT_STARTED &&
+                    trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED &&
                     trackedRequirements[trackedRequirementIndex - 1].status is TrackedRequirementStatus.MAINTAINED or TrackedRequirementStatus.ACHIEVED
                 )
                 {
-                    trackedRequirements[trackedRequirementIndex].status = TrackedRequirementStatus.TRACKED;
+                    trackedRequirement.status = TrackedRequirementStatus.TRACKED;
+                    ContractUtils.TriggerAction(contract, ContractBlueprint.TriggerType.OnRequirementTracked, trackedRequirement);
                 }
                 if (
-                    trackedRequirements[trackedRequirementIndex]._blueprintRequirement != null &&
-                    trackedRequirements[trackedRequirementIndex]._blueprintRequirement.type == ContractBlueprint.RequirementType.Group)
+                    trackedRequirement._blueprintRequirement != null &&
+                    trackedRequirement._blueprintRequirement.type == ContractBlueprint.RequirementType.Group)
                 {
-                    ContractUtils.UpdateTrackedRequirements(((TrackedGroup)trackedRequirements[trackedRequirementIndex]).trackedRequirements);
+                    ContractUtils.UpdateTrackedRequirements(((TrackedGroup)trackedRequirement).trackedRequirements, contract);
                 }
             }
         }
@@ -68,6 +69,18 @@ namespace ContractManager.Contract
                     ((TrackedGroup)trackedRequirement).trackedRequirements.Count > 0)
                 {
                     TrackedRequirementStatus worstChildStatus = ContractUtils.GetWorstTrackedRequirementStatus(((TrackedGroup)trackedRequirement).trackedRequirements);
+                    if (worstChildStatus is TrackedRequirementStatus.MAINTAINED)
+                    {
+                        // set all the childs to achieved
+                        foreach (TrackedRequirement trackedChildRequirement in ((TrackedGroup)trackedRequirement).trackedRequirements)
+                        {
+                            if (trackedChildRequirement.status == TrackedRequirementStatus.MAINTAINED)
+                            {
+                                trackedChildRequirement.status = TrackedRequirementStatus.ACHIEVED;
+                                ContractUtils.TriggerAction(trackedRequirement._contract, ContractBlueprint.TriggerType.OnRequirementAchieved, trackedRequirement);
+                            }
+                        }
+                    }
                     if (worstChildStatus < worstRequirementStatus)
                     {
                         worstRequirementStatus = worstChildStatus;
@@ -128,10 +141,29 @@ namespace ContractManager.Contract
         }
 
         // Trigger action of the given type.
-        internal static void TriggerAction(Contract contract, ContractBlueprint.TriggerType triggerType) {
+        internal static void TriggerAction(
+            Contract contract,
+            ContractBlueprint.TriggerType triggerType,
+            TrackedRequirement? trackedRequirement = null
+        )
+        {
             if (contract._contractBlueprint == null) {  return; }
             foreach (ContractBlueprint.Action action in contract._contractBlueprint.actions) {
                 if (action.trigger == triggerType) {
+                    if (trackedRequirement != null &&
+                        (
+                            triggerType is
+                            ContractBlueprint.TriggerType.OnRequirementTracked or
+                            ContractBlueprint.TriggerType.OnRequirementMaintained or
+                            ContractBlueprint.TriggerType.OnRequirementReverted or
+                            ContractBlueprint.TriggerType.OnRequirementAchieved or
+                            ContractBlueprint.TriggerType.OnRequirementFailed
+                        ) &&
+                        trackedRequirement.requirementUID != action.onRequirement
+                    )
+                    {
+                        continue;
+                    }
                     action.DoAction(contract);
                 }
             }

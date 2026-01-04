@@ -76,7 +76,6 @@ In the future more types will be added, such as:
 * `minFame`: player has more than this amount of fame.
 * `maxMoney`: player has less than this amount of fame.
 
-
 ### `Requirement` Class
 
 The requirements for completing a contract are defined with the `Requirement` class. 
@@ -167,25 +166,27 @@ The following table describes the mapping between the `Action` class variables a
 | :------------- | :--------- | :------------------------------------------ |
 | `trigger`      | `<trigger>` | Trigger for the action. One of [`TriggerType`](#triggertype) |
 | `type`         | `<type>`   | Type of the action to execute. One of [`ActionType`](#actiontype) |
-| | |  Below fields as needed by `ActionType` |
+| | |  Below fields as needed by `ActionType` or `TriggerType` |
 | `showMessage` | `<showMessage>` | Message to show to the player. Used when `ActionType` is `showMessage` or `showBlockingPopup`. |
+| `onRequirement` | `<onRequirement>` | The requirement `uid` that is used to trigger this action. Used when `TriggerType` is any of `OnRequirement*`.. |
 
 #### `TriggerType`
 
 The triggers for the actions. The following triggers are supported:
 
-* `onContractComplete`: when the contract is completed.
-* `onContractFail`: when the contract is failed. (for now also when canceled)
-
-In the futrure more triggers will be added:
-
 * `onContractOffer`: when the contract is offered.
-* `onContractAccepted`: when the contract is accepted.
-* `onContractDecline`: when the contract is declined.
-* `onContractCancel`: when the contract is canceled.
-* `onRequirementActivated`: When the requirement activated (i.e. became active as the next one to execute).
-* `onRequirementComplete`: When the requirement completed.
-* `onRequirementFail`: When the requirement failed.
+* `onContractAccepted`: when the offered contract is accepted.
+* `onContractExpire`: when the offered contract expired.
+* `onContractReject`: when the offered or accepted contract is rejected.
+* `onContractComplete`: when the accepted contract is completed.
+* `onContractFail`: when the accepted contract is failed or passed the deadline.
+* `onRequirementTracked`: When the requirement activated (i.e. became active as the next one to execute).
+* `onRequirementMaintained`: When the requirement was achieved but needs to be maintained until other requirements are achieved.
+* `onRequirementReverted`: When the requirement was being maintained and went back to be tracked.
+* `onRequirementAchieved`: When the requirement was achieved.
+* `onRequirementFailed`: When the requirement failed.
+
+In the futrure more triggers can be added, please make a request.
 
 #### `ActionType`
 
@@ -197,4 +198,5 @@ The type of action to be executed. The following action types are supported:
 In the futrure more triggers will be added in the future, such as:
 * `spawnVessel`: Spawn a vessel.
 * `giveReward`: Give a reward to the player. Can be used to give reward for completing/failing contract but also requirements.
+* `offerContract`: Offer (and auto-accept?) contract.
 

@@ -31,16 +31,20 @@ Core
 - Add 'minNumberOfVessels', 'maxNumberOfVessels' as `PrerequisiteType`. (#74)
 - Add checks to offer contract only if a specified number of vehicles are present in the current celestial system. (#74)
 - Add the remaining orbit parameters to `RequiredOrbit` and `TrackedOrbit` types. (#76)
+- Add additional trigger types to `Action`. (#81)
+- Add triggering the newly added `TriggerType`. (#81)
 
 Doc
 - Updated the documentation for the added fields in `ContractBlueprint`. (#74)
 - Updated the documentation for the added `PrerequisiteTypes`. (#74)
 - Updated the documentation for the added fields in `RequiredOrbit`. (#76)
+- Updated the documentation for the added`TriggerTypes`. (#81)
 
 ### Changed
 
 - Moved `ActionType` outside the `Action` class definition. (#67)
 - Moved `TriggerType` outside the `Action` class definition. (#67)
+- Reverted the `PopupWindow` contructor to create a popup based on `title`, `uid`, `messageToShow`. (#81)
 
 ### Fixed
 - Fix using `Universe.GetElapsedSimTime()` instead of `Program.GetPlayerTime()` to get the in-game time. (#71)
@@ -49,6 +53,7 @@ Doc
 - Fix ImGui issue when showing multiple contracts with the same title in the same contracts tab. (#79)
 - Fix ImGui issue when showing popup multiple times for contracts with the same title. (#79)
 - Fix issue offering same contract multiple times. (#79)
+- Fix setting all maintained child requirements to achieved when the parent requirement is set to achieved. (#81)
 
 ## [0.1.0] - 2025-12-30
 
