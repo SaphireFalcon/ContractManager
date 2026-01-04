@@ -148,23 +148,23 @@ namespace ContractManager.Contract
 
         public override void UpdateStateWithVehicle(in KSA.Vehicle vehicle)
         {
-            KSA.Orbit orbit = vehicle.Orbit;
+            KSA.Orbit vehicleOrbit = vehicle.Orbit;
             this.orbitedBody = vehicle.Orbit.Parent.Id;
             this.apoapsis = vehicle.Orbit.Apoapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
             this.periapsis = vehicle.Orbit.Periapsis - vehicle.Orbit.Parent.MeanRadius;  // subtract mean radius to reflect Apoapsis shown in-game.
-            this.eccentricity = orbit.Eccentricity;
-            this.period = orbit.Period;
-            this.longitudeOfAscendingNode = Double.RadiansToDegrees(orbit.LongitudeOfAscendingNode);
-            this.inclination = Double.RadiansToDegrees(orbit.Inclination);
-            this.argumentOfPeriapsis = Double.RadiansToDegrees(orbit.ArgumentOfPeriapsis);
-            if (orbit.GetOrbitType() == KSA.Orbit.OrbitType.Invalid)
+            this.eccentricity = vehicleOrbit.Eccentricity;
+            this.period = vehicleOrbit.Period;
+            this.longitudeOfAscendingNode = Double.RadiansToDegrees(vehicleOrbit.LongitudeOfAscendingNode);
+            this.inclination = Double.RadiansToDegrees(vehicleOrbit.Inclination);
+            this.argumentOfPeriapsis = Double.RadiansToDegrees(vehicleOrbit.ArgumentOfPeriapsis);
+            if (vehicleOrbit.GetOrbitType() == KSA.Orbit.OrbitType.Invalid)
             {
                 this.type = OrbitType.Invalid;
             }
             else
-            if (orbit.GetOrbitType() == KSA.Orbit.OrbitType.Elliptical)
+            if (vehicleOrbit.GetOrbitType() == KSA.Orbit.OrbitType.Elliptical)
             {
-                if (orbit.Periapsis < vehicle.Orbit.Parent.MeanRadius)
+                if (vehicleOrbit.Periapsis < vehicle.Orbit.Parent.MeanRadius)
                 {
                     this.type = OrbitType.Suborbit;
                 }
@@ -174,7 +174,7 @@ namespace ContractManager.Contract
                 }
             }
             if (
-                (orbit.GetOrbitType() is KSA.Orbit.OrbitType.Hyperbolic or KSA.Orbit.OrbitType.Parabolic) &&
+                (vehicleOrbit.GetOrbitType() is KSA.Orbit.OrbitType.Hyperbolic or KSA.Orbit.OrbitType.Parabolic) &&
                 vehicle.FlightPlan.Patches.Count > 0 && vehicle.FlightPlan.Patches[0].EndTransition == PatchTransition.Escape  // not sure if this condition is needed.
             )
             {
