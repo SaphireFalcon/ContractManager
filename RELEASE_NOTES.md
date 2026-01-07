@@ -5,7 +5,10 @@
 This release adds more of the basic features that needs implementation. Most of all, contracts can be loaded from other mods now, allowing others to create contracts. In the next version(s) expect more features related to missions and contract packs.
 
 At the core, the prerequisites for offering a contract have been expanded, as well as the triggers for actions.  
-All the attributes for the orbit requirement have been implemented, although the inclination provided by the game is not as expected. Stay tuned for now.  
+All the attributes for the orbit requirement have been implemented.
+
+Stay tuned for more updates soon.
+
 Check the [changelog](CHANGELOG.md) for all the details.
 
 Supported KSA versions:
