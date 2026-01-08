@@ -33,10 +33,25 @@ namespace ContractManager
         // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the launch site management building.
         [XmlElement("maxNumberOfAcceptedContracts")]
         public int maxNumberOfAcceptedContracts { get; set; } = 2;
+
+        // List of offered missions, loaded from save game / file.
+        [XmlElement("offeredMissions")]
+        public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
+
+        // List of accepted missions, loaded from save game / file.
+        [XmlElement("acceptedMissions")]
+        public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
         
+        // List of finished missions, loaded from save game / file.
+        [XmlElement("finishedMissions")]
+        public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
+
         // internal variables
         // List of all loaded contract blueprints
         internal List<ContractBlueprint.ContractBlueprint> contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+
+        // List of all loaded mission blueprints
+        internal List<Mission.MissionBlueprint> missionBlueprints { get; set; } = new List<Mission.MissionBlueprint>();
 
         // List of popup(s) to show
         internal List<GUI.PopupWindow> popupWindows { get; set; } = new List<GUI.PopupWindow>();

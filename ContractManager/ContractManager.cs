@@ -54,8 +54,10 @@ public class ContractManager
 
         this.LoadContractBlueprints();
 
+        this.LoadMissionBlueprints();
+
         // For testing: create and write an example contract to disk
-        //Generate.Example002Contract();
+        Generate.ExampleMission001();
     }
 
     [StarMapAfterGui]
@@ -215,6 +217,7 @@ public class ContractManager
         bool canOfferContract = true;
         foreach (ContractBlueprint.Prerequisite prerequisite in contractBlueprint.prerequisites)
         {
+            // Contract specific
             if (prerequisite.type == PrerequisiteType.MaxNumOfferedContracts && ContractManager.data.offeredContracts.Count >= prerequisite.maxNumOfferedContracts)
             {
                 canOfferContract = false;
@@ -267,7 +270,6 @@ public class ContractManager
             }
             if (prerequisite.type == PrerequisiteType.HasFailedContract)
             {
-
                 string blueprintUID = prerequisite.hasFailedContract;
                 List<Contract.Contract> failedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Failed).ToList();
                 if (failedContracts.Count == 0)
@@ -281,6 +283,36 @@ public class ContractManager
                 string blueprintUID = prerequisite.hasAcceptedContract;
                 List<Contract.Contract> acceptedContracts = data.acceptedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Accepted).ToList();
                 if (acceptedContracts.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasCompletedMission)
+            {
+                string blueprintUID = prerequisite.hasCompletedMission;
+                List<Mission.Mission> completedMissions = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Completed).ToList();
+                if (completedMissions.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasFailedMission)
+            {
+                string blueprintUID = prerequisite.hasFailedMission;
+                List<Mission.Mission> failedMissions = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Failed).ToList();
+                if (failedMissions.Count == 0)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.HasAcceptedMission)
+            {
+                string blueprintUID = prerequisite.hasAcceptedMission;
+                List<Mission.Mission> acceptedMissions = data.acceptedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Accepted).ToList();
+                if (acceptedMissions.Count == 0)
                 {
                     canOfferContract = false;
                     break;
@@ -333,6 +365,43 @@ public class ContractManager
             }
         }
         Console.WriteLine($"[CM] loaded {ContractManager.data.contractBlueprints.Count} contract blueprints.");
+    }
+
+    // Add offering missions here.
+
+    private void LoadMissionBlueprints()
+    {
+        // Load missions from disk here
+        const string contentDirectoryPath = @"Content";
+        string[] contentDirectoryDirectories = Directory.GetDirectories(contentDirectoryPath);
+        foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
+        {
+            string missionsDirectoryPath = Path.Combine(contentSubDirectoryPath, @"missions");
+            if (Directory.Exists(missionsDirectoryPath))
+            {
+                string[] files = Directory.GetFiles(missionsDirectoryPath, "*.xml", SearchOption.AllDirectories);
+                foreach (string file in files)
+                {
+                    try
+                    {
+                        var blueprintMission = Mission.MissionBlueprint.LoadFromFile(file);
+                        if (blueprintMission.Validate(ContractManager.data.contractBlueprints))
+                        {
+                            ContractManager.data.missionBlueprints.Add(blueprintMission);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[CM] [WARNING] mission blueprint '{blueprintMission.title}' won't be loaded do to validation error(s).");
+                        }
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        Console.WriteLine($"[CM] [WARNING] mission blueprint '{file}' won't be loaded do to loading error:\n{exception.Message}");
+                    }
+                }
+            }
+        }
+        Console.WriteLine($"[CM] loaded {ContractManager.data.missionBlueprints.Count} mission blueprints.");
     }
 }
 

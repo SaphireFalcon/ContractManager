@@ -84,6 +84,7 @@ namespace ContractManager.ContractBlueprint
 
     public enum TriggerType
     {
+        // Contract
         [XmlEnum("onContractOffer")]
         OnContractOffer,  // transition to ContractStatus.Offered
         [XmlEnum("onContractAccept")]
@@ -96,6 +97,8 @@ namespace ContractManager.ContractBlueprint
         OnContractComplete,  // transition to ContractStatus.Completed
         [XmlEnum("onContractFail")]
         OnContractFail,  // transition to ContractStatus.Failed
+
+        // Requirement
         [XmlEnum("onRequirementStarted")]
         OnRequirementTracked,  // transition to TrackedRequirementStatus.TRACKED
         [XmlEnum("onRequirementMaintained")]
@@ -105,6 +108,20 @@ namespace ContractManager.ContractBlueprint
         [XmlEnum("onRequirementAchieved")]
         OnRequirementAchieved,  // transition to TrackedRequirementStatus.ACHIEVED
         [XmlEnum("onRequirementFailed")]
-        OnRequirementFailed  // transition to TrackedRequirementStatus.FAILED
+        OnRequirementFailed,  // transition to TrackedRequirementStatus.FAILED
+        
+        // Mission
+        [XmlEnum("onMissionOffer")]
+        OnMissionOffer,  // transition to MissionStatus.Offered
+        [XmlEnum("onMissionAccept")]
+        OnMissionAccept,  // transition to MissionStatus.Accepted
+        [XmlEnum("onMissionExpire")]
+        OnMissionExpire,  // transition to MissionStatus.Rejected when expire time passed
+        [XmlEnum("onMissionReject")]
+        OnMissionReject,  // transition to MissionStatus.Rejected when reject button pressed
+        [XmlEnum("onMissionComplete")]
+        OnMissionComplete,  // transition to MissionStatus.Completed
+        [XmlEnum("onMissionFail")]
+        OnMissionFail,  // transition to MissionStatus.Failed
     }
 }

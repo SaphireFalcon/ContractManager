@@ -15,6 +15,10 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
 
+        // Mission unique identifier if the blueprint is linked to a mission.
+        [XmlElement("missionUID", DataType = "string")]
+        public string missionUID { get; set; } = string.Empty;
+
         // The title of the contract
         [XmlElement("title", DataType = "string")]
         public string title { get; set; }
@@ -113,25 +117,25 @@ namespace ContractManager.ContractBlueprint
             // The title can't be empty
             if (String.IsNullOrEmpty(this.title))
             {
-                Console.WriteLine("[CM] [WARNING] blueprint title has be to be defined.");
+                Console.WriteLine("[CM] [WARNING] contract blueprint title has be to be defined.");
                 return false;
             }
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] blueprint uid has be to be defined.");
+                Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
                 return false;
             }
-            // It should have at least one prerequisite to know when to offer a contract from the blueprint
+            // It should have at least one prerequisite to know when to offer a contract from the contract blueprint
             if (this.prerequisites.Count == 0)
             {
-                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
                 return false;
             }
             // It should have at least one requirement to know when to the contract should be completed.
             if (this.requirements.Count == 0)
             {
-                Console.WriteLine($"[CM] [WARNING] blueprint '{this.title}' has no prerequisites.");
+                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
                 return false;
             }
             foreach (var prerequisite in prerequisites)

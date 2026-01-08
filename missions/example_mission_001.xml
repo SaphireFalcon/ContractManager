@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mission xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>0.2.0</version>
+  <uid>example_mission_001</uid>
+  <title>Example Mission 001</title>
+  <synopsis>This is an example mission, with 2 contracts.</synopsis>
+  <description>Orbit around the Moon and fly back to Earth.</description>
+  <expiration>INF</expiration>
+  <isRejectable>true</isRejectable>
+  <deadline>INF</deadline>
+  <isAutoAccepted>false</isAutoAccepted>
+  <prerequisites />
+  <actions />
+  <contractBlueprintUIDs>
+    <string>example_mission_001_contract_001</string>
+    <string>example_mission_001_contract_002</string>
+  </contractBlueprintUIDs>
+</Mission>
