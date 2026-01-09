@@ -63,19 +63,130 @@ namespace ContractManager.Mission
 
             // Should we create contracts here? We should just allow the "normal" offer procedure do that.
         }
+        
+        // Update the mission. To be called in game-loop.
+        public bool Update(KSA.SimTime simTime)
+        {
+            // Check if offered mission expired -> Rejected
+            if (!Double.IsPositiveInfinity(this._missionBlueprint.expiration))
+            {
+                KSA.SimTime expireOnSimTime = this.offeredSimTime + this._missionBlueprint.expiration;
+                if (expireOnSimTime < simTime)
+                {
+                    this.ExpireOfferedMission(simTime);
+                    return true;
+                }
+            }
+
+            // Only check if status is Accepted, because that is the only situation the status can change.
+            if (this.status != MissionStatus.Accepted) { return false; }
+
+            MissionStatus previousStatus = this.status;
+            // Check if accepted mission expired -> Failed
+            if (!Double.IsPositiveInfinity(this._missionBlueprint.deadline))
+            {
+                KSA.SimTime failOnSimTime = this.acceptedSimTime + this._missionBlueprint.deadline;
+                if (failOnSimTime < simTime)
+                {
+                    this.FailAcceptedMission(simTime);
+                    return true;
+                }
+            }
+
+            // Check if the mission can be completed
+            // Use >= because a contract can fail and re-offered.
+            bool allContractsFinished = this.contractUIDs.Count >= this._missionBlueprint.contractBlueprintUIDs.Count;
+            if (!allContractsFinished) { return false; }
+            // Check if all needed contracts are done
+            foreach (string contractUID in this.contractUIDs)
+            {
+                Contract.Contract? contract = Contract.ContractUtils.FindContractFromContractUID(
+                    ContractManager.data.finishedContracts,
+                    contractUID
+                );
+                if (!(contract != null && contract.status == ContractStatus.Completed))
+                {
+                    allContractsFinished = false;
+                    Console.WriteLine($"[CM] Mission.Update() contract '{contract._contractBlueprint.title}' not completed!");
+                    break;
+                }
+            }
+            if (!allContractsFinished) { return false; }
+
+            // Do actions
+            Console.WriteLine($"[CM] Mission.Update() All contracts are completed!");
+            this.CompleteAcceptedMission(simTime);
+
+            return previousStatus != this.status;  // return true if the status changed (to let the manager know)
+        }
+        
+        //  Accept offered mission, to be called from GUI accept button.
+        public void AcceptOfferedMission(KSA.SimTime simTime)
+        {
+            if (this.status == MissionStatus.Offered)
+            {
+                this.status = MissionStatus.Accepted;
+                this.acceptedSimTime = simTime;
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractAccept);
+            }
+        }
+        
+        //  Reject mission, to be called from GUI reject button.
+        public void RejectMission(KSA.SimTime simTime)
+        {
+            if (this.status is MissionStatus.Offered or MissionStatus.Accepted)
+            {
+                this.status = MissionStatus.Rejected;
+                this.finishedSimTime = simTime;
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractReject);
+            }
+        }
+        
+        //  Expire offered mission, to be called on expire.
+        public void ExpireOfferedMission(KSA.SimTime simTime)
+        {
+            if (this.status is MissionStatus.Offered)
+            {
+                this.status = MissionStatus.Rejected;
+                this.finishedSimTime = simTime;
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractExpire);
+            }
+        }
+
+        // Fail accepted mission, to be called on expire or requirement failing.
+        private void FailAcceptedMission(KSA.SimTime simTime)
+        {
+            if (this.status == MissionStatus.Accepted)
+            {
+                this.status = MissionStatus.Failed;
+                this.finishedSimTime = simTime;
+                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractFail);
+            }
+        }
+
+        // Complete accepted mission, to be called when all requirements are achieved.
+        private void CompleteAcceptedMission(KSA.SimTime simTime)
+        {
+            if (this.status == MissionStatus.Accepted)
+            {
+                this.status = MissionStatus.Completed;
+                this.finishedSimTime = simTime;
+                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractComplete);
+            }
+        }
     }
 
     public enum MissionStatus
     {
-        [XmlEnum("Offered")]
-        Offered,
-        [XmlEnum("Rejected")]
-        Rejected,
-        [XmlEnum("Accepted")]
-        Accepted,
-        [XmlEnum("Completed")]
-        Completed,
         [XmlEnum("Failed")]
-        Failed
+        Failed = 0,
+        [XmlEnum("Rejected")]
+        Rejected = 1,
+        [XmlEnum("Offered")]
+        Offered = 2,
+        [XmlEnum("Accepted")]
+        Accepted = 3,
+        [XmlEnum("Completed")]
+        Completed = 4,
     }
 }

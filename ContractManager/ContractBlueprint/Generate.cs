@@ -207,31 +207,27 @@ namespace ContractManager.ContractBlueprint
                 uid = "example_mission_001",
                 title = "Example Mission 001",
                 synopsis = "This is an example mission, with 2 contracts.",
-                description = "Orbit around the Moon and fly back to Earth."
+                description = "Orbit around Luna and fly back to Earth."
             };
 
-            // Contract to the Moon
-            var contractToMoon = new ContractBlueprint
+            // Contract to Luna
+            var contractToLuna = new ContractBlueprint
             {
                 uid = "example_mission_001_contract_001",
-                title = "Fly to the Moon",
-                synopsis = "Fly to the Moon and achieve a stable orbit",
-                description = "Create a randevous trajectory with the Moon. Then achieve an orbit around the Moon below 30km.",
+                title = "Fly to Luna",
+                synopsis = "Fly to Luna and achieve a stable orbit",
+                description = "Create a randevous trajectory with Luna. Then achieve an orbit around Luna below 30km.",
                 isAutoAccepted = true,
                 isRejectable = false,
             };
-            contractToMoon.prerequisites.Add(new Prerequisite
+            contractToLuna.prerequisites.Add(new Prerequisite
             {
                 type = PrerequisiteType.MaxNumOfferedContracts,
                 maxNumOfferedContracts = 4,
             });
-            contractToMoon.prerequisites.Add(new Prerequisite
-            {
-                type = PrerequisiteType.HasAcceptedMission,
-                hasAcceptedMission = "example_mission_001",
-            });
+            // Not needed to check if the mission has been accepted, this is already built in.
             
-            contractToMoon.requirements.Add(new Requirement
+            contractToLuna.requirements.Add(new Requirement
             {
                 uid = "orbit_earth",
                 type = RequirementType.Orbit,
@@ -244,43 +240,45 @@ namespace ContractManager.ContractBlueprint
                     maxApoapsis = 210000,
                 }
             });
-            contractToMoon.requirements.Add(new Requirement
+            contractToLuna.requirements.Add(new Requirement
             {
-                uid = "to_the_moon",
+                uid = "to_luna",
                 type = RequirementType.Orbit,
-                title = "Rendevous with the Moon",
-                synopsis = "Rendevous with the Moon with apoapsis below 200km.",
-                description = "Change your orbit around Earth such that your trajectory will rendevous with the Moon. TODO: Add hints.",
+                title = "Rendevous with Luna",
+                synopsis = "Rendevous with Luna with periapsis below 200km.",
+                description = "Change your orbit around Earth such that your trajectory will rendevous with Luna. TODO: Add hints.",
                 orbit = new RequiredOrbit
                 {
-                    targetBody = "Moon",
-                    maxApoapsis = 200000,
+                    targetBody = "Luna",
+                    maxPeriapsis = 200000,
                     type = OrbitType.Escape,
                 }
             });
-            contractToMoon.requirements.Add(new Requirement
+            contractToLuna.requirements.Add(new Requirement
             {
-                uid = "orbit_the_moon",
+                uid = "orbit_luna",
                 type = RequirementType.Orbit,
-                title = "Orbit the Moon",
-                synopsis = "Orbit the Moon with apoapsis below 30km.",
-                description = "Change your orbit around the Moon to a low orbit of below 30km.",
+                title = "Orbit Luna",
+                synopsis = "Orbit Luna with apoapsis below 30km.",
+                description = "Change your orbit around Luna to a low orbit of below 30km.",
                 orbit = new RequiredOrbit
                 {
-                    targetBody = "Moon",
+                    targetBody = "Luna",
                     maxApoapsis = 30000,
+                    minApoapsis = 10000,
+                    maxPeriapsis = 30000,
+                    minPeriapsis = 10000,
                     type = OrbitType.Elliptical,
                 }
             });
-            missionToWrite.contractBlueprintUIDs.Add(contractToMoon.uid);
             
             // Contract back to Earth
             var contractToEarth = new ContractBlueprint
             {
                 uid = "example_mission_001_contract_002",
-                title = "Fly to the Moon",
-                synopsis = "Fly to the Moon and achieve a stable orbit",
-                description = "Create an escape trajectory from the Moon. Then achieve an orbit around Earth between 150~200km.",
+                title = "Fly to Luna",
+                synopsis = "Fly to Luna and achieve a stable orbit",
+                description = "Create an escape trajectory from Luna. Then achieve an orbit around Earth between 150~200km.",
                 isAutoAccepted = true,
                 isRejectable = false,
             };
@@ -291,14 +289,14 @@ namespace ContractManager.ContractBlueprint
             });
             contractToEarth.requirements.Add(new Requirement
             {
-                uid = "escape_the_moon",
+                uid = "escape_luna",
                 type = RequirementType.Orbit,
-                title = "Escape the Moon",
-                synopsis = "Escape the Moon back to Earth.",
-                description = "Change your orbit around the Moon to a low orbit of below 30km.",
+                title = "Escape Luna",
+                synopsis = "Escape Luna back to Earth.",
+                description = "Change your orbit around Luna to a low orbit of below 30km.",
                 orbit = new RequiredOrbit
                 {
-                    targetBody = "Moon",
+                    targetBody = "Luna",
                     type = OrbitType.Escape,
                 }
             });
@@ -319,19 +317,22 @@ namespace ContractManager.ContractBlueprint
                     minPeriapsis = 150000,
                 }
             });
+            missionToWrite.contractBlueprintUIDs.Add(contractToLuna.uid);
             missionToWrite.contractBlueprintUIDs.Add(contractToEarth.uid);
+            contractToLuna.missionBlueprintUID = missionToWrite.uid;
+            contractToEarth.missionBlueprintUID = missionToWrite.uid;
             
             string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             Console.WriteLine($"[CM] 'My Documents' path: {myDocumentsPath}");
             string savePath = Path.Combine(
                 myDocumentsPath,
                 @"My Games\Kitten Space Agency\contracts\",
-                $"{contractToMoon.uid}.xml"
+                $"{contractToLuna.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
             if (!string.IsNullOrEmpty(myDocumentsPath))
             {
-                contractToMoon.WriteToFile(savePath);
+                contractToLuna.WriteToFile(savePath);
             }
             
             savePath = Path.Combine(

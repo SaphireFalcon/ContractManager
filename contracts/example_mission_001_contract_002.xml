@@ -2,57 +2,29 @@
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <version>0.2.0</version>
   <uid>example_mission_001_contract_002</uid>
-  <missionUID />
-  <title>Fly to the Moon</title>
-  <synopsis>Fly to the Moon and achieve a stable orbit</synopsis>
-  <description>Create an escape trajectory from the Moon. Then achieve an orbit around Earth between 150~200km.</description>
-  <expiration>INF</expiration>
+  <missionBlueprintUID>example_mission_001</missionBlueprintUID>
+  <title>Return to Earth</title>
+  <synopsis>Return to Earth from orbiting Luna.</synopsis>
+  <description>Create an escape trajectory from Luna. Then achieve an orbit around Earth between 150~200km.</description>
   <isRejectable>false</isRejectable>
-  <deadline>INF</deadline>
   <isAutoAccepted>true</isAutoAccepted>
   <prerequisites>
     <Prerequisite>
       <type>hasCompletedContract</type>
-      <maxNumOfferedContracts>4294967295</maxNumOfferedContracts>
-      <maxNumAcceptedContracts>4294967295</maxNumAcceptedContracts>
       <hasCompletedContract>example_mission_001_contract_001</hasCompletedContract>
-      <maxNumOfferedMissions>4294967295</maxNumOfferedMissions>
-      <maxNumAcceptedMissions>4294967295</maxNumAcceptedMissions>
-      <maxCompleteCount>0</maxCompleteCount>
-      <maxFailedCount>4294967295</maxFailedCount>
-      <maxConcurrentCount>0</maxConcurrentCount>
-      <minNumberOfVessels>0</minNumberOfVessels>
-      <maxNumberOfVessels>4294967295</maxNumberOfVessels>
     </Prerequisite>
   </prerequisites>
   <completionCondition>all</completionCondition>
   <requirements>
     <Requirement>
-      <uid>escape_the_moon</uid>
+      <uid>escape_luna</uid>
       <type>orbit</type>
-      <title>Escape the Moon</title>
-      <synopsis>Escape the Moon back to Earth.</synopsis>
-      <description>Change your orbit around the Moon to a low orbit of below 30km.</description>
-      <isCompletedOnAchievement>true</isCompletedOnAchievement>
-      <isHidden>false</isHidden>
-      <completeInOrder>true</completeInOrder>
+      <title>Escape Luna</title>
+      <synopsis>Escape Luna back to Earth.</synopsis>
+      <description>Change your orbit around Luna to a low orbit of below 30km.</description>
       <Orbit>
-        <targetBody>Moon</targetBody>
+        <targetBody>Luna</targetBody>
         <type>escape</type>
-        <minApoapsis>NaN</minApoapsis>
-        <maxApoapsis>NaN</maxApoapsis>
-        <minPeriapsis>NaN</minPeriapsis>
-        <maxPeriapsis>NaN</maxPeriapsis>
-        <minEccentricity>NaN</minEccentricity>
-        <maxEccentricity>NaN</maxEccentricity>
-        <minPeriod>NaN</minPeriod>
-        <maxPeriod>NaN</maxPeriod>
-        <minLongitudeOfAscendingNode>NaN</minLongitudeOfAscendingNode>
-        <maxLongitudeOfAscendingNode>NaN</maxLongitudeOfAscendingNode>
-        <minInclination>NaN</minInclination>
-        <maxInclination>NaN</maxInclination>
-        <minArgumentOfPeriapsis>NaN</minArgumentOfPeriapsis>
-        <maxArgumentOfPeriapsis>NaN</maxArgumentOfPeriapsis>
       </Orbit>
     </Requirement>
     <Requirement>
@@ -61,9 +33,6 @@
       <title>Orbit Earth again</title>
       <synopsis>Orbit Earth again.</synopsis>
       <description>Change your orbit around Earth to a orbit of between 150~200km.</description>
-      <isCompletedOnAchievement>true</isCompletedOnAchievement>
-      <isHidden>false</isHidden>
-      <completeInOrder>true</completeInOrder>
       <Orbit>
         <targetBody>Earth</targetBody>
         <type>elliptical</type>
@@ -71,16 +40,6 @@
         <maxApoapsis>200000</maxApoapsis>
         <minPeriapsis>150000</minPeriapsis>
         <maxPeriapsis>200000</maxPeriapsis>
-        <minEccentricity>NaN</minEccentricity>
-        <maxEccentricity>NaN</maxEccentricity>
-        <minPeriod>NaN</minPeriod>
-        <maxPeriod>NaN</maxPeriod>
-        <minLongitudeOfAscendingNode>NaN</minLongitudeOfAscendingNode>
-        <maxLongitudeOfAscendingNode>NaN</maxLongitudeOfAscendingNode>
-        <minInclination>NaN</minInclination>
-        <maxInclination>NaN</maxInclination>
-        <minArgumentOfPeriapsis>NaN</minArgumentOfPeriapsis>
-        <maxArgumentOfPeriapsis>NaN</maxArgumentOfPeriapsis>
       </Orbit>
     </Requirement>
   </requirements>

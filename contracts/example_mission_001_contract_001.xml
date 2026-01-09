@@ -2,39 +2,16 @@
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <version>0.2.0</version>
   <uid>example_mission_001_contract_001</uid>
-  <missionUID />
-  <title>Fly to the Moon</title>
-  <synopsis>Fly to the Moon and achieve a stable orbit</synopsis>
-  <description>Create a randevous trajectory with the Moon. Then achieve an orbit around the Moon below 30km.</description>
-  <expiration>INF</expiration>
+  <missionBlueprintUID>example_mission_001</missionBlueprintUID>
+  <title>Fly to Luna</title>
+  <synopsis>Fly to Luna and achieve a stable orbit</synopsis>
+  <description>Create a randevous trajectory with Luna. Then achieve an orbit around Luna below 30km.</description>
   <isRejectable>false</isRejectable>
-  <deadline>INF</deadline>
   <isAutoAccepted>true</isAutoAccepted>
   <prerequisites>
     <Prerequisite>
       <type>maxNumOfferedContracts</type>
       <maxNumOfferedContracts>4</maxNumOfferedContracts>
-      <maxNumAcceptedContracts>4294967295</maxNumAcceptedContracts>
-      <maxNumOfferedMissions>4294967295</maxNumOfferedMissions>
-      <maxNumAcceptedMissions>4294967295</maxNumAcceptedMissions>
-      <maxCompleteCount>0</maxCompleteCount>
-      <maxFailedCount>4294967295</maxFailedCount>
-      <maxConcurrentCount>0</maxConcurrentCount>
-      <minNumberOfVessels>0</minNumberOfVessels>
-      <maxNumberOfVessels>4294967295</maxNumberOfVessels>
-    </Prerequisite>
-    <Prerequisite>
-      <type>hasAcceptedMission</type>
-      <maxNumOfferedContracts>4294967295</maxNumOfferedContracts>
-      <maxNumAcceptedContracts>4294967295</maxNumAcceptedContracts>
-      <maxNumOfferedMissions>4294967295</maxNumOfferedMissions>
-      <maxNumAcceptedMissions>4294967295</maxNumAcceptedMissions>
-      <maxCompleteCount>0</maxCompleteCount>
-      <maxFailedCount>4294967295</maxFailedCount>
-      <maxConcurrentCount>0</maxConcurrentCount>
-      <hasAcceptedMission>example_mission_001</hasAcceptedMission>
-      <minNumberOfVessels>0</minNumberOfVessels>
-      <maxNumberOfVessels>4294967295</maxNumberOfVessels>
     </Prerequisite>
   </prerequisites>
   <completionCondition>all</completionCondition>
@@ -45,82 +22,37 @@
       <title>Orbit Earth</title>
       <synopsis>Starting condition is to orbit Earth below 210km.</synopsis>
       <description />
-      <isCompletedOnAchievement>true</isCompletedOnAchievement>
-      <isHidden>false</isHidden>
-      <completeInOrder>true</completeInOrder>
       <Orbit>
         <targetBody>Earth</targetBody>
         <type>elliptical</type>
-        <minApoapsis>NaN</minApoapsis>
         <maxApoapsis>210000</maxApoapsis>
-        <minPeriapsis>NaN</minPeriapsis>
-        <maxPeriapsis>NaN</maxPeriapsis>
-        <minEccentricity>NaN</minEccentricity>
-        <maxEccentricity>NaN</maxEccentricity>
-        <minPeriod>NaN</minPeriod>
-        <maxPeriod>NaN</maxPeriod>
-        <minLongitudeOfAscendingNode>NaN</minLongitudeOfAscendingNode>
-        <maxLongitudeOfAscendingNode>NaN</maxLongitudeOfAscendingNode>
-        <minInclination>NaN</minInclination>
-        <maxInclination>NaN</maxInclination>
-        <minArgumentOfPeriapsis>NaN</minArgumentOfPeriapsis>
-        <maxArgumentOfPeriapsis>NaN</maxArgumentOfPeriapsis>
       </Orbit>
     </Requirement>
     <Requirement>
-      <uid>to_the_moon</uid>
+      <uid>to_luna</uid>
       <type>orbit</type>
-      <title>Rendevous with the Moon</title>
-      <synopsis>Rendevous with the Moon with apoapsis below 200km.</synopsis>
-      <description>Change your orbit around Earth such that your trajectory will rendevous with the Moon. TODO: Add hints.</description>
-      <isCompletedOnAchievement>true</isCompletedOnAchievement>
-      <isHidden>false</isHidden>
-      <completeInOrder>true</completeInOrder>
+      <title>Rendevous with Luna</title>
+      <synopsis>Rendevous with Luna with periapsis below 200km.</synopsis>
+      <description>Change your orbit around Earth such that your trajectory will rendevous with Luna. TODO: Add hints.</description>
       <Orbit>
-        <targetBody>Moon</targetBody>
+        <targetBody>Luna</targetBody>
         <type>escape</type>
-        <minApoapsis>NaN</minApoapsis>
-        <maxApoapsis>200000</maxApoapsis>
-        <minPeriapsis>NaN</minPeriapsis>
-        <maxPeriapsis>NaN</maxPeriapsis>
-        <minEccentricity>NaN</minEccentricity>
-        <maxEccentricity>NaN</maxEccentricity>
-        <minPeriod>NaN</minPeriod>
-        <maxPeriod>NaN</maxPeriod>
-        <minLongitudeOfAscendingNode>NaN</minLongitudeOfAscendingNode>
-        <maxLongitudeOfAscendingNode>NaN</maxLongitudeOfAscendingNode>
-        <minInclination>NaN</minInclination>
-        <maxInclination>NaN</maxInclination>
-        <minArgumentOfPeriapsis>NaN</minArgumentOfPeriapsis>
-        <maxArgumentOfPeriapsis>NaN</maxArgumentOfPeriapsis>
+        <maxPeriapsis>200000</maxPeriapsis>
       </Orbit>
     </Requirement>
     <Requirement>
-      <uid>orbit_the_moon</uid>
+      <uid>orbit_luna</uid>
       <type>orbit</type>
-      <title>Orbit the Moon</title>
-      <synopsis>Orbit the Moon with apoapsis below 30km.</synopsis>
-      <description>Change your orbit around the Moon to a low orbit of below 30km.</description>
-      <isCompletedOnAchievement>true</isCompletedOnAchievement>
-      <isHidden>false</isHidden>
-      <completeInOrder>true</completeInOrder>
+      <title>Orbit Luna</title>
+      <synopsis>Orbit Luna with apoapsis below 30km.</synopsis>
+      <description>Change your orbit around Luna to a low orbit of below 30km.</description>
       <Orbit>
-        <targetBody>Moon</targetBody>
+        <targetBody>Luna</targetBody>
         <type>elliptical</type>
-        <minApoapsis>NaN</minApoapsis>
         <maxApoapsis>30000</maxApoapsis>
-        <minPeriapsis>NaN</minPeriapsis>
-        <maxPeriapsis>NaN</maxPeriapsis>
-        <minEccentricity>NaN</minEccentricity>
-        <maxEccentricity>NaN</maxEccentricity>
-        <minPeriod>NaN</minPeriod>
-        <maxPeriod>NaN</maxPeriod>
-        <minLongitudeOfAscendingNode>NaN</minLongitudeOfAscendingNode>
-        <maxLongitudeOfAscendingNode>NaN</maxLongitudeOfAscendingNode>
-        <minInclination>NaN</minInclination>
-        <maxInclination>NaN</maxInclination>
-        <minArgumentOfPeriapsis>NaN</minArgumentOfPeriapsis>
-        <maxArgumentOfPeriapsis>NaN</maxArgumentOfPeriapsis>
+        <minApoapsis>10000</minApoapsis>
+        <maxPeriapsis>30000</maxPeriapsis>
+        <minPeriapsis>10000</minPeriapsis>
       </Orbit>
     </Requirement>
   </requirements>

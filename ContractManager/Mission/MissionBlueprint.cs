@@ -93,7 +93,7 @@ namespace ContractManager.Mission
                 Console.WriteLine("[CM] [WARNING] mission blueprint uid has be to be defined.");
                 return false;
             }
-            // It should have at least one requirement to know when to the contract should be completed.
+            // It should have at least one contract linked to the mission.
             if (this.contractBlueprintUIDs.Count == 0)
             {
                 Console.WriteLine($"[CM] [WARNING] mission blueprint '{this.title}' has no contracts.");

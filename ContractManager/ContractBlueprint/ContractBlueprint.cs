@@ -16,8 +16,8 @@ namespace ContractManager.ContractBlueprint
         public string uid { get; set; }
 
         // Mission unique identifier if the blueprint is linked to a mission.
-        [XmlElement("missionUID", DataType = "string")]
-        public string missionUID { get; set; } = string.Empty;
+        [XmlElement("missionBlueprintUID", DataType = "string")]
+        public string missionBlueprintUID { get; set; } = string.Empty;
 
         // The title of the contract
         [XmlElement("title", DataType = "string")]

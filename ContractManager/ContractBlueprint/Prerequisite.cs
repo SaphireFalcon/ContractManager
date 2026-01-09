@@ -21,18 +21,6 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("maxNumAcceptedContracts", DataType = "unsignedInt")]
         public uint maxNumAcceptedContracts { get; set; } = uint.MaxValue;
 
-        // type: hasCompletedContract - offer contract if the specified contract blueprint uid has been completed.
-        [XmlElement("hasCompletedContract", DataType = "string")]
-        public string hasCompletedContract { get; set; }
-
-        // type: hasFailedContract - offer contract if the specified contract blueprint uid has been failed.
-        [XmlElement("hasFailedContract", DataType = "string")]
-        public string hasFailedContract { get; set; }
-
-        // type: hasAcceptedContract - offer contract if the specified contract blueprint uid has been accepted (and not yet completed/failed).
-        [XmlElement("hasAcceptedContract", DataType = "string")]
-        public string hasAcceptedContract { get; set; }
-
         // Mission specific
         // type: maxNumOfferedMissions - offer mission if number of offered missions is less than this number.
         [XmlElement("maxNumOfferedMissions", DataType = "unsignedInt")]
@@ -41,8 +29,8 @@ namespace ContractManager.ContractBlueprint
         // type: maxNumAcceptedMissions  - offer mission if number of accepted missions is less than this number.
         [XmlElement("maxNumAcceptedMissions", DataType = "unsignedInt")]
         public uint maxNumAcceptedMissions { get; set; } = uint.MaxValue;
-
-        // Generic
+        
+        // Specific to either contract or mission
         // type: maxCompleteCount - offer if number of completed instances of this contract/mission blueprint is less than this number.
         [XmlElement("maxCompleteCount", DataType = "unsignedInt")]
         public uint maxCompleteCount { get; set; } = 0;
@@ -54,6 +42,19 @@ namespace ContractManager.ContractBlueprint
         // type: maxConcurrentCount - offer if number of accepted instances of this contract/mission blueprint is less than this number.
         [XmlElement("maxConcurrentCount", DataType = "unsignedInt")]
         public uint maxConcurrentCount { get; set; } = 0;
+
+        // Generic
+        // type: hasCompletedContract - offer contract if the specified contract blueprint uid has been completed.
+        [XmlElement("hasCompletedContract", DataType = "string")]
+        public string hasCompletedContract { get; set; }
+
+        // type: hasFailedContract - offer contract if the specified contract blueprint uid has been failed.
+        [XmlElement("hasFailedContract", DataType = "string")]
+        public string hasFailedContract { get; set; }
+
+        // type: hasAcceptedContract - offer contract if the specified contract blueprint uid has been accepted (and not yet completed/failed).
+        [XmlElement("hasAcceptedContract", DataType = "string")]
+        public string hasAcceptedContract { get; set; }
 
         // type: hasCompletedMission - offer contract/mission if the specified mission blueprint uid has been completed.
         [XmlElement("hasCompletedMission", DataType = "string")]
@@ -118,27 +119,34 @@ namespace ContractManager.ContractBlueprint
         MaxNumOfferedContracts,
         [XmlEnum("maxNumAcceptedContracts")]
         MaxNumAcceptedContracts,
+
+        [XmlEnum("maxNumOfferedMissions")]
+        MaxNumOfferedMissions,
+        [XmlEnum("maxNumAcceptedMissions")]
+        MaxNumAcceptedMissions,
+
         [XmlEnum("maxCompleteCount")]
         MaxCompleteCount,
         [XmlEnum("maxFailedCount")]
         MaxFailedCount,
         [XmlEnum("maxConcurrentCount")]
         MaxConcurrentCount,
+
         [XmlEnum("hasCompletedContract")]
         HasCompletedContract,
         [XmlEnum("hasFailedContract")]
         HasFailedContract,
         [XmlEnum("hasAcceptedContract")]
         HasAcceptedContract,
-        [XmlEnum("minNumberOfVessels")]
-        MinNumberOfVessels,
-        [XmlEnum("maxNumberOfVessels")]
-        MaxNumberOfVessels,
         [XmlEnum("hasCompletedMission")]
         HasCompletedMission,
         [XmlEnum("hasFailedMission")]
         HasFailedMission,
         [XmlEnum("hasAcceptedMission")]
         HasAcceptedMission,
+        [XmlEnum("minNumberOfVessels")]
+        MinNumberOfVessels,
+        [XmlEnum("maxNumberOfVessels")]
+        MaxNumberOfVessels,
     }
 }

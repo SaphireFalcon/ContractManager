@@ -25,14 +25,22 @@ namespace ContractManager
         // List of finished contracts, loaded from save game / file.
         [XmlElement("finishedContracts")]
         public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
-
-        // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the launch site management building.
+        
+        // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfOfferedContracts")]
         public int maxNumberOfOfferedContracts { get; set; } = 4;
     
-        // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the launch site management building.
+        // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfAcceptedContracts")]
         public int maxNumberOfAcceptedContracts { get; set; } = 2;
+
+        // Global ContractManager config of max number of mission that can be offered simultaneously. Should be determined by the management building at the launch site.
+        [XmlElement("maxNumberOfOfferedMissions")]
+        public int maxNumberOfOfferedMissions { get; set; } = 4;
+    
+        // Global ContractManager config of max number of mission that can be accepted simultaneously. Should be determined by the management building at the launch site.
+        [XmlElement("maxNumberOfAcceptedMissions")]
+        public int maxNumberOfAcceptedMissions { get; set; } = 2;
 
         // List of offered missions, loaded from save game / file.
         [XmlElement("offeredMissions")]

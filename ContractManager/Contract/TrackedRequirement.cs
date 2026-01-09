@@ -191,11 +191,18 @@ namespace ContractManager.Contract
             bool requirementAchieved = true;
             RequiredOrbit? requiredOrbit = this._blueprintRequirement.orbit;
             if (requiredOrbit == null) { return; }
+
+            // targetBody
             if (requirementAchieved && requiredOrbit.targetBody != string.Empty && this.orbitedBody != string.Empty && this.orbitedBody != requiredOrbit.targetBody)
             {
                 requirementAchieved = false;
             }
-
+            // type
+            if (requirementAchieved && requiredOrbit.type != OrbitType.Invalid && requiredOrbit.type != this.type)
+            {
+                requirementAchieved = false;
+            }
+            // Apoapsis
             if (requirementAchieved && !Double.IsNaN(requiredOrbit.minApoapsis) && requiredOrbit.minApoapsis > this.apoapsis)
             {
                 requirementAchieved = false;
@@ -204,12 +211,57 @@ namespace ContractManager.Contract
             {
                 requirementAchieved = false;
             }
-
+            // Periapsis
             if (requirementAchieved && !Double.IsNaN(requiredOrbit.minPeriapsis) && requiredOrbit.minPeriapsis > this.periapsis)
             {
                 requirementAchieved = false;
             }
             if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxPeriapsis) && requiredOrbit.maxPeriapsis < this.periapsis)
+            {
+                requirementAchieved = false;
+            }
+            // Eccentricity
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minEccentricity) && requiredOrbit.minEccentricity > this.eccentricity)
+            {
+                requirementAchieved = false;
+            }
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxEccentricity) && requiredOrbit.maxEccentricity < this.eccentricity)
+            {
+                requirementAchieved = false;
+            }
+            // Period
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minPeriod) && requiredOrbit.minPeriod > this.period)
+            {
+                requirementAchieved = false;
+            }
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxPeriod) && requiredOrbit.maxPeriod < this.period)
+            {
+                requirementAchieved = false;
+            }
+            // LongitudeOfAccendingNode
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minLongitudeOfAscendingNode) && requiredOrbit.minLongitudeOfAscendingNode > this.longitudeOfAscendingNode)
+            {
+                requirementAchieved = false;
+            }
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxLongitudeOfAscendingNode) && requiredOrbit.maxLongitudeOfAscendingNode < this.longitudeOfAscendingNode)
+            {
+                requirementAchieved = false;
+            }
+            // Inclination
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minInclination) && requiredOrbit.minInclination > this.inclination)
+            {
+                requirementAchieved = false;
+            }
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxInclination) && requiredOrbit.maxInclination < this.inclination)
+            {
+                requirementAchieved = false;
+            }
+            // ArgumentOfPeriapsis
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.minArgumentOfPeriapsis) && requiredOrbit.minArgumentOfPeriapsis > this.argumentOfPeriapsis)
+            {
+                requirementAchieved = false;
+            }
+            if (requirementAchieved && !Double.IsNaN(requiredOrbit.maxArgumentOfPeriapsis) && requiredOrbit.maxArgumentOfPeriapsis < this.argumentOfPeriapsis)
             {
                 requirementAchieved = false;
             }

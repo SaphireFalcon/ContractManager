@@ -45,6 +45,17 @@ namespace ContractManager.ContractBlueprint
             }
         }
 
+        public void DoAction(Mission.Mission mission)
+        {
+            Console.WriteLine($"[CM] DoAction {this.type}");
+            if (type == ActionType.ShowMessage) {
+                this.ShowMessage(mission);
+            }
+            if (type == ActionType.ShowBlockingPopup) {
+                this.ShowMessage(mission);
+            }
+        }
+
         // Actions
         private void ShowMessage(Contract.Contract contract)
         {
@@ -55,7 +66,23 @@ namespace ContractManager.ContractBlueprint
                 new GUI.PopupWindow
                 {
                     title = contract._contractBlueprint.title,
-                    uid = String.Format("{0}_{1}", contract.contractUID, this.trigger),
+                    uid = String.Format("contract{0}_{1}", contract.contractUID, this.trigger),
+                    messageToShow = this.showMessage,
+                    popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
+                }
+            );
+        }
+
+        private void ShowMessage(Mission.Mission mission)
+        {
+            Console.WriteLine($"[CM] ShowMessage: '{this.showMessage}'");
+            if (mission._missionBlueprint == null) { return; }
+
+            ContractManager.data.popupWindows.Add(
+                new GUI.PopupWindow
+                {
+                    title = mission._missionBlueprint.title,
+                    uid = String.Format("mission{0}_{1}", mission.missionUID, this.trigger),
                     messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }

@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+#### GUI
+
+#### Core
+- Add `MissionBlueprint` data structure as a blue print to create missions.
+- Add `Mission` data structure to hold a contract instanciated from a `ContractBlueprint`.
+- Add `MissionBlueprintUID` field to `ContractBlueprint` to link it to a `MissionBlueprint`.
+- Add `missionUID` field to `Contract` data structure to link an offered contract to an accepted mission.
+- Add offering missions
+- Add functionality to set `Contract.missionUID` with `missionUID` of the linked mission.
+- Add functionality to add `ContractUID` to `Mission.contractUIDs` to link mission to contract(s).
+- Add function `ContractUtils.FindContractFromContractUID`
+- Add `MissionUtils` with functions `FindContractFromContractUID`
+- Add function `DoAction(Mission)` to do actions triggered by a mission.
+- Add function `ShowMessage(Mission)` to show a message triggered by a mission.
+- Add generate function for a mission with 2 contracts to fly to Luna and back to Earth.
+- Add example mission with 2 contracts to fly to Luna and back to Earth.
+- Add `maxNumberOfOfferedMissions` and `maxNumberOfAcceptedMissions` fields to `ContractManagerData`.
+
+### Changed
+- Reordered `ContractStatus` from `Failed` -> `Completed`.
+- Renamed `ContractUtils.FindContractFromUID` to `ContractUtils.FindContractFromBlueprintUID`, and changed return type from `Contract?` to `List<Contract>`, because it could be possible to have multiple contracts instanciated from the same blueprint.
+- Reordered the `PrerequisiteType` to group by specific and generic types.
+- Changed to only offer a contract if the linked mission is accepted.
+
+### Fixed
+
+- Fix to check all required orbit fields if the required orbit is achieved.
+- Fix to show in *Active Contracts Window* the required orbited body and orbit type.
+- Fix to show max Apoapsis/Periapsis if the requirement was not yet started.
+
 ## [0.2.0] - 2026-01-04
 
 ### Added
