@@ -25,6 +25,18 @@ namespace ContractManager
         // List of finished contracts, loaded from save game / file.
         [XmlElement("finishedContracts")]
         public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
+
+        // List of offered missions, loaded from save game / file.
+        [XmlElement("offeredMissions")]
+        public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
+
+        // List of accepted missions, loaded from save game / file.
+        [XmlElement("acceptedMissions")]
+        public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
+        
+        // List of finished missions, loaded from save game / file.
+        [XmlElement("finishedMissions")]
+        public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
         
         // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfOfferedContracts")]
@@ -41,18 +53,6 @@ namespace ContractManager
         // Global ContractManager config of max number of mission that can be accepted simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfAcceptedMissions")]
         public int maxNumberOfAcceptedMissions { get; set; } = 2;
-
-        // List of offered missions, loaded from save game / file.
-        [XmlElement("offeredMissions")]
-        public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
-
-        // List of accepted missions, loaded from save game / file.
-        [XmlElement("acceptedMissions")]
-        public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
-        
-        // List of finished missions, loaded from save game / file.
-        [XmlElement("finishedMissions")]
-        public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
 
         // internal variables
         // List of all loaded contract blueprints
@@ -110,8 +110,39 @@ namespace ContractManager
                     this.finishedContracts.Add(clonedContract);
                 }
             }
+            
+            this.offeredMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.offeredMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.offeredMissions.Add(clonedMission);
+                }
+            }
+            this.acceptedMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.acceptedMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.acceptedMissions.Add(clonedMission);
+                }
+            }
+            this.finishedMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.finishedMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.finishedMissions.Add(clonedMission);
+                }
+            }
+
             this.maxNumberOfOfferedContracts = contractManagerData.maxNumberOfOfferedContracts;
             this.maxNumberOfAcceptedContracts = contractManagerData.maxNumberOfAcceptedContracts;
+            this.maxNumberOfOfferedMissions = contractManagerData.maxNumberOfOfferedMissions;
+            this.maxNumberOfAcceptedMissions = contractManagerData.maxNumberOfAcceptedMissions;
 
             streamReader.Close();
         }

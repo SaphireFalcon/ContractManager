@@ -46,10 +46,32 @@ namespace ContractManager.Mission
         public Mission() { }
 
         // Clone, e.g after deserializing from a stream.
-        internal Mission? Clone(List<MissionBlueprint> missionBlueprints, List<ContractBlueprint.ContractBlueprint> contractBlueprints)
+        internal Mission? Clone(List<MissionBlueprint> missionBlueprints)
         {
-            // TODO!!!
-            return new Mission();
+            var clonedMission = new Mission
+            {
+                missionUID = this.missionUID,
+                blueprintUID = this.blueprintUID,
+                status = this.status,
+                offeredTimeS = this.offeredTimeS,
+                acceptedTimeS = this.acceptedTimeS,
+                finishedTimeS = this.finishedTimeS,
+                offeredSimTime = new KSA.SimTime(this.offeredTimeS),
+                acceptedSimTime = new KSA.SimTime(this.acceptedTimeS),
+                finishedSimTime = new KSA.SimTime(this.finishedTimeS),
+            };
+            foreach (string contractUID in this.contractUIDs)
+            {
+                clonedMission.contractUIDs.Add(contractUID);
+            }
+            clonedMission._missionBlueprint = MissionUtils.FindMissionBlueprintFromUID(missionBlueprints, this.blueprintUID);
+            if (clonedMission._missionBlueprint == null)
+            {
+                Console.WriteLine($"[CM] [ERROR] Mission could not find MissionBlueprint matching uid '{this.blueprintUID}'");
+                return null;
+            }
+
+            return clonedMission;
         }
 
         // Constructor to instantiate a mission from a blueprint. Used when a misson is offered.
