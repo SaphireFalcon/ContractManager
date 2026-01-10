@@ -35,13 +35,15 @@ namespace ContractManager.Mission
         // In-game (sim) time when mission was finished in seconds, i.e. rejected, completed or failed.
         [XmlElement("finishedTime", DataType = "double")]
         public double finishedTimeS { get { return finishedSimTime.Seconds(); } set; } = double.NaN;
-        internal KSA.SimTime offeredSimTime { get; set; } = new KSA.SimTime(double.NaN);
-        internal KSA.SimTime acceptedSimTime { get; set; } = new KSA.SimTime(double.NaN);
-        internal KSA.SimTime finishedSimTime { get; set; } = new KSA.SimTime(double.NaN);
 
         // list of contractUID referencing the contracts created as part of this mission.
         [XmlArray("contractUIDs")]
         public List<string> contractUIDs { get; set; } = new List<string>();
+
+        // internal variables
+        internal KSA.SimTime offeredSimTime { get; set; } = new KSA.SimTime(double.NaN);
+        internal KSA.SimTime acceptedSimTime { get; set; } = new KSA.SimTime(double.NaN);
+        internal KSA.SimTime finishedSimTime { get; set; } = new KSA.SimTime(double.NaN);
 
         public Mission() { }
 
@@ -90,7 +92,7 @@ namespace ContractManager.Mission
         public bool Update(KSA.SimTime simTime)
         {
             // Check if offered mission expired -> Rejected
-            if (!Double.IsPositiveInfinity(this._missionBlueprint.expiration))
+            if (this.status == MissionStatus.Offered && !Double.IsPositiveInfinity(this._missionBlueprint.expiration))
             {
                 KSA.SimTime expireOnSimTime = this.offeredSimTime + this._missionBlueprint.expiration;
                 if (expireOnSimTime < simTime)
@@ -100,7 +102,7 @@ namespace ContractManager.Mission
                 }
             }
 
-            // Only check if status is Accepted, because that is the only situation the status can change.
+            // Return early if status is not accepted.
             if (this.status != MissionStatus.Accepted) { return false; }
 
             MissionStatus previousStatus = this.status;
@@ -149,7 +151,7 @@ namespace ContractManager.Mission
             {
                 this.status = MissionStatus.Accepted;
                 this.acceptedSimTime = simTime;
-                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractAccept);
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnMissionAccept);
             }
         }
         
@@ -160,7 +162,7 @@ namespace ContractManager.Mission
             {
                 this.status = MissionStatus.Rejected;
                 this.finishedSimTime = simTime;
-                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractReject);
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnMissionReject);
             }
         }
         
@@ -171,7 +173,7 @@ namespace ContractManager.Mission
             {
                 this.status = MissionStatus.Rejected;
                 this.finishedSimTime = simTime;
-                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractExpire);
+                 MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnMissionExpire);
             }
         }
 
@@ -182,7 +184,7 @@ namespace ContractManager.Mission
             {
                 this.status = MissionStatus.Failed;
                 this.finishedSimTime = simTime;
-                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractFail);
+                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnMissionFail);
             }
         }
 
@@ -193,7 +195,7 @@ namespace ContractManager.Mission
             {
                 this.status = MissionStatus.Completed;
                 this.finishedSimTime = simTime;
-                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnContractComplete);
+                MissionUtils.TriggerAction(this, ContractBlueprint.TriggerType.OnMissionComplete);
             }
         }
     }

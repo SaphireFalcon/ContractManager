@@ -147,7 +147,7 @@ namespace ContractManager.Contract
         public bool Update(KSA.SimTime simTime)
         {
             // Check if offered contract expired -> Rejected
-            if (!Double.IsPositiveInfinity(this._contractBlueprint.expiration))
+            if (this.status == ContractStatus.Offered && !Double.IsPositiveInfinity(this._contractBlueprint.expiration))
             {
                 KSA.SimTime expireOnSimTime = this.offeredSimTime + this._contractBlueprint.expiration;
                 if (expireOnSimTime < simTime)
@@ -156,8 +156,8 @@ namespace ContractManager.Contract
                     return true;
                 }
             }
-
-            // Only check if status is Accepted, because that is the only situation the status can change through tracked requirements.
+            
+            // Return early if status is not accepted, when status can change (e.g. through tracked requirements).
             if (this.status != ContractStatus.Accepted) { return false; }
 
             ContractStatus previousStatus = this.status;

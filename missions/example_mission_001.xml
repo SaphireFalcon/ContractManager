@@ -8,7 +8,13 @@
   <isRejectable>true</isRejectable>
   <isAutoAccepted>true</isAutoAccepted>
   <prerequisites />
-  <actions />
+  <actions>
+    <Action>
+      <trigger>onMissionComplete</trigger>
+      <type>showMessage</type>
+      <showMessage>Congratulations! You pawed that round trip.</showMessage>
+    </Action>
+  </actions>
   <contractBlueprintUIDs>
     <string>example_mission_001_contract_001</string>
     <string>example_mission_001_contract_002</string>
