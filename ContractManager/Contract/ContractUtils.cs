@@ -139,6 +139,17 @@ namespace ContractManager.Contract
             return null;
         }
 
+        internal static Contract? FindContractFromContractUID(string contractUID)
+        {
+            Contract? contract = null;
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.offeredContracts, contractUID);
+            if (contract != null) { return contract; }
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.acceptedContracts, contractUID);
+            if (contract != null) { return contract; }
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.finishedContracts, contractUID);
+            return contract;
+        }
+
         internal static ContractBlueprint.Requirement? FindRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements, string requirementUID)
         {
             bool foundBlueprintRequirement = false;
