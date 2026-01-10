@@ -1,5 +1,16 @@
 # Release Notes
 
+## Unreleased - Mission Planner
+
+This release adds a mission planner window, that will allow the player to create missions that contain contracts.  
+Missions can also be predefined and used to allow (other mods) to create a set of contracts (e.g. contract pack).   
+Currently, this mod offers an example mission mission to fly to Luna and back.
+
+Supported KSA versions:
+- `v2025.12.31.3103` fully supported
+- `v2025.12.33.3123` To test
+- `v2026.???` To test
+
 ## Version 0.2.0 2026-01-04 - More of the basics implemented
 
 This release adds more of the basic features that needs implementation. Most of all, contracts can be loaded from other mods now, allowing others to create contracts. In the next version(s) expect more features related to missions and contract packs.

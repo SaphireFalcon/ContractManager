@@ -224,15 +224,61 @@ namespace ContractManager.GUI
             
             float nodeAvailableWidth = ImGui.GetContentRegionAvail().X;
             // Show requirement(s) and current tracked state
-            // Apoapsis
-            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minApoapsis))
+            // orbited body
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
             {
-                ImGui.TextColored(Colors.gray, String.Format("Apoapsis < {0}", Utils.FormatDistance(requiredOrbit.minApoapsis)));
+                ImGui.TextColored(Colors.gray, String.Format("Body to orbit {0}", requiredOrbit.targetBody));
             }
             else
-            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxApoapsis))
             {
-                ImGui.TextColored(Colors.gray, String.Format("Apoapsis > {0}", Utils.FormatDistance(requiredOrbit.maxApoapsis)));
+                string orbitedBody = ((TrackedOrbit)trackedRequirement).orbitedBody;
+                bool isCorrectBodyOrbited = orbitedBody == requiredOrbit.targetBody;
+                ImGui.Text("Orbited body:");
+                ImGui.SameLine();
+                if (isCorrectBodyOrbited)
+                {
+                    ImGui.TextColored(Colors.green, String.Format("{0}", orbitedBody));
+                }
+                else
+                {
+                    ImGui.TextColored(Colors.red, String.Format("{0} !=", requiredOrbit.targetBody));
+                    ImGui.SameLine();
+                    ImGui.TextColored(Colors.orange, String.Format("{0}", orbitedBody));
+                }
+            }
+            // orbit type
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
+            {
+                ImGui.TextColored(Colors.gray, String.Format("Orbit type: {0}", requiredOrbit.type));
+            }
+            else
+            {
+                OrbitType orbitType = ((TrackedOrbit)trackedRequirement).type;
+                bool isCorrectOrbitType = orbitType == requiredOrbit.type;
+                ImGui.Text("Orbited type:");
+                ImGui.SameLine();
+                if (isCorrectOrbitType)
+                {
+                    ImGui.TextColored(Colors.green, String.Format("{0}", orbitType));
+                }
+                else
+                {
+                    ImGui.TextColored(Colors.red, String.Format("{0} !=", requiredOrbit.type));
+                    ImGui.SameLine();
+                    ImGui.TextColored(Colors.orange, String.Format("{0}", orbitType));
+                }
+            }
+            // Apoapsis
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
+            {
+                if (!Double.IsNaN(requiredOrbit.minApoapsis))
+                {
+                    ImGui.TextColored(Colors.gray, String.Format("Apoapsis < {0}", Utils.FormatDistance(requiredOrbit.minApoapsis)));
+                }
+                if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxApoapsis))
+                {
+                    ImGui.TextColored(Colors.gray, String.Format("Apoapsis > {0}", Utils.FormatDistance(requiredOrbit.maxApoapsis)));
+                }
             }
             else
             if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minApoapsis) && !Double.IsNaN(requiredOrbit.maxApoapsis))
@@ -272,14 +318,16 @@ namespace ContractManager.GUI
                 }
             }
             // Periapsis
-            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.minPeriapsis))
+            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED)
             {
-                ImGui.TextColored(Colors.gray, String.Format("Periapsis < {0}", Utils.FormatDistance(requiredOrbit.minPeriapsis)));
-            }
-            else
-            if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxPeriapsis))
-            {
-                ImGui.TextColored(Colors.gray, String.Format("Periapsis > {0}", Utils.FormatDistance(requiredOrbit.maxPeriapsis)));
+                if (!Double.IsNaN(requiredOrbit.minPeriapsis))
+                {
+                    ImGui.TextColored(Colors.gray, String.Format("Periapsis < {0}", Utils.FormatDistance(requiredOrbit.minPeriapsis)));
+                }
+                if (trackedRequirement.status == TrackedRequirementStatus.NOT_STARTED && !Double.IsNaN(requiredOrbit.maxPeriapsis))
+                {
+                    ImGui.TextColored(Colors.gray, String.Format("Periapsis > {0}", Utils.FormatDistance(requiredOrbit.maxPeriapsis)));
+                }
             }
             else
             if (nodeAvailableWidth > 350 && !Double.IsNaN(requiredOrbit.minPeriapsis) && !Double.IsNaN(requiredOrbit.maxPeriapsis))

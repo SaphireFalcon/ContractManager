@@ -26,17 +26,40 @@ namespace ContractManager
         [XmlElement("finishedContracts")]
         public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
 
-        // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the launch site management building.
+        // List of offered missions, loaded from save game / file.
+        [XmlElement("offeredMissions")]
+        public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
+
+        // List of accepted missions, loaded from save game / file.
+        [XmlElement("acceptedMissions")]
+        public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
+        
+        // List of finished missions, loaded from save game / file.
+        [XmlElement("finishedMissions")]
+        public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
+        
+        // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfOfferedContracts")]
         public int maxNumberOfOfferedContracts { get; set; } = 4;
     
-        // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the launch site management building.
+        // Global ContractManager config of max number of contracts that can be accepted simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfAcceptedContracts")]
         public int maxNumberOfAcceptedContracts { get; set; } = 2;
-        
+
+        // Global ContractManager config of max number of mission that can be offered simultaneously. Should be determined by the management building at the launch site.
+        [XmlElement("maxNumberOfOfferedMissions")]
+        public int maxNumberOfOfferedMissions { get; set; } = 4;
+    
+        // Global ContractManager config of max number of mission that can be accepted simultaneously. Should be determined by the management building at the launch site.
+        [XmlElement("maxNumberOfAcceptedMissions")]
+        public int maxNumberOfAcceptedMissions { get; set; } = 2;
+
         // internal variables
         // List of all loaded contract blueprints
         internal List<ContractBlueprint.ContractBlueprint> contractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+
+        // List of all loaded mission blueprints
+        internal List<Mission.MissionBlueprint> missionBlueprints { get; set; } = new List<Mission.MissionBlueprint>();
 
         // List of popup(s) to show
         internal List<GUI.PopupWindow> popupWindows { get; set; } = new List<GUI.PopupWindow>();
@@ -87,8 +110,39 @@ namespace ContractManager
                     this.finishedContracts.Add(clonedContract);
                 }
             }
+            
+            this.offeredMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.offeredMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.offeredMissions.Add(clonedMission);
+                }
+            }
+            this.acceptedMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.acceptedMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.acceptedMissions.Add(clonedMission);
+                }
+            }
+            this.finishedMissions.Clear();
+            foreach (Mission.Mission mission in contractManagerData.finishedMissions)
+            {
+                Mission.Mission? clonedMission = mission.Clone(this.missionBlueprints);
+                if (clonedMission != null)
+                {
+                    this.finishedMissions.Add(clonedMission);
+                }
+            }
+
             this.maxNumberOfOfferedContracts = contractManagerData.maxNumberOfOfferedContracts;
             this.maxNumberOfAcceptedContracts = contractManagerData.maxNumberOfAcceptedContracts;
+            this.maxNumberOfOfferedMissions = contractManagerData.maxNumberOfOfferedMissions;
+            this.maxNumberOfAcceptedMissions = contractManagerData.maxNumberOfAcceptedMissions;
 
             streamReader.Close();
         }

@@ -54,15 +54,26 @@ public class ContractManager
 
         this.LoadContractBlueprints();
 
+        this.LoadMissionBlueprints();
+
         // For testing: create and write an example contract to disk
-        //Generate.Example002Contract();
+        Generate.ExampleMission001();
     }
 
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
-        // Update contracts
-        this.UpdateContracts();
+        // game loop
+        
+        KSA.SimTime simTime = Universe.GetElapsedSimTime();
+        double playerTime = Program.GetPlayerTime();
+        // Only update on the given interval.
+        if (playerTime - this._lastUpdateTime > this._updateInterval)
+        {
+            this._lastUpdateTime = playerTime;
+            this.UpdateMissions(simTime);
+            this.UpdateContracts(simTime);
+        }
 
         // Draw GUI
         Contract.Contract? contractToShowDetails = null;
@@ -89,15 +100,8 @@ public class ContractManager
     }
 
     // Contract Management back-end functions
-    private void UpdateContracts()
+    private void UpdateContracts(in KSA.SimTime simTime)
     {
-        KSA.SimTime simTime = Universe.GetElapsedSimTime();
-        double playerTime = Program.GetPlayerTime();
-        // Only update on the given interval.
-        if (playerTime - this._lastUpdateTime < this._updateInterval) { return; }
-
-        this._lastUpdateTime = playerTime;
-
         // offer contracts
         this.OfferContracts(simTime);
         // Update offered contracts (to be expired)
@@ -106,7 +110,7 @@ public class ContractManager
             offeredContract.Update(simTime);
             // Rejected / Expired contracts don't need to be added to finished contracts.
         }
-        // Cleanup accepted contracts
+        // Cleanup offered contracts
         for (int offeredContractIndex = 0; offeredContractIndex < ContractManager.data.offeredContracts.Count; offeredContractIndex++)
         {
             if (ContractManager.data.offeredContracts[offeredContractIndex].status != Contract.ContractStatus.Offered)
@@ -157,12 +161,12 @@ public class ContractManager
             if (contractBlueprintsToOffer[contractBlueprintIndex].isAutoAccepted)
             {
                 // TODO: make sure that this contract is not offered multiple times after completing.
-                Contract.Contract? alreadyExistingAcceptedContract = Contract.ContractUtils.FindContractFromUID(
+                List<Contract.Contract> alreadyExistingAcceptedContracts = Contract.ContractUtils.FindContractFromBlueprintUID(
                     ContractManager.data.acceptedContracts,
                     contractBlueprintsToOffer[contractBlueprintIndex].uid);
-                if (alreadyExistingAcceptedContract != null)
+                if (alreadyExistingAcceptedContracts.Count > 0)
                 {
-                    // already accepted, don't offer and autoaccept again
+                    // already accepted, don't offer and auto-accept again
                     contractBlueprintsToOffer.RemoveAt(contractBlueprintIndex);
                     contractBlueprintIndex--;
                 }
@@ -211,10 +215,19 @@ public class ContractManager
             List<Contract.Contract> offeredContracts = data.offeredContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Offered).ToList();
             if (offeredContracts.Count > 0) { return false; }  // already offered!
         }
+
+        // Check if the contract is part of a mission, only offer if the mission has been accepted
+        if (!String.IsNullOrEmpty(contractBlueprint.missionBlueprintUID))
+        {
+            List<Mission.Mission> missions = Mission.MissionUtils.FindMissionsFromMissionBlueprintUID(data.acceptedMissions, contractBlueprint.missionBlueprintUID);
+            if (missions.Count == 0) { return false; }
+        }
+
         // TODO: Add a check if the contract was recently offered and rejected.
         bool canOfferContract = true;
         foreach (ContractBlueprint.Prerequisite prerequisite in contractBlueprint.prerequisites)
         {
+            // Contract specific
             if (prerequisite.type == PrerequisiteType.MaxNumOfferedContracts && ContractManager.data.offeredContracts.Count >= prerequisite.maxNumOfferedContracts)
             {
                 canOfferContract = false;
@@ -255,49 +268,56 @@ public class ContractManager
                     break;
                 }
             }
-            if (prerequisite.type == PrerequisiteType.HasCompletedContract)
-            {
-                string blueprintUID = prerequisite.hasCompletedContract;
-                List<Contract.Contract> completedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Completed).ToList();
-                if (completedContracts.Count == 0)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
-            if (prerequisite.type == PrerequisiteType.HasFailedContract)
-            {
 
-                string blueprintUID = prerequisite.hasFailedContract;
-                List<Contract.Contract> failedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Failed).ToList();
-                if (failedContracts.Count == 0)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
-            if (prerequisite.type == PrerequisiteType.HasAcceptedContract)
-            {
-                string blueprintUID = prerequisite.hasAcceptedContract;
-                List<Contract.Contract> acceptedContracts = data.acceptedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Accepted).ToList();
-                if (acceptedContracts.Count == 0)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
-            if (prerequisite.type == PrerequisiteType.MinNumberOfVessels && Universe.CurrentSystem.VehicleCount < prerequisite.minNumberOfVessels)
-            {
-                canOfferContract = false;
-                break;
-            }
-            if (prerequisite.type == PrerequisiteType.MaxNumberOfVessels && Universe.CurrentSystem.VehicleCount > prerequisite.maxNumberOfVessels)
-            {
-                canOfferContract = false;
-                break;
-            }
+            // Generic
+            canOfferContract = CheckGenericPrerequisite(prerequisite);
+            if (!canOfferContract) break;
         }
         return canOfferContract;
+    }
+
+    private bool CheckGenericPrerequisite(in ContractBlueprint.Prerequisite prerequisite)
+    {
+        bool canOfferContract = true;
+        if (prerequisite.type == PrerequisiteType.HasCompletedContract)
+        {
+            string blueprintUID = prerequisite.hasCompletedContract;
+            List<Contract.Contract> completedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Completed).ToList();
+            return completedContracts.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.HasFailedContract)
+        {
+            string blueprintUID = prerequisite.hasFailedContract;
+            List<Contract.Contract> failedContracts = data.finishedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Failed).ToList();
+            return failedContracts.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.HasAcceptedContract)
+        {
+            string blueprintUID = prerequisite.hasAcceptedContract;
+            List<Contract.Contract> acceptedContracts = data.acceptedContracts.Where(c => c._contractBlueprint.uid == blueprintUID && c.status == Contract.ContractStatus.Accepted).ToList();
+            return acceptedContracts.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.HasCompletedMission)
+        {
+            string blueprintUID = prerequisite.hasCompletedMission;
+            List<Mission.Mission> completedMissions = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Completed).ToList();
+            return completedMissions.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.HasFailedMission)
+        {
+            string blueprintUID = prerequisite.hasFailedMission;
+            List<Mission.Mission> failedMissions = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Failed).ToList();
+            return failedMissions.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.HasAcceptedMission)
+        {
+            string blueprintUID = prerequisite.hasAcceptedMission;
+            List<Mission.Mission> acceptedMissions = data.acceptedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Accepted).ToList();
+            return acceptedMissions.Count > 0;
+        }
+        if (prerequisite.type == PrerequisiteType.MinNumberOfVessels && Universe.CurrentSystem.VehicleCount < prerequisite.minNumberOfVessels) return false;
+        if (prerequisite.type == PrerequisiteType.MaxNumberOfVessels && Universe.CurrentSystem.VehicleCount > prerequisite.maxNumberOfVessels) return false;
+        return true;
     }
 
     private void LoadContractBlueprints()
@@ -333,6 +353,201 @@ public class ContractManager
             }
         }
         Console.WriteLine($"[CM] loaded {ContractManager.data.contractBlueprints.Count} contract blueprints.");
+    }
+
+    private void UpdateMissions(in KSA.SimTime simTime)
+    {
+        // offer missions
+        this.OfferMissions(simTime);
+        // Update offered missions (to be expired)
+        foreach (Mission.Mission offeredMission in ContractManager.data.offeredMissions)
+        {
+            offeredMission.Update(simTime);
+            // Rejected / Expired contracts don't need to be added to finished contracts.
+        }
+        // Cleanup offered missions
+        for (int offeredMissionIndex = 0; offeredMissionIndex < ContractManager.data.offeredMissions.Count; offeredMissionIndex++)
+        {
+            if (ContractManager.data.offeredMissions[offeredMissionIndex].status != Mission.MissionStatus.Offered)
+            {
+                ContractManager.data.offeredMissions.RemoveAt(offeredMissionIndex);
+                offeredMissionIndex--;
+            }
+        }
+        // Update accepted missions
+        foreach (Mission.Mission acceptedMission in ContractManager.data.acceptedMissions)
+        {
+            bool statusUpdated = acceptedMission.Update(simTime);
+            if (statusUpdated)
+            {
+                // Check status and do something with it.
+                if (acceptedMission.status is Mission.MissionStatus.Completed or Mission.MissionStatus.Failed)
+                {
+                    ContractManager.data.finishedMissions.Add(acceptedMission);
+                }
+            }
+        } 
+        // Cleanup accepted missions
+        for (int acceptedMissionIndex = 0; acceptedMissionIndex < ContractManager.data.acceptedMissions.Count; acceptedMissionIndex++)
+        {
+            if (ContractManager.data.acceptedMissions[acceptedMissionIndex].status != Mission.MissionStatus.Accepted)
+            {
+                ContractManager.data.acceptedMissions.RemoveAt(acceptedMissionIndex);
+                acceptedMissionIndex--;
+            }
+        }
+    }
+
+    private void OfferMissions(KSA.SimTime simTime)
+    {
+        if (ContractManager.data.offeredMissions.Count >= ContractManager.data.maxNumberOfOfferedMissions) { return; }
+
+        List<Mission.MissionBlueprint> missionBlueprintsToOffer = this.GetMissionBlueprintsToOffer();
+        
+        // Auto-accept missions when told to do so.
+        for ( int missionBlueprintIndex = 0; missionBlueprintIndex < missionBlueprintsToOffer.Count; missionBlueprintIndex++ ) {
+            if (missionBlueprintsToOffer[missionBlueprintIndex].isAutoAccepted)
+            {
+                // TODO: make sure that this mission is not offered multiple times after completing.
+                List<Mission.Mission> alreadyExistingAcceptedMissions = Mission.MissionUtils.FindMissionsFromMissionBlueprintUID(
+                    ContractManager.data.acceptedMissions,
+                    missionBlueprintsToOffer[missionBlueprintIndex].uid);
+                if (alreadyExistingAcceptedMissions.Count > 0)
+                {
+                    // already accepted, don't offer and auto-accept again
+                    missionBlueprintsToOffer.RemoveAt(missionBlueprintIndex);
+                    missionBlueprintIndex--;
+                }
+                else
+                {
+                    // auto-accept
+                    Mission.Mission mission = new Mission.Mission(missionBlueprintsToOffer[missionBlueprintIndex], simTime);
+                    mission.AcceptOfferedMission(simTime);
+                    ContractManager.data.acceptedMissions.Add(mission);
+                    missionBlueprintsToOffer.RemoveAt(missionBlueprintIndex);
+                    missionBlueprintIndex--;
+                }
+            }
+        }
+
+        // Randomly select a subset of missions to be offered
+        Random randomGenerator = new Random();
+        while (missionBlueprintsToOffer.Count + ContractManager.data.offeredMissions.Count > ContractManager.data.maxNumberOfOfferedMissions)
+        {
+            missionBlueprintsToOffer.RemoveAt(randomGenerator.Next(0, missionBlueprintsToOffer.Count));
+        }
+        foreach (Mission.MissionBlueprint missionBlueprint in missionBlueprintsToOffer)
+        {
+            ContractManager.data.offeredMissions.Add(new Mission.Mission(missionBlueprint, simTime));
+        }
+    }
+
+    private List<Mission.MissionBlueprint> GetMissionBlueprintsToOffer()
+    {
+        List<Mission.MissionBlueprint> missionBlueprintsToOffer = new List<Mission.MissionBlueprint>();
+        foreach (Mission.MissionBlueprint missionBlueprint in ContractManager.data.missionBlueprints)
+        {
+            if (this.CanOfferMissionFromBlueprint(in missionBlueprint))
+            {
+                missionBlueprintsToOffer.Add(missionBlueprint);
+            }
+        }
+        return missionBlueprintsToOffer;
+    }
+
+    private bool CanOfferMissionFromBlueprint(in Mission.MissionBlueprint missionBlueprint)
+    {
+        // Check if the mission is already being offered.
+        {
+            string blueprintUID = missionBlueprint.uid;
+            List<Mission.Mission> offeredMissions = data.offeredMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Offered).ToList();
+            if (offeredMissions.Count > 0) { return false; }  // already offered!
+        }
+        bool canOfferContract = true;
+        foreach (ContractBlueprint.Prerequisite prerequisite in missionBlueprint.prerequisites)
+        {
+            // Mision specific
+            if (prerequisite.type == PrerequisiteType.MaxNumOfferedMissions && ContractManager.data.offeredMissions.Count >= prerequisite.maxNumOfferedMissions)
+            {
+                canOfferContract = false;
+                break;
+            }
+            if (prerequisite.type == PrerequisiteType.MaxNumAcceptedMissions && ContractManager.data.acceptedMissions.Count >= prerequisite.maxNumAcceptedMissions)
+            {
+                canOfferContract = false;
+                break;
+            }
+            if (prerequisite.type == PrerequisiteType.MaxCompleteCount)
+            {
+                string blueprintUID = missionBlueprint.uid;
+                List<Mission.Mission> completedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Completed).ToList();
+                if (completedContracts.Count > prerequisite.maxCompleteCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.MaxFailedCount)
+            {
+                string blueprintUID = missionBlueprint.uid;
+                List<Mission.Mission> failedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Failed).ToList();
+                if (failedContracts.Count > prerequisite.maxFailedCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+            if (prerequisite.type == PrerequisiteType.MaxConcurrentCount)
+            {
+                string blueprintUID = missionBlueprint.uid;
+                List<Mission.Mission> acceptedContracts = data.acceptedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Accepted).ToList();
+                if (acceptedContracts.Count > prerequisite.maxConcurrentCount)
+                {
+                    canOfferContract = false;
+                    break;
+                }
+            }
+
+            // Generic
+            canOfferContract = CheckGenericPrerequisite(prerequisite);
+            if (!canOfferContract) break;
+        }
+        return canOfferContract;
+    }
+
+    private void LoadMissionBlueprints()
+    {
+        // Load missions from disk here
+        const string contentDirectoryPath = @"Content";
+        string[] contentDirectoryDirectories = Directory.GetDirectories(contentDirectoryPath);
+        foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
+        {
+            string missionsDirectoryPath = Path.Combine(contentSubDirectoryPath, @"missions");
+            if (Directory.Exists(missionsDirectoryPath))
+            {
+                string[] files = Directory.GetFiles(missionsDirectoryPath, "*.xml", SearchOption.AllDirectories);
+                foreach (string file in files)
+                {
+                    try
+                    {
+                        var blueprintMission = Mission.MissionBlueprint.LoadFromFile(file);
+                        if (blueprintMission.Validate(ContractManager.data.contractBlueprints))
+                        {
+                            ContractManager.data.missionBlueprints.Add(blueprintMission);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[CM] [WARNING] mission blueprint '{blueprintMission.title}' won't be loaded do to validation error(s).");
+                        }
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        Console.WriteLine($"[CM] [WARNING] mission blueprint '{file}' won't be loaded do to loading error:\n{exception.Message}");
+                    }
+                }
+            }
+        }
+        Console.WriteLine($"[CM] loaded {ContractManager.data.missionBlueprints.Count} mission blueprints.");
     }
 }
 

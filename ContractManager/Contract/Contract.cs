@@ -22,6 +22,10 @@ namespace ContractManager.Contract
         // Unique identifier for which blueprint the contract was instantiated from.
         [XmlElement("blueprintUID", DataType = "string")]
         public string blueprintUID { get; set; } = string.Empty;
+
+        // Unique identifier for which mission the contract belongs to.
+        [XmlElement("missionUID", DataType = "string")]
+        public string missionUID { get; set; } = string.Empty;
         
         // Status of the contract.
         [XmlElement("status")]
@@ -110,6 +114,20 @@ namespace ContractManager.Contract
                 // Construct a tracked requirement from blueprint.
                 this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement, this));
             }
+            
+            // Create the link between contract and mission when contract is part of a mission.
+            if (!String.IsNullOrEmpty(contractBlueprint.missionBlueprintUID))
+            {
+                List<Mission.Mission> missions = Mission.MissionUtils.FindMissionsFromMissionBlueprintUID(ContractManager.data.acceptedMissions, contractBlueprint.missionBlueprintUID);
+                if (missions.Count == 1) {
+                    this.missionUID = missions[0].missionUID;
+                    missions[0].contractUIDs.Add(this.contractUID);
+                }
+                else
+                {
+                    Console.WriteLine($"[CM] [WARNING] Creating contract that is part of mission, but {missions.Count} missions with {contractBlueprint.missionBlueprintUID} which should never happen!");
+                }
+            }
         }
 
         //  Update the tracked state of the requirements in the contract with the data from the vehicle. To be called in game-loop.
@@ -129,7 +147,7 @@ namespace ContractManager.Contract
         public bool Update(KSA.SimTime simTime)
         {
             // Check if offered contract expired -> Rejected
-            if (!Double.IsPositiveInfinity(this._contractBlueprint.expiration))
+            if (this.status == ContractStatus.Offered && !Double.IsPositiveInfinity(this._contractBlueprint.expiration))
             {
                 KSA.SimTime expireOnSimTime = this.offeredSimTime + this._contractBlueprint.expiration;
                 if (expireOnSimTime < simTime)
@@ -138,8 +156,8 @@ namespace ContractManager.Contract
                     return true;
                 }
             }
-
-            // Only check if status is Accepted, because that is the only situation the status can change through tracked requirements.
+            
+            // Return early if status is not accepted, when status can change (e.g. through tracked requirements).
             if (this.status != ContractStatus.Accepted) { return false; }
 
             ContractStatus previousStatus = this.status;
@@ -236,15 +254,15 @@ namespace ContractManager.Contract
     
     public enum ContractStatus
     {
-        [XmlEnum("Offered")]
-        Offered,
-        [XmlEnum("Rejected")]
-        Rejected,
-        [XmlEnum("Accepted")]
-        Accepted,
-        [XmlEnum("Completed")]
-        Completed,
         [XmlEnum("Failed")]
-        Failed
+        Failed = 0,
+        [XmlEnum("Rejected")]
+        Rejected = 1,
+        [XmlEnum("Offered")]
+        Offered = 2,
+        [XmlEnum("Accepted")]
+        Accepted = 3,
+        [XmlEnum("Completed")]
+        Completed = 4,
     }
 }
