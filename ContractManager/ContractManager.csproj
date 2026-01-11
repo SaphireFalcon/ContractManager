@@ -21,6 +21,9 @@
     <Reference Include="Brutal.ImGui">
       <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
     </Reference>
+    <Reference Include="Brutal.ImGui.Abstractions">
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.Abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="Brutal.ImGui.Extensions">
       <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.Extensions.dll</HintPath>
     </Reference>

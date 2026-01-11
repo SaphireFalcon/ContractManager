@@ -63,6 +63,9 @@ namespace ContractManager.ContractBlueprint
         [XmlArray("actions")]
         public List<Action> actions { get; set; } = new List<Action>();
 
+        // internal flag to indicate if the blueprint can be edited or not
+        internal bool isEditable { get; set; } = false;
+
         public ContractBlueprint() { }
 
         //  Doesn't write anything to console in-game, only on StarMap launcher console.
