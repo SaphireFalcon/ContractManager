@@ -10,6 +10,7 @@
   <prerequisites />
   <actions>
     <Action>
+	  <uid>onMissionComplete_showMessage</uid>
       <trigger>onMissionComplete</trigger>
       <type>showMessage</type>
       <showMessage>Congratulations! You pawed that round trip.</showMessage>

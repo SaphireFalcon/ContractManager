@@ -15,18 +15,22 @@ namespace ContractManager.Mission
         // The unique identifier for the mission
         [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
+        internal static int uidMaxLength = 128;
 
         // The title of the mission
         [XmlElement("title", DataType = "string")]
         public string title { get; set; }
+        internal static int titleMaxLength = 128;
 
         // A brief synopsis of the mission
         [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; } = string.Empty;
+        internal static int synopsisMaxLength = 1024;
 
         // Detailed description of the mission
         [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
+        internal static int descriptionMaxLength = 4096;
 
         // When an offered mission will expired, in seconds
         [XmlElement("expiration", DataType = "double")]
@@ -103,6 +107,27 @@ namespace ContractManager.Mission
                 Console.WriteLine($"[CM] [WARNING] mission blueprint '{this.title}' has no contracts.");
                 return false;
             }
+            if (this.uid.Length >= MissionBlueprint.uidMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] mission blueprint uid length should be less than {MissionBlueprint.uidMaxLength}.");
+                return false;
+            }
+            if (this.title.Length >= MissionBlueprint.titleMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] mission blueprint title length should be less than {MissionBlueprint.titleMaxLength}.");
+                return false;
+            }
+            if (this.synopsis.Length >= MissionBlueprint.synopsisMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] mission blueprint synopsis length should be less than {MissionBlueprint.synopsisMaxLength}.");
+                return false;
+            }
+            if (this.description.Length >= MissionBlueprint.descriptionMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] mission blueprint description length should be less than {MissionBlueprint.descriptionMaxLength}.");
+                return false;
+            }
+
             foreach (var prerequisite in prerequisites)
             {
                 if (!prerequisite.Validate()) { return false; }

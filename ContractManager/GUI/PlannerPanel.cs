@@ -2,7 +2,9 @@
 using Brutal.ImGuiApi.Extensions;
 using Brutal.Numerics;
 using ContractManager.Contract;
+using ContractManager.ContractBlueprint;
 using ContractManager.Mission;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -13,15 +15,10 @@ namespace ContractManager.GUI
     // The panel that goes inside the "Mission Planner" tab of the `ContractManagementWindow`
     internal class PlannerPanel
     {
-        private readonly ContractManagementWindow _managementWindow;
-
         private ContractBlueprintEditingPanel? _contractBlueprintEditingPanel = null;
         private MissionBlueprintEditingPanel? _missionBlueprintEditingPanel = null;
 
-        internal PlannerPanel(in ContractManagementWindow managementWindow)
-        {
-            this._managementWindow = managementWindow;
-        }
+        internal PlannerPanel() { }
 
         internal void DrawPlannerLeftPanel()
         {
@@ -32,36 +29,75 @@ namespace ContractManager.GUI
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.0f });
             if (ImGui.BeginChild("PlannerLeftPanel", leftPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
             {
-                
-                // Draw Mission section
-                var tabLeftPanelRegionSize = ImGui.GetContentRegionAvail();
-                float leftMissionPanelHeightRatio = 0.3f;
-                
-                Brutal.Numerics.float2 leftMissionPanelSize = new Brutal.Numerics.float2 {
-                    X = leftPanelWidth,
-                    Y = (tabLeftPanelRegionSize.Y * leftMissionPanelHeightRatio) - style.FramePadding.Y,
-                };
-                if (ImGui.BeginChild("PlannerLeftMissionPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                if (
+                    ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.NONE &&
+                    ContractManager.contractManagementWindow.rightPanelDetailType is RightPanelDetailType.NONE or RightPanelDetailType.CONTRACTBLUEPRINT or RightPanelDetailType.MISSIONBLUEPRINT)
                 {
-                    ImGui.SeparatorText("Missions");
-                    List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(this._managementWindow, ContractManager.data.missionBlueprints);
-                    ImGui.Text(String.Format("list: {0}", listItems.Count));
-                    this._managementWindow.DrawItemList(listItems, "planner_missionBlueprints");
-                    ImGui.EndChild();  // End of LeftContractPanel
-                }
+                    // Draw Mission section
+                    var tabLeftPanelRegionSize = ImGui.GetContentRegionAvail();
+                    float leftMissionPanelHeightRatio = 0.3f;
+                
+                    Brutal.Numerics.float2 leftMissionPanelSize = new Brutal.Numerics.float2 {
+                        X = leftPanelWidth,
+                        Y = (tabLeftPanelRegionSize.Y * leftMissionPanelHeightRatio) - style.FramePadding.Y,
+                    };
+                    if (ImGui.BeginChild("PlannerLeftMissionPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                    {
+                        ImGui.SeparatorText("Missions");
+                        List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, ContractManager.data.missionBlueprints);
+                        ImGui.Text(String.Format("list: {0}", listItems.Count));
+                        ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_missionBlueprints");
+                        ImGui.EndChild();  // End of LeftContractPanel
+                    }
 
-                // Draw Contract section
-                Brutal.Numerics.float2 leftContractPanelSize = new Brutal.Numerics.float2 {
-                    X = leftPanelWidth,
-                    Y = (tabLeftPanelRegionSize.Y * (1.0f - leftMissionPanelHeightRatio)) - style.FramePadding.Y
-                };
-                if (ImGui.BeginChild("PlannerLeftContractPanel", leftContractPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                    // Draw Contract section
+                    Brutal.Numerics.float2 leftContractPanelSize = new Brutal.Numerics.float2 {
+                        X = leftPanelWidth,
+                        Y = (tabLeftPanelRegionSize.Y * (1.0f - leftMissionPanelHeightRatio)) - style.FramePadding.Y
+                    };
+                    if (ImGui.BeginChild("PlannerLeftContractPanel", leftContractPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                    {
+                        ImGui.SeparatorText("Contracts");
+                        List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, ContractManager.data.contractBlueprints);
+                        ImGui.Text(String.Format("list: {0}", listItems.Count));
+                        ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints");
+                        ImGui.EndChild();  // End of LeftContractPanel
+                    }
+                }
+                else
+                if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE)
                 {
-                    ImGui.SeparatorText("Contracts");
-                    List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(this._managementWindow, ContractManager.data.contractBlueprints);
-                    ImGui.Text(String.Format("list: {0}", listItems.Count));
-                    this._managementWindow.DrawItemList(listItems, "planner_contractBlueprints");
-                    ImGui.EndChild();  // End of LeftContractPanel
+                    ImGui.SeparatorText("Prerequisites");
+                    if (ImGui.ArrowButton("##planner_leftPrerequisites_return", ImGuiDir.Left))
+                    {
+                        ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
+                        ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
+                    }
+                }
+                else
+                if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT)
+                {
+                    ImGui.SeparatorText("Requirements");
+                    if (ImGui.ArrowButton("##planner_leftRequirements_return", ImGuiDir.Left))
+                    {
+                        ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
+                        ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
+                    }
+                }
+                else
+                if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.ACTION)
+                {
+                    ImGui.SeparatorText("Actions");
+                    if (ImGui.ArrowButton("##planner_leftActions_return", ImGuiDir.Left))
+                    {
+                        ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
+                        ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
+                    }
+                }
+                else
+                {
+                    // TODO: switching from manager to planner type while contract/mission selected will trigger this.
+                    ImGui.Text(String.Format("Unhandled RightPanelDetailType: {0}", ContractManager.contractManagementWindow.rightPanelDetailType));
                 }
 
                 ImGui.EndChild();  // End of LeftPanel
@@ -80,16 +116,16 @@ namespace ContractManager.GUI
                 // Wrap contents in a child to make it scrollable if needed
                 if (ImGui.BeginChild("PlannerDetails", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
                 {
-                    if (this._managementWindow.rightPanelDetailType == RightPanelDetailType.NONE || this._managementWindow.rightPanelDetailUID == string.Empty)
+                    if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.NONE || ContractManager.contractManagementWindow.rightPanelDetailUID == string.Empty)
                     {
                         ImGui.TextWrapped("Select an item from the left panel to view details here.");
                     }
                     else
-                    if (this._managementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT)
+                    if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT)
                     {
                         ContractBlueprint.ContractBlueprint? contractBlueprintToShow = ContractUtils.FindContractBlueprintFromUID(
                             ContractManager.data.contractBlueprints,
-                            this._managementWindow.rightPanelDetailUID
+                            ContractManager.contractManagementWindow.rightPanelDetailUID
                         );
                         if (contractBlueprintToShow != null) {
                             this.DrawContractBlueprintDetails(contractBlueprintToShow);
@@ -97,16 +133,16 @@ namespace ContractManager.GUI
                         else
                         {
                             // Something bad happened to the detail UID, it became corrupted.
-                            this._managementWindow.rightPanelDetailType = RightPanelDetailType.NONE;
-                            this._managementWindow.rightPanelDetailUID = string.Empty;
+                            ContractManager.contractManagementWindow.rightPanelDetailType = RightPanelDetailType.NONE;
+                            ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                         }
                     }
                     else
-                    if (this._managementWindow.rightPanelDetailType == RightPanelDetailType.MISSIONBLUEPRINT)
+                    if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.MISSIONBLUEPRINT)
                     {
                         Mission.MissionBlueprint? missionBlueprintToShow = MissionUtils.FindMissionBlueprintFromUID(
                             ContractManager.data.missionBlueprints,
-                            this._managementWindow.rightPanelDetailUID
+                            ContractManager.contractManagementWindow.rightPanelDetailUID
                         );
                         if (missionBlueprintToShow != null) {
                             this.DrawMissionBlueprintDetails(missionBlueprintToShow);
@@ -114,8 +150,8 @@ namespace ContractManager.GUI
                         else
                         {
                             // Something bad happened to the detail UID, it became corrupted.
-                            this._managementWindow.rightPanelDetailType = RightPanelDetailType.NONE;
-                            this._managementWindow.rightPanelDetailUID = string.Empty;
+                            ContractManager.contractManagementWindow.rightPanelDetailType = RightPanelDetailType.NONE;
+                            ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                         }
                     }
                     ImGui.EndChild();  // End of Planner details child
@@ -173,10 +209,10 @@ namespace ContractManager.GUI
         {
             this._contractBlueprint = contractBlueprintToEdit;
             this.blueprintUID = contractBlueprintToEdit.uid;
-            this._blueprintUID = new ImInputString(64, contractBlueprintToEdit.uid);
-            this._title = new ImInputString(64, contractBlueprintToEdit.title);
-            this._synopsis = new ImInputString(1024, contractBlueprintToEdit.synopsis);
-            this._description = new ImInputString(4096, contractBlueprintToEdit.description);
+            this._blueprintUID = new ImInputString(ContractBlueprint.ContractBlueprint.uidMaxLength, contractBlueprintToEdit.uid);
+            this._title = new ImInputString(ContractBlueprint.ContractBlueprint.titleMaxLength, contractBlueprintToEdit.title);
+            this._synopsis = new ImInputString(ContractBlueprint.ContractBlueprint.synopsisMaxLength, contractBlueprintToEdit.synopsis);
+            this._description = new ImInputString(ContractBlueprint.ContractBlueprint.descriptionMaxLength, contractBlueprintToEdit.description);
             this._expiration = contractBlueprintToEdit.expiration;
             this._isRejectable = contractBlueprintToEdit.isRejectable;
             this._deadline = contractBlueprintToEdit.deadline;
@@ -211,7 +247,7 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("missionBlueprintUID:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of the optional mission this contract blueprint is liked to. (max 64)");
+                ContractManagementWindow.DrawHelpTooltip("The optional mission this contract blueprint is part of.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
                 string selectedMissionBlueprint = "None";
@@ -334,7 +370,67 @@ namespace ContractManager.GUI
                 }
                 ImGui.EndTable();
             }
-                        
+            
+            ImGui.SeparatorText("Prerequisites");
+            ImGuiTreeNodeFlags prerequisiteTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
+            if (ImGui.TreeNodeEx("Contract prerequisites:", prerequisiteTreeNodeFlags))
+            {
+                foreach (ContractBlueprint.Prerequisite prerequisite in this._contractBlueprint.prerequisites)
+                {
+                    this.DrawPrerequisiteTreeNode(prerequisite);
+                }
+                ImGui.TreePop();
+            }
+
+            ImGui.SeparatorText("Requirements");
+            ImGui.Text("Contract completion condition:");
+            ImGui.SameLine();
+            ContractManagementWindow.DrawHelpTooltip("Which part of the requirements need to be achieved for the contract to be completed.");
+            ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
+            string selectedCompletionCondition = this._contractBlueprint.completionCondition.ToString();
+            if (ImGui.BeginCombo("##ContractBlueprint_combo_missionBlueprintUID", selectedCompletionCondition))
+            {
+                if (ImGui.Selectable(CompletionCondition.All.ToString()))
+                {
+                    this._contractBlueprint.completionCondition = CompletionCondition.All;
+                }
+                if (selectedCompletionCondition == CompletionCondition.All.ToString())
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+                if (ImGui.Selectable(CompletionCondition.Any.ToString()))
+                {
+                    this._contractBlueprint.completionCondition = CompletionCondition.Any;
+                }
+                if (selectedCompletionCondition == CompletionCondition.Any.ToString())
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+                ImGui.EndCombo();
+            }
+            ImGuiTreeNodeFlags requirementTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
+            if (ImGui.TreeNodeEx("Contract requirements:", requirementTreeNodeFlags))
+            {
+                foreach (ContractBlueprint.Requirement requirement in this._contractBlueprint.requirements)
+                {
+                    this.DrawRequirementTreeNode(requirement);
+                }
+                ImGui.TreePop();
+            }
+            
+            
+            ImGui.SeparatorText("Actions");
+            ImGuiTreeNodeFlags actionTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
+            if (ImGui.TreeNodeEx("Contract actions:", actionTreeNodeFlags))
+            {
+                foreach (ContractBlueprint.Action action in this._contractBlueprint.actions)
+                {
+                    this.DrawActionTreeNode(action);
+                }
+                ImGui.TreePop();
+            }
+             
+            ImGui.SeparatorText("Debug");           
             ImGui.Text(String.Format("uid: {0}", this._contractBlueprint.uid));
             ImGui.Text(String.Format("missionBlueprintUID: {0}", this._contractBlueprint.missionBlueprintUID));
             ImGui.Text(String.Format("title: {0}", this._contractBlueprint.title));
@@ -346,9 +442,118 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("isRejectable: {0}", this._contractBlueprint.isRejectable));
             ImGui.Text(String.Format("deadline: {0}", this._contractBlueprint.deadline));
             ImGui.Text(String.Format("isAutoAccepted: {0}", this._contractBlueprint.isAutoAccepted));
+            ImGui.Text(String.Format("completionCondition: {0}", this._contractBlueprint.completionCondition.ToString()));
+        }
+        
 
-            // show a list of prereq, req, actions, each a button to edit. -> what about a button to add or delete?
-            // The list on the left should also h
+        internal void DrawPrerequisiteTreeNode(ContractBlueprint.Prerequisite prerequisite)
+        {
+            var style = ImGui.GetStyle();
+            float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
+            float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
+            float ContentRegionAvailWidth = ImGui.GetContentRegionAvail().X;
+            float triangleWidth = 20.0f * 2.0f;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
+            float maxTitleWidth = ContentRegionAvailWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
+            // Ensure the title can fit in a way to leave space for the buttons
+            string titleForNode = prerequisite.type.ToString(); // TODO: convert to easier to read strings
+            float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            while (textSize > maxTitleWidth)
+            {
+                titleForNode = titleForNode[0..^3] + "..";
+                textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            }
+            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, prerequisite.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
+            {
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvailWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
+                if (ImGui.SmallButton("Edit"))
+                {
+                    ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.PREREQUISITE;
+                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = prerequisite.uid;
+                }
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Delete"))
+                {
+                    // TODO: need to set some flag to edit the prerequisites outside of the foreach loop
+                }
+                ImGui.TreePop();
+            }
+        }
+
+
+        internal void DrawRequirementTreeNode(ContractBlueprint.Requirement requirement)
+        {
+            var style = ImGui.GetStyle();
+            float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
+            float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
+            float ContentRegionAvaiablelWidth = ImGui.GetContentRegionAvail().X;
+            float triangleWidth = 20.0f * 2;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
+            float maxTitleWidth = ContentRegionAvaiablelWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
+            // Ensure the title can fit in a way to leave space for the buttons
+            string titleForNode = requirement.title;
+            float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            while (textSize > maxTitleWidth)
+            {
+                titleForNode = titleForNode[0..^3] + "..";
+                textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            }
+            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, requirement.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
+            {
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvaiablelWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
+                if (ImGui.SmallButton("Edit"))
+                {
+                    ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.REQUIREMENT;
+                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = requirement.uid;
+                }
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Delete"))
+                {
+                    // TODO: need to set some flag to edit the requirements outside of the foreach loop
+                }
+                if (requirement.type == RequirementType.Group && requirement.group != null)
+                {
+                    foreach (ContractBlueprint.Requirement childRequirement in requirement.group.requirements)
+                    {
+                        this.DrawRequirementTreeNode(childRequirement);
+                    }
+                }
+                ImGui.TreePop();
+            }
+        }
+
+        internal void DrawActionTreeNode(ContractBlueprint.Action action)
+        {
+            var style = ImGui.GetStyle();
+            float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
+            float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
+            float ContentRegionAvailWidth = ImGui.GetContentRegionAvail().X;
+            float triangleWidth = 20.0f * 2.0f;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
+            float maxTitleWidth = ContentRegionAvailWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
+            // Ensure the title can fit in a way to leave space for the buttons
+            string titleForNode = action.type.ToString(); // TODO: convert to easier to read strings
+            float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            while (textSize > maxTitleWidth)
+            {
+                titleForNode = titleForNode[0..^3] + "..";
+                textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+            }
+            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, action.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
+            {
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvailWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
+                if (ImGui.SmallButton("Edit"))
+                {
+                    ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.ACTION;
+                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = action.uid;
+                }
+                ImGui.SameLine();
+                if (ImGui.SmallButton("Delete"))
+                {
+                    // TODO: need to set some flag to edit the actions outside of the foreach loop
+                }
+                ImGui.TreePop();
+            }
         }
     }
 

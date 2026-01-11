@@ -10,6 +10,7 @@
   <isAutoAccepted>true</isAutoAccepted>
   <prerequisites>
     <Prerequisite>
+	  <uid>maxNumOfferedContracts_4</uid>
       <type>maxNumOfferedContracts</type>
       <maxNumOfferedContracts>4</maxNumOfferedContracts>
     </Prerequisite>

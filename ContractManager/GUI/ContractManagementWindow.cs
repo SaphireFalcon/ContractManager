@@ -159,15 +159,20 @@ namespace ContractManager.GUI
     internal class ContractManagementWindow
     {
         // TODO: move this to a static data class?
-        // What to show on the right side
+        // What to show on the right side, one of CONTRACTBLUEPRINT, CONTRACT, MISSIONBLUEPRINT, MISSION, 
         internal RightPanelDetailType rightPanelDetailType { get; set; } = RightPanelDetailType.NONE;
+        // The UID to show on the right, one of contract, contractBlueprint, mission, missionBlueprint uids for corresponding rightPanelDetailType.
         internal string rightPanelDetailUID { get; set; } = string.Empty;
+        // What to show on the right side as a sub-type, one of PREREQUISITE, REQUIREMENT, ACTION
+        internal RightPanelDetailType rightPanelDetailSubType { get; set; } = RightPanelDetailType.NONE;
+        // The UID to show on the right, if rightPanelDetailType is a subtype such as prerequisite, requirement, action
+        internal string rightPanelDetailSubUID { get; set; } = string.Empty;
         
         private readonly PlannerPanel _plannerPanel;
 
         public ContractManagementWindow()
         {
-            this._plannerPanel = new PlannerPanel(this);
+            this._plannerPanel = new PlannerPanel();
         }
 
         public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
