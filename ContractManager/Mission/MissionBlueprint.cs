@@ -56,6 +56,9 @@ namespace ContractManager.Mission
         [XmlArray("contractBlueprintUIDs")]
         public List<string> contractBlueprintUIDs { get; set; } = new List<string>();
 
+        // internal flag to indicate if the blueprint can be edited or not
+        internal bool isEditable { get; set; } = false;
+
         public MissionBlueprint() { }
         
         // Write the mission blueprint to an XML file.
@@ -76,6 +79,7 @@ namespace ContractManager.Mission
             {
                 return (MissionBlueprint)serializer.Deserialize(reader);
             }
+            // 
         }
 
         internal bool Validate(List<ContractBlueprint.ContractBlueprint> contractBlueprints)

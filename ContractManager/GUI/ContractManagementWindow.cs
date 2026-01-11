@@ -17,7 +17,6 @@ namespace ContractManager.GUI
         private readonly string _guid = string.Empty;
         private readonly RightPanelDetailType _rightPanelDetailType = RightPanelDetailType.NONE;
         private readonly ColorTriplet? _colors = null;
-        private readonly bool showAsActive = false;
         
         internal LeftPanelListItem(ContractManagementWindow window, Contract.Contract contract)
         { 
@@ -27,7 +26,6 @@ namespace ContractManager.GUI
             this._guid = $"contract_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.CONTRACT;
             this._colors = Colors.GetContractStatusColor(contract.status);
-            this.showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
         }
         internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Contract.Contract> contracts)
         {
@@ -47,7 +45,6 @@ namespace ContractManager.GUI
             this._guid = $"mission_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.MISSION;
             this._colors = Colors.GetMissionStatusColor(mission.status);
-            this.showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
         }
         internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Mission.Mission> missions)
         {
@@ -55,6 +52,41 @@ namespace ContractManager.GUI
             foreach (Mission.Mission mission in missions)
             {
                 leftPanelListItems.Add(new LeftPanelListItem(window, mission));
+            }
+            return leftPanelListItems;
+        }
+        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.ContractBlueprint contractBlueprint)
+        { 
+            this._window = window;
+            this._title = contractBlueprint.title;
+            this._uid = contractBlueprint.uid;
+            this._guid = $"contract_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.CONTRACTBLUEPRINT;
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.ContractBlueprint> contractBlueprints)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprints)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, contractBlueprint));
+            }
+            return leftPanelListItems;
+        }
+
+        internal LeftPanelListItem(ContractManagementWindow window, Mission.MissionBlueprint missionBlueprint)
+        { 
+            this._window = window;
+            this._title = missionBlueprint.title;
+            this._uid = missionBlueprint.uid;
+            this._guid = $"mission_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.MISSIONBLUEPRINT;
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Mission.MissionBlueprint> missionBlueprints)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (Mission.MissionBlueprint missionBlueprint in missionBlueprints)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, missionBlueprint));
             }
             return leftPanelListItems;
         }
@@ -74,7 +106,8 @@ namespace ContractManager.GUI
             }
 
             // Change the color for the button if it is currently selected for details.
-            if (this.showAsActive)
+            bool showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
+            if (showAsActive)
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Colors.blueDefaultLight);
             }
@@ -99,7 +132,7 @@ namespace ContractManager.GUI
                     this._window.rightPanelDetailUID = this._uid;
                 }
             }
-            if (this.showAsActive)
+            if (showAsActive)
             {
                 ImGui.PopStyleColor(1);
             }
@@ -125,11 +158,17 @@ namespace ContractManager.GUI
 
     internal class ContractManagementWindow
     {
+        // TODO: move this to a static data class?
         // What to show on the right side
         internal RightPanelDetailType rightPanelDetailType { get; set; } = RightPanelDetailType.NONE;
         internal string rightPanelDetailUID { get; set; } = string.Empty;
         
-        public ContractManagementWindow() { }
+        private readonly PlannerPanel _plannerPanel;
+
+        public ContractManagementWindow()
+        {
+            this._plannerPanel = new PlannerPanel(this);
+        }
 
         public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
         {
@@ -153,7 +192,9 @@ namespace ContractManager.GUI
                 {
                     if (ImGui.BeginTabItem("Mission Planner"))
                     {
-                        
+                        // Draw left panel
+                        this._plannerPanel.DrawPlannerLeftPanel();
+                        this._plannerPanel.DrawPlannerRightPanel();
                         ImGui.EndTabItem();
                     }
                     if (ImGui.BeginTabItem("Mission & Contract Management"))
@@ -214,7 +255,7 @@ namespace ContractManager.GUI
                     X = leftPanelWidth,
                     Y = (tabLeftPanelRegionSize.Y * leftMissionPanelHeightRatio) - style.FramePadding.Y,
                 };
-                if (ImGui.BeginChild("LeftMissionPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                if (ImGui.BeginChild("ManagementLeftMissionPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
                 {
                     ImGui.SeparatorText("Missions");
 
@@ -250,7 +291,7 @@ namespace ContractManager.GUI
                     X = leftPanelWidth,
                     Y = (tabLeftPanelRegionSize.Y * (1.0f - leftMissionPanelHeightRatio)) - style.FramePadding.Y
                 };
-                if (ImGui.BeginChild("LeftContractPanel", leftContractPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                if (ImGui.BeginChild("ManagementLeftContractPanel", leftContractPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
                 {
                     ImGui.SeparatorText("Contracts");
 
@@ -291,7 +332,7 @@ namespace ContractManager.GUI
         }
 
         // Draw tab with list items, tabTitle has to be unique.
-        private void DrawTabItemList(List<LeftPanelListItem> listItems, string tabTitle, string guid, bool setTabSelected = false)
+        internal void DrawTabItemList(List<LeftPanelListItem> listItems, string tabTitle, string guid, bool setTabSelected = false)
         {
             ImGuiTabItemFlags tabItemFlags = ImGuiTabItemFlags.None;
             if (setTabSelected) tabItemFlags |= ImGuiTabItemFlags.SetSelected;
@@ -303,17 +344,17 @@ namespace ContractManager.GUI
         }
 
         // Drawlist items, guid has to be unique.
-        private void DrawItemList(List<LeftPanelListItem> listItems, string guid, bool colorItemsByStatus = false)
+        internal void DrawItemList(List<LeftPanelListItem> listItems, string guid, bool colorItemsByStatus = false)
         {
             var style = ImGui.GetStyle();
-            var contentRegionSize = ImGui.GetContentRegionAvail();
-            Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = contentRegionSize.Y };
+            var availableRegionSize = ImGui.GetContentRegionAvail();
+            Brutal.Numerics.float2 childRegionsSize = new Brutal.Numerics.float2 { X = 0.0f, Y = availableRegionSize.Y };
             // Wrap contents in a child to make it scrollable if needed
-            if (ImGui.BeginChild(guid, tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
+            if (ImGui.BeginChild(guid, childRegionsSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
             {
                 // Fill available width for buttons
-                var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
-                Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
+                var childAvailableRegionSize = ImGui.GetContentRegionAvail();
+                Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = childAvailableRegionSize.X, Y = 0.0f };
                 // Left-align button text
                 ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
                 foreach (LeftPanelListItem listItem in listItems)
@@ -370,7 +411,7 @@ namespace ContractManager.GUI
                         }
                     }
 
-                    ImGui.EndChild();  // End of Contract details child
+                    ImGui.EndChild();  // End of Management details child
                 }
                 // Draw the button region
                 ImGui.Separator();
@@ -1093,6 +1134,19 @@ namespace ContractManager.GUI
                 }
             }
             ImGui.PopStyleColor(3);
+        }
+
+        // TODO Move to GUI.Utils
+        static internal void DrawHelpTooltip(string text)
+        {
+            ImGui.TextDisabled("(?)");
+            if (ImGui.BeginItemTooltip())
+            {
+                ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
+                ImGui.Text(text);
+                ImGui.PopTextWrapPos();
+                ImGui.EndTooltip();
+            }
         }
     }
 }
