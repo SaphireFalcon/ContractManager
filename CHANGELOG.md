@@ -5,6 +5,13 @@
 ### Added
 
 #### GUI
+- Add to *Mission & Contract Management Window* three top tab-panels; *Mission Planner*, *Mission & Contract Management*, *Configuration*.
+- Add to the left panel a list of mission.
+- Add to highlight the selected item in the left panel.
+- Add to the right panel to show the selected mission.
+- Add to the *Management* tab if a mission or a contract with a mission is selected to show only details and contracts related to that mission.
+- Add status coloring for contracts and missions, used in the left panel list.
+- Add `ColorTriplet` type, to easily define the three colors for interactive modules.
 
 #### Core
 - Add `MissionBlueprint` data structure as a blue print to create missions.
@@ -14,8 +21,8 @@
 - Add offering missions
 - Add functionality to set `Contract.missionUID` with `missionUID` of the linked mission.
 - Add functionality to add `ContractUID` to `Mission.contractUIDs` to link mission to contract(s).
-- Add function `ContractUtils.FindContractFromContractUID`
-- Add `MissionUtils` with functions `FindContractFromContractUID`
+- Add function `ContractUtils.FindContractFromContractUID` to search through all or a given list of contracts.
+- Add `MissionUtils` with functions `FindMissionFromMissionUID`to search through all or a given list of contracts.
 - Add function `DoAction(Mission)` to do actions triggered by a mission.
 - Add function `ShowMessage(Mission)` to show a message triggered by a mission.
 - Add generate function for a mission with 2 contracts to fly to Luna and back to Earth.
@@ -27,6 +34,8 @@
 - Renamed `ContractUtils.FindContractFromUID` to `ContractUtils.FindContractFromBlueprintUID`, and changed return type from `Contract?` to `List<Contract>`, because it could be possible to have multiple contracts instanciated from the same blueprint.
 - Reordered the `PrerequisiteType` to group by specific and generic types.
 - Changed to only offer a contract if the linked mission is accepted.
+- Renamed *Contract Management Window* to *Mission & Contract Management Window*.
+
 
 ### Fixed
 

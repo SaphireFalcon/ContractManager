@@ -7,7 +7,7 @@ namespace ContractManager.Mission
 {
     internal class MissionUtils
     {
-        internal static Mission? FindMissionFromUID(List<Mission> missions, string missionUID)
+        internal static Mission? FindMissionFromMissionUID(List<Mission> missions, string missionUID)
         {
             bool foundMission = false;
             foreach (Mission mission in missions)
@@ -20,6 +20,17 @@ namespace ContractManager.Mission
                 }
             }
             return null;
+        }
+
+        internal static Mission? FindMissionFromMissionUID(string missionUID)
+        {
+            Mission? mission = null;
+            mission = MissionUtils.FindMissionFromMissionUID(ContractManager.data.offeredMissions, missionUID);
+            if (mission != null) { return mission; }
+            mission = MissionUtils.FindMissionFromMissionUID(ContractManager.data.acceptedMissions, missionUID);
+            if (mission != null) { return mission; }
+            mission = MissionUtils.FindMissionFromMissionUID(ContractManager.data.finishedMissions, missionUID);
+            return mission;
         }
 
         internal static List<Mission> FindMissionsFromMissionBlueprintUID(List<Mission> missions, string missionBlueprintUID)

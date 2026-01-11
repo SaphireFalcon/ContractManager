@@ -1,241 +1,500 @@
 ﻿using Brutal.ImGuiApi;
 using ContractManager.Contract;
 using ContractManager.ContractBlueprint;
+using ContractManager.Mission;
 using KSA;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ContractManager.GUI
 {
+
+    internal class LeftPanelListItem
+    {
+        private readonly ContractManagementWindow? _window = null;
+        private readonly string _title = string.Empty;
+        private readonly string _uid = string.Empty;
+        private readonly string _guid = string.Empty;
+        private readonly RightPanelDetailType _rightPanelDetailType = RightPanelDetailType.NONE;
+        private readonly ColorTriplet? _colors = null;
+        private readonly bool showAsActive = false;
+        
+        internal LeftPanelListItem(ContractManagementWindow window, Contract.Contract contract)
+        { 
+            this._window = window;
+            this._title = contract._contractBlueprint.title;
+            this._uid = contract.contractUID;
+            this._guid = $"contract_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.CONTRACT;
+            this._colors = Colors.GetContractStatusColor(contract.status);
+            this.showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Contract.Contract> contracts)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (Contract.Contract contract in contracts)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, contract));
+            }
+            return leftPanelListItems;
+        }
+
+        internal LeftPanelListItem(ContractManagementWindow window, Mission.Mission mission)
+        { 
+            this._window = window;
+            this._title = mission._missionBlueprint.title;
+            this._uid = mission.missionUID;
+            this._guid = $"mission_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.MISSION;
+            this._colors = Colors.GetMissionStatusColor(mission.status);
+            this.showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Mission.Mission> missions)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (Mission.Mission mission in missions)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, mission));
+            }
+            return leftPanelListItems;
+        }
+
+        internal void DrawPanelListItem(Brutal.Numerics.float2 buttonSize, bool colorItemsByStatus = false)
+        {
+            if (this._window == null) { return; }
+
+            // Ensure the title can fit in the fix-width button
+            var style = ImGui.GetStyle();
+            string titleForButton = this._title;
+            float textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
+            while (textSize > buttonSize.X)
+            {
+                titleForButton = titleForButton[0..^3] + "..";
+                textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
+            }
+
+            // Change the color for the button if it is currently selected for details.
+            if (this.showAsActive)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.blueDefaultLight);
+            }
+            else
+            // Change to color bases on status
+            if (colorItemsByStatus && this._colors != null) {
+                ImGui.PushStyleColor(ImGuiCol.Button, this._colors.dark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, this._colors.light);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, this._colors.normal);
+            }
+            if (ImGui.Button(titleForButton + String.Format("##{0}", this._guid), buttonSize))
+            {
+                // Toggle the contract to show.
+                if (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid )
+                {
+                    this._window.rightPanelDetailType = RightPanelDetailType.NONE;
+                    this._window.rightPanelDetailUID = string.Empty;
+                }
+                else
+                {
+                    this._window.rightPanelDetailType = this._rightPanelDetailType;
+                    this._window.rightPanelDetailUID = this._uid;
+                }
+            }
+            if (this.showAsActive)
+            {
+                ImGui.PopStyleColor(1);
+            }
+            else
+            if (colorItemsByStatus && this._colors != null)
+            {
+                ImGui.PopStyleColor(3);
+            }
+        }
+    }
+
+    internal enum RightPanelDetailType
+    {
+        NONE,
+        CONTRACT,
+        MISSION,
+        CONTRACTBLUEPRINT,
+        MISSIONBLUEPRINT,
+        PREREQUISITE,
+        REQUIREMENT,
+        ACTION,
+    }
+
     internal class ContractManagementWindow
     {
-        private Contract.Contract? _contractToShowDetails { get; set; } = null;
-        
-        private List<Contract.Contract> _offeredContracts { get { return ContractManager.data.offeredContracts; } }
-        private List<Contract.Contract> _acceptedContracts { get { return ContractManager.data.acceptedContracts; } }
-        private List<Contract.Contract> _finishedContracts { get { return ContractManager.data.finishedContracts; } }
-
-        private string _lastActiveTab {  get; set; } = string.Empty;
+        // What to show on the right side
+        internal RightPanelDetailType rightPanelDetailType { get; set; } = RightPanelDetailType.NONE;
+        internal string rightPanelDetailUID { get; set; } = string.Empty;
         
         public ContractManagementWindow() { }
 
         public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
         {
+            // FIXME: make this a callable function to set.
             if (contractToShowDetails != null)
             {
-                this._contractToShowDetails = contractToShowDetails;
+                this.rightPanelDetailUID = contractToShowDetails.contractUID;
+                this.rightPanelDetailType = RightPanelDetailType.CONTRACT;
             }
+
             // Contract Management Window with two panels: left fixed-width, right flexible
             ImGui.SetNextWindowSizeConstraints(
                 new Brutal.Numerics.float2 { X = 600.0f, Y = 300.0f },
                 new Brutal.Numerics.float2 { X = float.PositiveInfinity, Y = float.PositiveInfinity }  // no max size
             );
 
-            if (ImGui.Begin("Contract Management", ImGuiWindowFlags.None))
+            if (ImGui.Begin("Mission & Contract Management", ImGuiWindowFlags.None))
             {
-                // Draw left panel
-                this.DrawLeftPanel();
+                
+                if (ImGui.BeginTabBar("ModeTabs", ImGuiTabBarFlags.None))
+                {
+                    if (ImGui.BeginTabItem("Mission Planner"))
+                    {
+                        
+                        ImGui.EndTabItem();
+                    }
+                    if (ImGui.BeginTabItem("Mission & Contract Management"))
+                    {
+                        // Draw left panel
+                        this.DrawManagementLeftPanel();
 
-                // Draw right panel
-                this.DrawRightPanel();
+                        // Draw right panel
+                        this.DrawManagementRightPanel();
+
+                        ImGui.EndTabItem();
+                    }
+                    if (ImGui.BeginTabItem("Configuration"))
+                    {
+                        // ToDo
+                        ImGui.EndTabItem();
+                    }
+                    ImGui.EndTabBar();
+                }
             }
             ImGui.End();  // End of Contract Management Window
         }
 
-        private void DrawLeftPanel()
+        private Mission.Mission? GetRelatedMission()
         {
-            // Left panel: fixed width and fill available height so it becomes scrollable when content overflows
-            Brutal.Numerics.float2 leftPanelSize = new Brutal.Numerics.float2 { X = 260.0f, Y = 0.0f };
-            if (ImGui.BeginChild("LeftPanel", leftPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+            Mission.Mission? relatedMission = null;
+            if (this.rightPanelDetailType == RightPanelDetailType.CONTRACT && this.rightPanelDetailUID != string.Empty)
             {
-                ImGui.SeparatorText("Contracts");
-
-                // Tabs in the left panel
-                if (ImGui.BeginTabBar("LeftTabs", ImGuiTabBarFlags.None))
-                {
-                    this.DrawContractTab(this._offeredContracts, "Offered");
-                    this.DrawContractTab(this._acceptedContracts, "Accepted");
-                    this.DrawContractTab(this._finishedContracts, "Finished");
-
-                    ImGui.EndTabBar();
+                Contract.Contract? contractToShow = ContractUtils.FindContractFromContractUID(this.rightPanelDetailUID);
+                if (contractToShow != null && contractToShow.missionUID != string.Empty) {
+                    relatedMission = MissionUtils.FindMissionFromMissionUID(contractToShow.missionUID);
                 }
-                ImGui.EndChild();  // End of LeftPanel
             }
+            if (this.rightPanelDetailType == RightPanelDetailType.MISSION && this.rightPanelDetailUID != string.Empty)
+            {
+                relatedMission = MissionUtils.FindMissionFromMissionUID(this.rightPanelDetailUID);
+            }
+            return relatedMission;
         }
 
-        // Draw tab with contracts, tabTitle has to be unique.
-        private void DrawContractTab(List<Contract.Contract> contractsToShowInTab, string tabTitle)
+        private void DrawManagementLeftPanel()
         {
-            if (ImGui.BeginTabItem(tabTitle))
+            // Left panel: fixed width and fill available height so it becomes scrollable when content overflows
+            var style = ImGui.GetStyle();
+            float leftPanelWidth = 260.0f;
+            Brutal.Numerics.float2 leftPanelSize = new Brutal.Numerics.float2 { X = leftPanelWidth, Y = 0.0f };
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.0f });
+            if (ImGui.BeginChild("ManagementLeftPanel", leftPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
             {
-                if (this._lastActiveTab != tabTitle)
+                // Retrieve if a related mission is selected
+                Mission.Mission? relatedMission = this.GetRelatedMission();
+                
+                // Draw Mission section
+                var tabLeftPanelRegionSize = ImGui.GetContentRegionAvail();
+                float leftMissionPanelHeightRatio = 0.3f;
+                
+                Brutal.Numerics.float2 leftMissionPanelSize = new Brutal.Numerics.float2 {
+                    X = leftPanelWidth,
+                    Y = (tabLeftPanelRegionSize.Y * leftMissionPanelHeightRatio) - style.FramePadding.Y,
+                };
+                if (ImGui.BeginChild("LeftMissionPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
                 {
-                    this._contractToShowDetails = null;
-                    this._lastActiveTab = tabTitle;
-                }
-                var style = ImGui.GetStyle();
-                var tabContentRegionSize = ImGui.GetContentRegionAvail();
-                Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = tabContentRegionSize.Y };
-                // Wrap contents in a child to make it scrollable if needed
-                if (ImGui.BeginChild(tabTitle + "TabChild", tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
-                {
-                    // Fill available width for buttons
-                    var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
-                    Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
-                    // Left-align button text
-                    ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
-                    foreach (Contract.Contract contractForTab in contractsToShowInTab)
+                    ImGui.SeparatorText("Missions");
+
+                    // Tabs in the left panel
+                    if (ImGui.BeginTabBar("LeftMissionTabs", ImGuiTabBarFlags.None))
                     {
-                        // Ensure the title can fit in the fix-width button
-                        string titleForButton = contractForTab._contractBlueprint.title;
-                        float textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
-                        while (textSize > buttonSize.X)
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.offeredMissions),
+                            "Offered",
+                            "management_missions",
+                            relatedMission != null && ContractManager.data.offeredMissions.Contains(relatedMission)
+                        );
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.acceptedMissions),
+                            "Accepted",
+                            "management_missions",
+                            relatedMission != null && ContractManager.data.acceptedMissions.Contains(relatedMission)
+                        );
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.finishedMissions),
+                            "Finished",
+                            "management_missions",
+                            relatedMission != null && ContractManager.data.finishedMissions.Contains(relatedMission)
+                        );
+
+                        ImGui.EndTabBar();
+                    }
+                    ImGui.EndChild();  // End of LeftContractPanel
+                }
+
+                // Draw Contract section
+                Brutal.Numerics.float2 leftContractPanelSize = new Brutal.Numerics.float2 {
+                    X = leftPanelWidth,
+                    Y = (tabLeftPanelRegionSize.Y * (1.0f - leftMissionPanelHeightRatio)) - style.FramePadding.Y
+                };
+                if (ImGui.BeginChild("LeftContractPanel", leftContractPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                {
+                    ImGui.SeparatorText("Contracts");
+
+                    if (relatedMission != null)
+                    {
+                        // Show only related contracts
+                        List<Contract.Contract> contractsRelatedToMission = new List<Contract.Contract>();
+                        foreach (string contractUID in relatedMission.contractUIDs)
                         {
-                            titleForButton = titleForButton[0..^3] + "..";
-                            textSize = ImGui.CalcTextSize(titleForButton).X + style.FramePadding.X * 2.0f;
+                            Contract.Contract? contract = ContractUtils.FindContractFromContractUID(contractUID);
+                            if (contract != null)
+                            {
+                                contractsRelatedToMission.Add(contract);
+                            }
                         }
-                        if (ImGui.Button(titleForButton + String.Format("##{0}", contractForTab.contractUID), buttonSize))
+                        this.DrawItemList(LeftPanelListItem.GetLeftPanelListItems(this, contractsRelatedToMission), "management_contracts", true);
+                        // Note what to do with contracts that haven't been offered? -> could create list items from contract blueprints.
+                    }
+                    else
+                    {
+                        // Show tabs in the left panel for all type of contracts
+                        if (ImGui.BeginTabBar("LeftContractTabs", ImGuiTabBarFlags.None))
                         {
-                            // Toggle the contract to show.
-                            if (this._contractToShowDetails == contractForTab)
-                            {
-                                this._contractToShowDetails = null;
-                            }
-                            else
-                            {
-                                this._contractToShowDetails = contractForTab;
-                            }
+                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.offeredContracts), "Offered", "management_contracts");
+                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.acceptedContracts), "Accepted", "management_contracts");
+                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.finishedContracts), "Finished", "management_contracts");
+
+                            ImGui.EndTabBar();
                         }
                     }
-                    ImGui.PopStyleVar();
-                    ImGui.EndChild();
+
+                    ImGui.EndChild();  // End of LeftContractPanel
                 }
+
+                ImGui.EndChild();  // End of LeftPanel
+            }
+            ImGui.PopStyleVar();
+        }
+
+        // Draw tab with list items, tabTitle has to be unique.
+        private void DrawTabItemList(List<LeftPanelListItem> listItems, string tabTitle, string guid, bool setTabSelected = false)
+        {
+            ImGuiTabItemFlags tabItemFlags = ImGuiTabItemFlags.None;
+            if (setTabSelected) tabItemFlags |= ImGuiTabItemFlags.SetSelected;
+            if (ImGui.BeginTabItem(String.Format("{0}##{1}", tabTitle, guid), tabItemFlags))
+            {
+                this.DrawItemList(listItems, String.Format("{0}_{1}_TabChild", tabTitle, guid));
                 ImGui.EndTabItem();
             }
         }
 
-        private void DrawRightPanel()
+        // Drawlist items, guid has to be unique.
+        private void DrawItemList(List<LeftPanelListItem> listItems, string guid, bool colorItemsByStatus = false)
+        {
+            var style = ImGui.GetStyle();
+            var contentRegionSize = ImGui.GetContentRegionAvail();
+            Brutal.Numerics.float2 tabSize = new Brutal.Numerics.float2 { X = 0.0f, Y = contentRegionSize.Y };
+            // Wrap contents in a child to make it scrollable if needed
+            if (ImGui.BeginChild(guid, tabSize, ImGuiChildFlags.None, ImGuiWindowFlags.NoTitleBar))
+            {
+                // Fill available width for buttons
+                var tabChildContentRegionSize = ImGui.GetContentRegionAvail();
+                Brutal.Numerics.float2 buttonSize = new Brutal.Numerics.float2 { X = tabChildContentRegionSize.X, Y = 0.0f };
+                // Left-align button text
+                ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Brutal.Numerics.float2 { X = 0.0f, Y = 0.5f });
+                foreach (LeftPanelListItem listItem in listItems)
+                {
+                    listItem.DrawPanelListItem(buttonSize, colorItemsByStatus);
+                }
+                ImGui.PopStyleVar();
+                ImGui.EndChild();
+            }
+        }
+
+
+        private void DrawManagementRightPanel()
         {
             ImGui.SameLine();
             // Right panel: fills remaining space on the right
-            if (ImGui.BeginChild("RightPanel"))
+            if (ImGui.BeginChild("ManagementRightPanel"))
             {
                 Brutal.Numerics.float2 rightPanelRegionSize = ImGui.GetContentRegionAvail();
                 Brutal.Numerics.float2 rightPanelSize = new Brutal.Numerics.float2 { X = 0.0f, Y = rightPanelRegionSize.Y - 35.0f};
                 // Wrap contents in a child to make it scrollable if needed
-                if (ImGui.BeginChild("Contract details", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
+                if (ImGui.BeginChild("ManagementDetails", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
                 {
-                    if (this._contractToShowDetails != null)
+                    if (this.rightPanelDetailType == RightPanelDetailType.NONE || this.rightPanelDetailUID == string.Empty)
                     {
-                        // Draw contract details
-                        ImGui.SeparatorText("Contract details: " + this._contractToShowDetails._contractBlueprint.title);
-
-                        if (this._contractToShowDetails.status == ContractStatus.Rejected)
-                        {
-                            ImGui.Text("Status: Rejected.");
-                        }
-                        if (this._contractToShowDetails.status == ContractStatus.Completed)
-                        {
-                            ImGui.Text("Status: Completed.");
-                        }
-                        if (this._contractToShowDetails.status == ContractStatus.Failed)
-                        {
-                            ImGui.Text("Status: Failed.");
-                        }
-                        
-                        if (this._contractToShowDetails._contractBlueprint.synopsis != string.Empty)
-                        {
-                            // TODO: make bold.
-                            ImGui.TextWrapped(this._contractToShowDetails._contractBlueprint.synopsis);
-                        }
-                        
-                        if (this._contractToShowDetails._contractBlueprint.description != string.Empty)
-                        {
-                            ImGui.TextWrapped(this._contractToShowDetails._contractBlueprint.description);
-                        }
-
-                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.expiration))
-                        {
-                            // Contract can expire
-                            if (this._contractToShowDetails.status == ContractStatus.Offered)
-                            {
-                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
-                                KSA.SimTime expireOnSimTime = this._contractToShowDetails.offeredSimTime + this._contractToShowDetails._contractBlueprint.expiration;
-                                KSA.SimTime expireInSimTime = expireOnSimTime - simTime;
-                                ImGui.Text(String.Format("Expire offered contract on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(expireOnSimTime), Utils.FormatSimTimeAsRelative(expireInSimTime, true)));
-                            }
-                        }
-                        else
-                        {
-                            ImGui.Text("Offered contract does not expire.");
-                        }
-
-                        if (!Double.IsPositiveInfinity(this._contractToShowDetails._contractBlueprint.deadline))
-                        {
-                            // Contract has a deadline
-                            if (this._contractToShowDetails.status == ContractStatus.Offered)
-                            {
-                                KSA.SimTime deadlineSimTime = new KSA.SimTime(this._contractToShowDetails._contractBlueprint.deadline);
-                                ImGui.Text(String.Format("Contract has a deadline of {0}", Utils.FormatSimTimeAsRelative(deadlineSimTime, true)));
-                            }
-                            else
-                            if (this._contractToShowDetails.status == ContractStatus.Accepted)
-                            {
-                                KSA.SimTime simTime = Universe.GetElapsedSimTime();
-                                KSA.SimTime deadlineOnSimTime = this._contractToShowDetails.acceptedSimTime + this._contractToShowDetails._contractBlueprint.deadline;
-                                KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
-                                ImGui.Text(String.Format("Contract has a deadline on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(deadlineOnSimTime), Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
-                            }
-                        }
-                        else
-                        {
-                            ImGui.Text("Contract does not have a deadline.");
-                        }
-                        
-                        ImGui.SeparatorText("Rewards");
-                        ImGui.Text("None implemented yet.");
-
-                        this.DrawRequirements();
+                        ImGui.TextWrapped("Select an item from the left panel to view details here.");
                     }
                     else
+                    if (this.rightPanelDetailType == RightPanelDetailType.CONTRACT)
                     {
-                        ImGui.TextWrapped("Select a contract from the left panel to view details here.");
+                        Contract.Contract? contractToShow = ContractUtils.FindContractFromContractUID(this.rightPanelDetailUID);
+                        if (contractToShow != null) {
+                            this.DrawContractDetails(contractToShow);
+                        }
+                        else
+                        {
+                            // Something bad happened to the detail UID, it became corrupted.
+                            this.rightPanelDetailType = RightPanelDetailType.NONE;
+                            this.rightPanelDetailUID = string.Empty;
+                        }
                     }
+                    else
+                    if (this.rightPanelDetailType == RightPanelDetailType.MISSION)
+                    {
+                        Mission.Mission? missionToShow = MissionUtils.FindMissionFromMissionUID(this.rightPanelDetailUID);
+                        if (missionToShow != null) {
+                            this.DrawMissionDetails(missionToShow);
+                        }
+                        else
+                        {
+                            // Something bad happened to the detail UID, it became corrupted.
+                            this.rightPanelDetailType = RightPanelDetailType.NONE;
+                            this.rightPanelDetailUID = string.Empty;
+                        }
+                    }
+
                     ImGui.EndChild();  // End of Contract details child
                 }
+                // Draw the button region
                 ImGui.Separator();
-                if (this._contractToShowDetails != null)
+                if (this.rightPanelDetailType == RightPanelDetailType.CONTRACT && this.rightPanelDetailUID != string.Empty)
                 {
-                    this.DrawRejectButton();
-
-                    this.DrawAcceptButton(rightPanelRegionSize);
+                    Contract.Contract? contractToShow = ContractUtils.FindContractFromContractUID(this.rightPanelDetailUID);
+                    if (contractToShow != null) {
+                        this.DrawRejectContractButton(contractToShow);
+                        this.DrawAcceptContractButton(contractToShow, rightPanelRegionSize);
+                    }
+                }
+                if (this.rightPanelDetailType == RightPanelDetailType.MISSION && this.rightPanelDetailUID != string.Empty)
+                {
+                    Mission.Mission? missionToShow = MissionUtils.FindMissionFromMissionUID(this.rightPanelDetailUID);
+                    if (missionToShow != null) {
+                        this.DrawRejectMissionButton(missionToShow);
+                        this.DrawAcceptMissionButton(missionToShow, rightPanelRegionSize);
+                    }
                 }
                 ImGui.EndChild();  // End of RightPanel
             }
         }
 
-        // Draw tree of requirements
-        private void DrawRequirements()
+        private void DrawContractDetails(Contract.Contract contract)
         {
-            if (this._contractToShowDetails == null) { return; }
+            // Draw contract details
+            ImGui.SeparatorText("Contract details: " + contract._contractBlueprint.title);
 
+            if (contract.missionUID != string.Empty)
+            {
+                Mission.Mission? mission = MissionUtils.FindMissionFromMissionUID(contract.missionUID);
+                if (mission != null)
+                {
+                    ImGui.Text(String.Format("Part of mission: {0}", mission._missionBlueprint.title));
+                }
+            }
+
+            if (contract.status == ContractStatus.Rejected)
+            {
+                ImGui.Text("Status: Rejected.");
+            }
+            if (contract.status == ContractStatus.Completed)
+            {
+                ImGui.Text("Status: Completed.");
+            }
+            if (contract.status == ContractStatus.Failed)
+            {
+                ImGui.Text("Status: Failed.");
+            }
+                        
+            if (contract._contractBlueprint.synopsis != string.Empty)
+            {
+                // TODO: make bold.
+                ImGui.TextWrapped(contract._contractBlueprint.synopsis);
+            }
+                        
+            if (contract._contractBlueprint.description != string.Empty)
+            {
+                ImGui.TextWrapped(contract._contractBlueprint.description);
+            }
+
+            if (!Double.IsPositiveInfinity(contract._contractBlueprint.expiration))
+            {
+                // Contract can expire
+                if (contract.status == ContractStatus.Offered)
+                {
+                    KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                    KSA.SimTime expireOnSimTime = contract.offeredSimTime + contract._contractBlueprint.expiration;
+                    KSA.SimTime expireInSimTime = expireOnSimTime - simTime;
+                    ImGui.Text(String.Format("Expire offered contract on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(expireOnSimTime), Utils.FormatSimTimeAsRelative(expireInSimTime, true)));
+                }
+            }
+            else
+            {
+                ImGui.Text("Offered contract does not expire.");
+            }
+
+            if (!Double.IsPositiveInfinity(contract._contractBlueprint.deadline))
+            {
+                // Contract has a deadline
+                if (contract.status == ContractStatus.Offered)
+                {
+                    KSA.SimTime deadlineSimTime = new KSA.SimTime(contract._contractBlueprint.deadline);
+                    ImGui.Text(String.Format("Contract has a deadline of {0}", Utils.FormatSimTimeAsRelative(deadlineSimTime, true)));
+                }
+                else
+                if (contract.status == ContractStatus.Accepted)
+                {
+                    KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                    KSA.SimTime deadlineOnSimTime = contract.acceptedSimTime + contract._contractBlueprint.deadline;
+                    KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
+                    ImGui.Text(String.Format("Contract has a deadline on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(deadlineOnSimTime), Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
+                }
+            }
+            else
+            {
+                ImGui.Text("Contract does not have a deadline.");
+            }
+                        
+            ImGui.SeparatorText("Rewards");
+            ImGui.Text("None implemented yet.");
+
+            this.DrawRequirements(contract);
+        }
+
+        // Draw tree of requirements
+        private void DrawRequirements(Contract.Contract contract)
+        {
             ImGui.SeparatorText("Requirements");
             
             ImGuiTreeNodeFlags requirementTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
             if (ImGui.TreeNodeEx("Contract requirements:", requirementTreeNodeFlags))
             {
-                ImGui.Text(String.Format("Complete {0} of these requirements", this._contractToShowDetails._contractBlueprint.completionCondition));
-                foreach (Contract.TrackedRequirement trackedRequirement in this._contractToShowDetails.trackedRequirements)
+                ImGui.Text(String.Format("Complete {0} of these requirements", contract._contractBlueprint.completionCondition));
+                foreach (Contract.TrackedRequirement trackedRequirement in contract.trackedRequirements)
                 {
-                    this.DrawRequirement(trackedRequirement);
+                    this.DrawRequirement(contract, trackedRequirement);
                 }
                 ImGui.TreePop();
             }
         }
 
         // Draw tree node for requirement
-        private void DrawRequirement(Contract.TrackedRequirement trackedRequirement)
+        private void DrawRequirement(Contract.Contract contract, Contract.TrackedRequirement trackedRequirement)
         {
             if (trackedRequirement._blueprintRequirement == null) { return; }
 
@@ -260,13 +519,13 @@ namespace ContractManager.GUI
                 // Draw requirement type specific fields
                 if (trackedRequirement._blueprintRequirement.type == RequirementType.Orbit)
                 {
-                    this.DrawRequiredOrbit(trackedRequirement);
+                    this.DrawRequiredOrbit(contract, trackedRequirement);
                 }
                 else
                 if (trackedRequirement._blueprintRequirement.type == RequirementType.Group)
                 {
                     
-                    if (this._contractToShowDetails != null && (this._contractToShowDetails.status == ContractStatus.Accepted || this._contractToShowDetails.status == ContractStatus.Completed))
+                    if (contract.status == ContractStatus.Accepted || contract.status == ContractStatus.Completed)
                     {
                         this.DrawTrackedRequiredStatus(trackedRequirement.status);
                     }
@@ -276,20 +535,19 @@ namespace ContractManager.GUI
                     }
                     foreach (Contract.TrackedRequirement childTrackedRequirement in ((TrackedGroup)trackedRequirement).trackedRequirements)
                     {
-                       this.DrawRequirement(childTrackedRequirement);
+                       this.DrawRequirement(contract, childTrackedRequirement);
                     }
                 }
                 ImGui.TreePop();
             }
         }
 
-        private void DrawRequiredOrbit(Contract.TrackedRequirement trackedRequirement)
+        private void DrawRequiredOrbit(Contract.Contract contract, Contract.TrackedRequirement trackedRequirement)
         {
             if (trackedRequirement._blueprintRequirement.orbit == null) { return; }
-            if (this._contractToShowDetails == null) { return; }
             RequiredOrbit requiredOrbit = trackedRequirement._blueprintRequirement.orbit;
 
-            if (this._contractToShowDetails.status == ContractStatus.Offered)
+            if (contract.status == ContractStatus.Offered)
             {
                 // Show the requirement details
                 ImGui.Text(String.Format("Target body {0}", requiredOrbit.targetBody));
@@ -355,7 +613,7 @@ namespace ContractManager.GUI
                 }
             }
             else
-            if (this._contractToShowDetails.status == ContractStatus.Accepted || this._contractToShowDetails.status == ContractStatus.Completed)
+            if (contract.status == ContractStatus.Accepted || contract.status == ContractStatus.Completed)
             {
                 this.DrawTrackedRequiredStatus(trackedRequirement.status);
 
@@ -617,13 +875,87 @@ namespace ContractManager.GUI
                 ImGui.TextColored(color, String.Format("Status: Failed!"));
             }
         }
-        private void DrawRejectButton()
+        
+        private void DrawMissionDetails(Mission.Mission mission)
         {
-            if (this._contractToShowDetails == null) { return; }
-            if (!(this._contractToShowDetails.status is ContractStatus.Offered or ContractStatus.Accepted)) { return; }
+            // Draw mission details
+            ImGui.SeparatorText("Mission details: " + mission._missionBlueprint.title);
+
+            if (mission.status == MissionStatus.Rejected)
+            {
+                ImGui.Text("Status: Rejected.");
+            }
+            if (mission.status == MissionStatus.Completed)
+            {
+                ImGui.Text("Status: Completed.");
+            }
+            if (mission.status == MissionStatus.Failed)
+            {
+                ImGui.Text("Status: Failed.");
+            }
+
+            if (mission._missionBlueprint.synopsis != string.Empty)
+            {
+                // TODO: make bold.
+                ImGui.TextWrapped(mission._missionBlueprint.synopsis);
+            }
+                        
+            if (mission._missionBlueprint.description != string.Empty)
+            {
+                ImGui.TextWrapped(mission._missionBlueprint.description);
+            }
+
+            if (!Double.IsPositiveInfinity(mission._missionBlueprint.expiration))
+            {
+                // Mission can expire
+                if (mission.status == MissionStatus.Offered)
+                {
+                    KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                    KSA.SimTime expireOnSimTime = mission.offeredSimTime + mission._missionBlueprint.expiration;
+                    KSA.SimTime expireInSimTime = expireOnSimTime - simTime;
+                    ImGui.Text(String.Format("Expire offered mission on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(expireOnSimTime), Utils.FormatSimTimeAsRelative(expireInSimTime, true)));
+                }
+            }
+            else
+            {
+                ImGui.Text("Offered mission does not expire.");
+            }
+
+            if (!Double.IsPositiveInfinity(mission._missionBlueprint.deadline))
+            {
+                // Mission has a deadline
+                if (mission.status == MissionStatus.Offered)
+                {
+                    KSA.SimTime deadlineSimTime = new KSA.SimTime(mission._missionBlueprint.deadline);
+                    ImGui.Text(String.Format("Mission has a deadline of {0}", Utils.FormatSimTimeAsRelative(deadlineSimTime, true)));
+                }
+                else
+                if (mission.status == MissionStatus.Accepted)
+                {
+                    KSA.SimTime simTime = Universe.GetElapsedSimTime();
+                    KSA.SimTime deadlineOnSimTime = mission.acceptedSimTime + mission._missionBlueprint.deadline;
+                    KSA.SimTime deadlineInSimTime = deadlineOnSimTime - simTime;
+                    ImGui.Text(String.Format("Mission has a deadline on {0} in {1}", Utils.FormatSimTimeAsYearDayTime(deadlineOnSimTime), Utils.FormatSimTimeAsRelative(deadlineInSimTime, true)));
+                }
+            }
+            else
+            {
+                ImGui.Text("Mission does not have a deadline.");
+            }
+                        
+            ImGui.SeparatorText("Rewards");
+            ImGui.Text("None implemented yet.");
+
+            // List all contracts as buttons to show details. -> WHY? they should be shown on the left panel!
+        }
+        
+        private void DrawRejectContractButton(Contract.Contract contract)
+        {
+            if (contract == null) { return; }
+            if (!(contract.status is ContractStatus.Offered or ContractStatus.Accepted)) { return; }
 
             // Show reject button
-            if (this._contractToShowDetails._contractBlueprint.isRejectable)
+            if (contract._contractBlueprint.isRejectable)
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Colors.redDark);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.redLight);
@@ -637,27 +969,27 @@ namespace ContractManager.GUI
             }
             if (ImGui.Button("Reject Contract"))
             {
-                if (this._contractToShowDetails._contractBlueprint.isRejectable)
+                if (contract._contractBlueprint.isRejectable)
                 {
-                    this._contractToShowDetails.RejectContract(Universe.GetElapsedSimTime());
-                    if (this._offeredContracts.Contains(this._contractToShowDetails))
+                    contract.RejectContract(Universe.GetElapsedSimTime());
+                    if (ContractManager.data.offeredContracts.Contains(contract))
                     {
-                        this._offeredContracts.Remove(this._contractToShowDetails);
+                        ContractManager.data.offeredContracts.Remove(contract);
                     }
-                    if (this._acceptedContracts.Contains(this._contractToShowDetails))
+                    if (ContractManager.data.acceptedContracts.Contains(contract))
                     {
-                        this._acceptedContracts.Remove(this._contractToShowDetails);
-                        this._finishedContracts.Add(this._contractToShowDetails);  // If accepted and then rejected add to finished?
+                        ContractManager.data.acceptedContracts.Remove(contract);
+                        ContractManager.data.finishedContracts.Add(contract);
                     }
                 }
             }
             ImGui.PopStyleColor(3);
         }
 
-        private void DrawAcceptButton(Brutal.Numerics.float2 rightPanelRegionSize)
+        private void DrawAcceptContractButton(Contract.Contract contract, Brutal.Numerics.float2 rightPanelRegionSize)
         {
-            if (this._contractToShowDetails == null) { return; }
-            if (this._contractToShowDetails.status != ContractStatus.Offered) { return; }
+            if (contract == null) { return; }
+            if (contract.status != ContractStatus.Offered) { return; }
 
             // Show accept button
             ImGui.SameLine();
@@ -666,7 +998,7 @@ namespace ContractManager.GUI
             float buttonWidthAccept = ImGui.CalcTextSize("Accept Contract").X + style.FramePadding.X * 2.0f;
             float resizeTriangleWidth = 25.0f;
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightPanelRegionSize.X - buttonWidthReject - buttonWidthAccept - resizeTriangleWidth);
-            if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+            if (ContractManager.data.maxNumberOfAcceptedContracts > ContractManager.data.acceptedContracts.Count)
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Colors.greenDark);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.greenLight);
@@ -680,11 +1012,84 @@ namespace ContractManager.GUI
             }
             if (ImGui.Button("Accept Contract"))
             {
-                if (ContractManager.data.maxNumberOfAcceptedContracts > this._acceptedContracts.Count)
+                if (ContractManager.data.maxNumberOfAcceptedContracts > ContractManager.data.acceptedContracts.Count)
                 {
-                    this._contractToShowDetails.AcceptOfferedContract(Universe.GetElapsedSimTime());
-                    this._offeredContracts.Remove(this._contractToShowDetails);
-                    this._acceptedContracts.Add(this._contractToShowDetails);
+                    contract.AcceptOfferedContract(Universe.GetElapsedSimTime());
+                    ContractManager.data.offeredContracts.Remove(contract);
+                    ContractManager.data.acceptedContracts.Add(contract);
+                }
+            }
+            ImGui.PopStyleColor(3);
+        }
+        
+        private void DrawRejectMissionButton(Mission.Mission mission)
+        {
+            if (mission == null) { return; }
+            if (!(mission.status is MissionStatus.Offered or MissionStatus.Accepted)) { return; }
+
+            // Show reject button
+            if (mission._missionBlueprint.isRejectable)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.redDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.redLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.red);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
+            if (ImGui.Button("Reject Mission"))
+            {
+                if (mission._missionBlueprint.isRejectable)
+                {
+                    mission.RejectMission(Universe.GetElapsedSimTime());
+                    if (ContractManager.data.offeredMissions.Contains(mission))
+                    {
+                        ContractManager.data.offeredMissions.Remove(mission);
+                    }
+                    if (ContractManager.data.acceptedMissions.Contains(mission))
+                    {
+                        ContractManager.data.acceptedMissions.Remove(mission);
+                        ContractManager.data.finishedMissions.Add(mission);
+                    }
+                }
+            }
+            ImGui.PopStyleColor(3);
+        }
+
+        private void DrawAcceptMissionButton(Mission.Mission mission, Brutal.Numerics.float2 rightPanelRegionSize)
+        {
+            if (mission == null) { return; }
+            if (mission.status != MissionStatus.Offered) { return; }
+
+            // Show accept button
+            ImGui.SameLine();
+            var style = ImGui.GetStyle();
+            float buttonWidthReject = ImGui.CalcTextSize("Reject Mission").X + style.FramePadding.X * 2.0f;
+            float buttonWidthAccept = ImGui.CalcTextSize("Accept Mission").X + style.FramePadding.X * 2.0f;
+            float resizeTriangleWidth = 25.0f;
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + rightPanelRegionSize.X - buttonWidthReject - buttonWidthAccept - resizeTriangleWidth);
+            if (ContractManager.data.maxNumberOfAcceptedMissions > ContractManager.data.acceptedMissions.Count)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.greenDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.greenLight);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.green);
+            }
+            else
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.grayDark);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.grayDark);
+            }
+            if (ImGui.Button("Accept Mission"))
+            {
+                if (ContractManager.data.maxNumberOfAcceptedMissions > ContractManager.data.acceptedMissions.Count)
+                {
+                    mission.AcceptOfferedMission(Universe.GetElapsedSimTime());
+                    ContractManager.data.offeredMissions.Remove(mission);
+                    ContractManager.data.acceptedMissions.Add(mission);
                 }
             }
             ImGui.PopStyleColor(3);

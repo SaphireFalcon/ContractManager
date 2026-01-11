@@ -102,6 +102,13 @@ namespace ContractManager
     }
     internal class Colors
     {
+        // Default, bit darker, used for normal button.
+        public static Brutal.Numerics.float4 blueDefaultDark = new Brutal.Numerics.float4 { X = 0.48f, Y = 0.72f, Z = 0.89f, W = 0.49f };
+        // Default, bit whiter, used for hovering color.
+        public static Brutal.Numerics.float4 blueDefaultLight = new Brutal.Numerics.float4 { X = 0.50f, Y = 0.69f, Z = 0.99f, W = 0.68f };
+        // Default, bright, used for pushed or normal text.
+        public static Brutal.Numerics.float4 blueDefault = new Brutal.Numerics.float4 { X = 0.05f, Y = 0.53f, Z = 0.99f, W = 1.0f }; // ?
+
         // Red, bit darker, used for normal button.
         public static Brutal.Numerics.float4 redDark = new Brutal.Numerics.float4 { X = 0.5f, Y = 0.1f, Z = 0.1f, W = 1.0f };
         // Red, bit whiter, used for hovering color.
@@ -172,6 +179,63 @@ namespace ContractManager
             }
             return Colors.gray;
         }
+        
+        public static ColorTriplet GetContractStatusColor(Contract.ContractStatus status)
+        {
+            if (status == Contract.ContractStatus.Accepted)
+            {
+                return new ColorTriplet {normal = Colors.orange, light = Colors.orangeLight, dark = Colors.orangeDark };
+            }
+            else
+            if (status == Contract.ContractStatus.Offered)
+            {
+                return new ColorTriplet {normal = Colors.yellow, light = Colors.yellowLight, dark = Colors.yellowDark };
+            }
+            else
+            if (status == Contract.ContractStatus.Completed)
+            {
+                return new ColorTriplet {normal = Colors.green, light = Colors.greenLight, dark = Colors.greenDark };
+            }
+            else
+            if (status is Contract.ContractStatus.Rejected or Contract.ContractStatus.Failed)
+            {
+                return new ColorTriplet {normal = Colors.red, light = Colors.redLight, dark = Colors.redDark };
+            }
+            return new ColorTriplet {normal = Colors.gray, light = Colors.grayLight, dark = Colors.grayDark };
+        }
+        
+        public static ColorTriplet GetMissionStatusColor(Mission.MissionStatus status)
+        {
+            if (status == Mission.MissionStatus.Accepted)
+            {
+                return new ColorTriplet {normal = Colors.orange, light = Colors.orangeLight, dark = Colors.orangeDark };
+            }
+            else
+            if (status == Mission.MissionStatus.Offered)
+            {
+                return new ColorTriplet {normal = Colors.yellow, light = Colors.yellowLight, dark = Colors.yellowDark };
+            }
+            else
+            if (status == Mission.MissionStatus.Completed)
+            {
+                return new ColorTriplet {normal = Colors.green, light = Colors.greenLight, dark = Colors.greenDark };
+            }
+            else
+            if (status is Mission.MissionStatus.Rejected or Mission.MissionStatus.Failed)
+            {
+                return new ColorTriplet {normal = Colors.red, light = Colors.redLight, dark = Colors.redDark };
+            }
+            return new ColorTriplet {normal = Colors.gray, light = Colors.grayLight, dark = Colors.grayDark };
+        }
+    }
+
+    public class ColorTriplet
+    {
+        public Brutal.Numerics.float4 normal;
+        public Brutal.Numerics.float4 light;
+        public Brutal.Numerics.float4 dark;
+
+        public ColorTriplet() { }
     }
 
     public class TimeConstants
