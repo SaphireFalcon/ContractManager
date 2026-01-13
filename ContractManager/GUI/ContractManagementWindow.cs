@@ -11,7 +11,7 @@ namespace ContractManager.GUI
 
     internal class LeftPanelListItem
     {
-        private readonly ContractManagementWindow? _window = null;
+        private readonly ContractManagementWindow? _window = null; // ToDo: remove, it's static available.
         private readonly string _title = string.Empty;
         private readonly string _uid = string.Empty;
         private readonly string _guid = string.Empty;
@@ -90,6 +90,60 @@ namespace ContractManager.GUI
             }
             return leftPanelListItems;
         }
+        
+        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Prerequisite prerequisite)
+        { 
+            this._window = window;
+            this._title = prerequisite.type.ToString();
+            this._uid = prerequisite.uid;
+            this._guid = $"mission_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.PREREQUISITE;
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Prerequisite> prerequisites)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (ContractBlueprint.Prerequisite prerequisite in prerequisites)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, prerequisite));
+            }
+            return leftPanelListItems;
+        }
+        
+        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Requirement requirement)
+        { 
+            this._window = window;
+            this._title = requirement.title;
+            this._uid = requirement.uid;
+            this._guid = $"mission_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.REQUIREMENT;
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Requirement> requirements)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (ContractBlueprint.Requirement requirement in requirements)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, requirement));
+            }
+            return leftPanelListItems;
+        }
+        
+        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Action action)
+        { 
+            this._window = window;
+            this._title = action.trigger.ToString() + " " + action.type.ToString();
+            this._uid = action.uid;
+            this._guid = $"mission_{this._uid}";
+            this._rightPanelDetailType = RightPanelDetailType.ACTION;
+        }
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Action> actions)
+        {
+            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+            foreach (ContractBlueprint.Action action in actions)
+            {
+                leftPanelListItems.Add(new LeftPanelListItem(window, action));
+            }
+            return leftPanelListItems;
+        }
 
         internal void DrawPanelListItem(Brutal.Numerics.float2 buttonSize, bool colorItemsByStatus = false)
         {
@@ -120,7 +174,19 @@ namespace ContractManager.GUI
             }
             if (ImGui.Button(titleForButton + String.Format("##{0}", this._guid), buttonSize))
             {
-                // Toggle the contract to show.
+                // Toggle what to show
+                if (this._window.rightPanelDetailSubType == this._rightPanelDetailType)
+                {
+                    if (this._window.rightPanelDetailSubUID == this._uid)
+                    {
+                        this._window.rightPanelDetailSubUID = string.Empty;
+                    }
+                    else
+                    {
+                        this._window.rightPanelDetailSubUID = this._uid;
+                    }
+                }
+                else
                 if (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid )
                 {
                     this._window.rightPanelDetailType = RightPanelDetailType.NONE;
