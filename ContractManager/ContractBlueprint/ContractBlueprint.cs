@@ -14,22 +14,27 @@ namespace ContractManager.ContractBlueprint
         // The unique identifier for the contract
         [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
+        internal static int uidMaxLength = 128;
 
         // Mission unique identifier if the blueprint is linked to a mission.
         [XmlElement("missionBlueprintUID", DataType = "string")]
         public string missionBlueprintUID { get; set; } = string.Empty;
+        internal static int missionBlueprintUIDMaxLength = 128;
 
         // The title of the contract
         [XmlElement("title", DataType = "string")]
         public string title { get; set; }
+        internal static int titleMaxLength = 128;
 
         // A brief synopsis of the contract
         [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; } = string.Empty;
+        internal static int synopsisMaxLength = 1024;
 
         // Detailed description of the contract
         [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
+        internal static int descriptionMaxLength = 4096;
 
         // When an offered contract will expired, in seconds
         [XmlElement("expiration", DataType = "double")]
@@ -62,6 +67,9 @@ namespace ContractManager.ContractBlueprint
         // List of actions for the contract
         [XmlArray("actions")]
         public List<Action> actions { get; set; } = new List<Action>();
+
+        // internal flag to indicate if the blueprint can be edited or not
+        internal bool isEditable { get; set; } = false;
 
         public ContractBlueprint() { }
 
@@ -138,6 +146,27 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
                 return false;
             }
+            if (this.uid.Length >= ContractBlueprint.uidMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] contract blueprint uid should be less than {ContractBlueprint.uidMaxLength} in length");
+                return false;
+            }
+            if (this.title.Length >= ContractBlueprint.titleMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] contract blueprint title should be less than {ContractBlueprint.titleMaxLength} in length");
+                return false;
+            }
+            if (this.synopsis.Length >= ContractBlueprint.synopsisMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] contract blueprint synopsis should be less than {ContractBlueprint.synopsisMaxLength} in length");
+                return false;
+            }
+            if (this.description.Length >= ContractBlueprint.descriptionMaxLength)
+            {
+                Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
+                return false;
+            }
+
             foreach (var prerequisite in prerequisites)
             {
                 if (!prerequisite.Validate()) { return false; }

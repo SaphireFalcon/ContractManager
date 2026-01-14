@@ -6,6 +6,10 @@ namespace ContractManager.ContractBlueprint
 
     public class Prerequisite
     {
+        // The unique identifier for the prerequisite.
+        [XmlElement("uid", DataType = "string")]
+        public string uid { get; set; }
+
         // Type of the prerequisite.
         [XmlElement("type")]
         public PrerequisiteType type { get; set; }
@@ -92,7 +96,12 @@ namespace ContractManager.ContractBlueprint
 
         internal bool Validate()
         {
-            // nothing to validate.
+            // The uid can't be empty
+            if (String.IsNullOrEmpty(this.uid))
+            {
+                Console.WriteLine("[CM] [WARNING] prerequisite uid has be to be defined.");
+                return false;
+            }
             if (this.type == PrerequisiteType.HasCompletedContract && String.IsNullOrEmpty(this.hasCompletedContract))
             {
                 Console.WriteLine("[CM] [WARNING] prerequisite with type 'hasCompletedContract' requires a contract blueprint uid to be defined in hasCompletedContract.");

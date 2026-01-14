@@ -23,8 +23,8 @@ public class ContractManager
     private double _updateInterval = 1.0d; // once per second.
     public static ContractManagerData data = new ContractManagerData();
         
-    private ActiveContractsWindow _activeContractsWindow = new ActiveContractsWindow();
-    private ContractManagementWindow _contractManagementWindow = new ContractManagementWindow();
+    internal static ActiveContractsWindow activeContractsWindow = new ActiveContractsWindow();
+    internal static ContractManagementWindow contractManagementWindow = new ContractManagementWindow();
 
     [StarMapImmediateLoad]
     public void onImmediateLoad(Mod definingMod)
@@ -77,13 +77,13 @@ public class ContractManager
 
         // Draw GUI
         Contract.Contract? contractToShowDetails = null;
-        if (this._activeContractsWindow != null)
+        if (ContractManager.activeContractsWindow != null)
         {
-            contractToShowDetails = this._activeContractsWindow.DrawActiveContractsWindow();
+            contractToShowDetails = ContractManager.activeContractsWindow.DrawActiveContractsWindow();
         }
-        if (this._contractManagementWindow != null)
+        if (ContractManager.contractManagementWindow != null)
         {
-            this._contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
+            ContractManager.contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
         }
         for (int popupIndex = 0; popupIndex < ContractManager.data.popupWindows.Count; popupIndex++)
         {

@@ -6,6 +6,10 @@ namespace ContractManager.ContractBlueprint
 {
     public class Action
     {
+        // The unique identifier for the action.
+        [XmlElement("uid", DataType = "string")]
+        public string uid { get; set; }
+
         // The trigger of the action.
         [XmlElement("trigger")]
         public TriggerType trigger { get; set; }
@@ -91,6 +95,12 @@ namespace ContractManager.ContractBlueprint
 
         internal bool Validate()
         {
+            // The uid can't be empty
+            if (String.IsNullOrEmpty(this.uid))
+            {
+                Console.WriteLine("[CM] [WARNING] action uid has be to be defined.");
+                return false;
+            }
             if ((type is ActionType.ShowMessage or ActionType.ShowBlockingPopup) && String.IsNullOrEmpty(this.showMessage))
             {
                 Console.WriteLine($"[CM] [WARNING] action type = '{type}' `showMessage` field can't be empty.");

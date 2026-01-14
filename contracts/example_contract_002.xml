@@ -10,10 +10,12 @@ Try to achieve all the orbit attributes.</description>
   <deadline>3600.0</deadline>
   <prerequisites>
     <Prerequisite>
+      <uid>maxNumOfferedContracts_4</uid>
       <type>maxNumOfferedContracts</type>
       <maxNumOfferedContracts>4</maxNumOfferedContracts>
     </Prerequisite>
     <Prerequisite>
+      <uid>maxNumAcceptedContracts_2</uid>
       <type>maxNumAcceptedContracts</type>
       <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
     </Prerequisite>
@@ -49,11 +51,13 @@ Try to achieve all the orbit attributes.</description>
   </requirements>
   <actions>
     <Action>
+      <uid>onContractComplete_showMessage</uid>
       <trigger>onContractComplete</trigger>
       <type>showMessage</type>
       <showMessage>Congratulations! You pounced the example contract.</showMessage>
     </Action>
     <Action>
+      <uid>onContractFail_showMessage</uid>
       <trigger>onContractFail</trigger>
       <type>showMessage</type>
       <showMessage>Keep persevering; The road to success is pawed with failure.</showMessage>

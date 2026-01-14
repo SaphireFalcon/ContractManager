@@ -10,6 +10,7 @@
   <isAutoAccepted>true</isAutoAccepted>
   <prerequisites>
     <Prerequisite>
+	  <uid>hasCompletedContract-example_mission_001_contract_001</uid>
       <type>hasCompletedContract</type>
       <hasCompletedContract>example_mission_001_contract_001</hasCompletedContract>
     </Prerequisite>

@@ -150,6 +150,21 @@ namespace ContractManager.Contract
             return contract;
         }
 
+        internal static ContractBlueprint.Prerequisite? FindPrerequisiteFromUID(List<ContractBlueprint.Prerequisite> blueprintPrerequisites, string prerequisiteUID)
+        {
+            bool foundBlueprintPrerequisite = false;
+            foreach (ContractBlueprint.Prerequisite blueprintPrerequisite in blueprintPrerequisites)
+            {
+                foundBlueprintPrerequisite = blueprintPrerequisite.uid == prerequisiteUID;
+                if (foundBlueprintPrerequisite)
+                {
+                    // Found matching blueprint requirement.
+                    return blueprintPrerequisite;
+                }
+            }
+            return null;
+        }
+
         internal static ContractBlueprint.Requirement? FindRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements, string requirementUID)
         {
             bool foundBlueprintRequirement = false;
@@ -160,6 +175,21 @@ namespace ContractManager.Contract
                 {
                     // Found matching blueprint requirement.
                     return blueprintRequirement;
+                }
+            }
+            return null;
+        }
+
+        internal static ContractBlueprint.Action? FindActionFromUID(List<ContractBlueprint.Action> blueprintActions, string prerequisiteUID)
+        {
+            bool foundBlueprintAction = false;
+            foreach (ContractBlueprint.Action blueprintAction in blueprintActions)
+            {
+                foundBlueprintAction = blueprintAction.uid == prerequisiteUID;
+                if (foundBlueprintAction)
+                {
+                    // Found matching blueprint requirement.
+                    return blueprintAction;
                 }
             }
             return null;
