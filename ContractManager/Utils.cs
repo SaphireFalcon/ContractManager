@@ -248,4 +248,107 @@ namespace ContractManager
         public static int daysInYear = 360;
     }
 
+    public class Version
+    {
+        public int major = 0;
+        public int minor = 0;
+        public int patch = 0;
+
+        public bool valid = false;
+
+        public Version(string version)
+        {
+            this.FromString(version);
+        }
+
+        public void UpdateTo(Version version)
+        {
+            if (version.valid)
+            {
+                this.valid = true;
+                this.major = version.major;
+                this.minor = version.minor;
+                this.patch = version.patch;
+            }
+        }
+
+        public void FromString(string version)
+        {
+            if (version.StartsWith("v"))
+            {
+                version = version.Substring(1);
+            }
+            string[] splitByDot = version.Split(".");
+            if (splitByDot.Length == 3)
+            {
+                if (!Int32.TryParse(splitByDot[0], out this.major)) { return ;}
+                if (!Int32.TryParse(splitByDot[1], out this.minor)) { return ;}
+                if (!Int32.TryParse(splitByDot[2], out this.patch)) { return ;}
+                this.valid = true;
+            }
+        }
+
+        public string ToString()
+        {
+            return String.Format("{0}.{1}.{2}", this.major, this.minor, this.patch);
+        }
+
+        public static bool operator >(Version a, Version b) {
+            return (a.valid || !b.valid ) && (
+                a.major > b.major ||
+                a.major == b.major && a.minor > b.minor ||
+                a.major == b.major && a.minor == b.minor && a.patch > b.patch
+            );
+        }
+        
+        public static bool operator <(Version a, Version b) {
+            return (a.valid || !b.valid ) && (
+                a.major < b.major ||
+                a.major == b.major && a.minor < b.minor ||
+                a.major == b.major && a.minor == b.minor && a.patch < b.patch
+            );
+        }
+
+        public static bool operator ==(Version? a, Version? b) {
+            return (a is null && b is null) || (
+                a.valid &&
+                b.valid &&
+                a.major == b.major &&
+                a.minor == b.minor &&
+                a.patch == b.patch
+            );
+        }
+
+        public static bool operator !=(Version? a, Version? b) {
+            return (!(a is null) && b is null ) || (a is null && !(b is null)) || (
+                a.valid &&
+                b.valid &&
+                (
+                    a.major != b.major ||
+                    a.minor != b.minor ||
+                    a.patch != b.patch
+                )
+            );
+        }
+        
+        public static bool operator >(Version a, string b) {
+            Version vb = new Version(b);
+            return a > vb;
+        }
+        
+        public static bool operator <(Version a, string b) {
+            Version vb = new Version(b);
+            return a < vb;
+        }
+
+        public static bool operator ==(Version? a, string b) {
+            Version vb = new Version(b);
+            return a == vb;
+        }
+
+        public static bool operator !=(Version? a, string b) {
+            Version vb = new Version(b);
+            return a != vb;
+        }
+    }
 }

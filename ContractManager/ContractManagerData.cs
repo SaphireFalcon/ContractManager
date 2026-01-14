@@ -12,7 +12,7 @@ namespace ContractManager
         // XML serializable fields
         // The version for which the data was saved.
         [XmlElement("version")]
-        public string version { get; set; } = ContractManager.version;
+        public string version { get; set; } = ContractManager.version.ToString();
 
         // List of offered contracts, loaded from save game / file.
         [XmlElement("offeredContracts")]

@@ -10,7 +10,7 @@ namespace ContractManager.Mission
     {
         // The version for which the contract was created.
         [XmlElement("version", DataType = "string")]
-        public string version { get; set; } = ContractManager.version;
+        public string version { get; set; } = ContractManager.version.ToString();
         
         // The unique identifier for the mission
         [XmlElement("uid", DataType = "string")]

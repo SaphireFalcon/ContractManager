@@ -81,31 +81,31 @@ namespace ContractManager.GUI
                         ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                     }
                     else
-                    if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE)
-                    {
-                        if (ImGui.BeginChild("PlannerLeftPrerequisitesPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
-                        {
-                            if (ImGui.ArrowButton("##planner_leftPrerequisites_return", ImGuiDir.Left))
-                            {
-                                ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                            }
-                            ImGui.SameLine();
-                            ImGui.SeparatorText("Prerequisites");
-                            ImGui.SameLine();
-                            if (ImGui.Button("+##planner_leftPrerequisites_add"))
-                            {
+                    //if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE)
+                    //{
+                    //    if (ImGui.BeginChild("PlannerLeftPrerequisitesPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
+                    //    {
+                    //        if (ImGui.ArrowButton("##planner_leftPrerequisites_return", ImGuiDir.Left))
+                    //        {
+                    //            ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
+                    //            ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
+                    //        }
+                    //        ImGui.SameLine();
+                    //        ImGui.SeparatorText("Prerequisites");
+                    //        ImGui.SameLine();
+                    //        if (ImGui.Button("+##planner_leftPrerequisites_add"))
+                    //        {
 
-                            }
+                    //        }
 
-                            List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, contractBlueprint.prerequisites);
-                            ImGui.Text(String.Format("list: {0}", listItems.Count));
-                            ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints_prerequisites");
+                    //        List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, contractBlueprint.prerequisites);
+                    //        ImGui.Text(String.Format("list: {0}", listItems.Count));
+                    //        ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints_prerequisites");
 
-                            ImGui.EndChild();  // End of LeftContractPanel
-                        }
-                    }
-                    else
+                    //        ImGui.EndChild();  // End of LeftContractPanel
+                    //    }
+                    //}
+                    //else
                     if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT)
                     {
                         if (ImGui.BeginChild("PlannerLeftRequirementsPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
@@ -209,23 +209,23 @@ namespace ContractManager.GUI
                             ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                         }
                         else
-                        if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE &&
-                            ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
-                        {
-                            ContractBlueprint.Prerequisite? prerequisiteToShow = ContractUtils.FindPrerequisiteFromUID(
-                                contractBlueprintToShow.prerequisites,
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID
-                            );
-                            if (prerequisiteToShow != null )
-                            {
-                                this.DrawPrerequisiteDetails(prerequisiteToShow);
-                            }
-                            else
-                            {
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                            }
-                        }
-                        else
+                        //if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE &&
+                        //    ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
+                        //{
+                        //    ContractBlueprint.Prerequisite? prerequisiteToShow = ContractUtils.FindPrerequisiteFromUID(
+                        //        contractBlueprintToShow.prerequisites,
+                        //        ContractManager.contractManagementWindow.rightPanelDetailSubUID
+                        //    );
+                        //    if (prerequisiteToShow != null )
+                        //    {
+                        //        this.DrawPrerequisiteDetails(prerequisiteToShow);
+                        //    }
+                        //    else
+                        //    {
+                        //        ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
+                        //    }
+                        //}
+                        //else
                         if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT &&
                             ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
                         {
@@ -541,15 +541,16 @@ namespace ContractManager.GUI
             }
             
             ImGui.SeparatorText("Prerequisites");
-            ImGuiTreeNodeFlags prerequisiteTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
-            if (ImGui.TreeNodeEx("Contract prerequisites:", prerequisiteTreeNodeFlags))
-            {
-                foreach (ContractBlueprint.Prerequisite prerequisite in this._contractBlueprint.prerequisites)
-                {
-                    this.DrawPrerequisiteTreeNode(prerequisite);
-                }
-                ImGui.TreePop();
-            }
+            // TODO create section with all the fields
+            //ImGuiTreeNodeFlags prerequisiteTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
+            //if (ImGui.TreeNodeEx("Contract prerequisites:", prerequisiteTreeNodeFlags))
+            //{
+            //    foreach (ContractBlueprint.Prerequisite prerequisite in this._contractBlueprint.prerequisites)
+            //    {
+            //        this.DrawPrerequisiteTreeNode(prerequisite);
+            //    }
+            //    ImGui.TreePop();
+            //}
 
             ImGui.SeparatorText("Requirements");
             ImGui.Text("Contract completion condition:");
@@ -614,39 +615,39 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("completionCondition: {0}", this._contractBlueprint.completionCondition.ToString()));
         }
         
-        internal void DrawPrerequisiteTreeNode(ContractBlueprint.Prerequisite prerequisite)
-        {
-            var style = ImGui.GetStyle();
-            float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
-            float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
-            float ContentRegionAvailWidth = ImGui.GetContentRegionAvail().X;
-            float triangleWidth = 20.0f * 2.0f;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
-            float maxTitleWidth = ContentRegionAvailWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
-            // Ensure the title can fit in a way to leave space for the buttons
-            string titleForNode = prerequisite.type.ToString(); // TODO: convert to easier to read strings
-            float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
-            while (textSize > maxTitleWidth)
-            {
-                titleForNode = titleForNode[0..^3] + "..";
-                textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
-            }
-            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, prerequisite.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
-            {
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvailWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
-                if (ImGui.SmallButton("Edit"))
-                {
-                    ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.PREREQUISITE;
-                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = prerequisite.uid;
-                }
-                ImGui.SameLine();
-                if (ImGui.SmallButton("Delete"))
-                {
-                    // TODO: need to set some flag to edit the prerequisites outside of the foreach loop
-                }
-                ImGui.TreePop();
-            }
-        }
+        //internal void DrawPrerequisiteTreeNode(ContractBlueprint.Prerequisite prerequisite)
+        //{
+        //    var style = ImGui.GetStyle();
+        //    float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
+        //    float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
+        //    float ContentRegionAvailWidth = ImGui.GetContentRegionAvail().X;
+        //    float triangleWidth = 20.0f * 2.0f;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
+        //    float maxTitleWidth = ContentRegionAvailWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
+        //    // Ensure the title can fit in a way to leave space for the buttons
+        //    string titleForNode = prerequisite.type.ToString(); // TODO: convert to easier to read strings
+        //    float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+        //    while (textSize > maxTitleWidth)
+        //    {
+        //        titleForNode = titleForNode[0..^3] + "..";
+        //        textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
+        //    }
+        //    if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, prerequisite.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
+        //    {
+        //        ImGui.SameLine();
+        //        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvailWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
+        //        if (ImGui.SmallButton("Edit"))
+        //        {
+        //            ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.PREREQUISITE;
+        //            ContractManager.contractManagementWindow.rightPanelDetailSubUID = prerequisite.uid;
+        //        }
+        //        ImGui.SameLine();
+        //        if (ImGui.SmallButton("Delete"))
+        //        {
+        //            // TODO: need to set some flag to edit the prerequisites outside of the foreach loop
+        //        }
+        //        ImGui.TreePop();
+        //    }
+        //}
 
         internal void DrawRequirementTreeNode(ContractBlueprint.Requirement requirement)
         {

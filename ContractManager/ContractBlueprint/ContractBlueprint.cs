@@ -1,5 +1,7 @@
-﻿using System.Xml.Serialization;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace ContractManager.ContractBlueprint
 {
@@ -9,7 +11,7 @@ namespace ContractManager.ContractBlueprint
         // Details of the contract
         // The version for which the contract was created.
         [XmlElement("version", DataType = "string")]
-        public string version { get; set; } = ContractManager.version;
+        public string version { get; set; } = ContractManager.version.ToString();
 
         // The unique identifier for the contract
         [XmlElement("uid", DataType = "string")]
@@ -52,9 +54,12 @@ namespace ContractManager.ContractBlueprint
         [XmlElement("isAutoAccepted", DataType = "boolean")]
         public bool isAutoAccepted { get; set; } = false;
 
-        // List of prerequisites for the contract
-        [XmlArray("prerequisites")]
-        public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+        // [DEPRECIATED v0.2.1] List of prerequisites for the contract
+        //[XmlArray("prerequisites")]
+        //public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+        
+        [XmlElement("Prerequisite")]
+        public Prerequisite prerequisite { get; set; } = new Prerequisite();
 
         // Completion condition of the contract based on the requirements.
         [XmlElement("completionCondition")]
@@ -81,11 +86,13 @@ namespace ContractManager.ContractBlueprint
             Console.WriteLine($"  Title: {title}");
             Console.WriteLine($"  Synopsis: {synopsis}");
             Console.WriteLine($"  Description: {description}");
-            Console.WriteLine($"  Prerequisistes: {prerequisites.Count}");
-            foreach (Prerequisite prerequisite in prerequisites)
-            {
-                prerequisite.WriteToConsole();
-            }
+            //Console.WriteLine($"  Prerequisistes: {prerequisites.Count}");
+            //foreach (Prerequisite prerequisite in prerequisites)
+            //{
+            //    prerequisite.WriteToConsole();
+            //}
+            Console.WriteLine($"  Prerequisiste:");
+            prerequisite.WriteToConsole();
             Console.WriteLine($"  Complete {completionCondition} of {requirements.Count} requirements:");
             foreach (Requirement requirement in requirements)
             {
@@ -110,13 +117,90 @@ namespace ContractManager.ContractBlueprint
         }
 
         // Load a contract blueprint from an XML file.
-        internal static ContractBlueprint LoadFromFile(string filePath)
+        internal static ContractBlueprint? LoadFromFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
+            XDocument? xmlDocument = null;
+            Version? loadedXMLVersion = null;
             using (var reader = new System.IO.StreamReader(filePath))
             {
-                return (ContractBlueprint)serializer.Deserialize(reader);
+                xmlDocument = XDocument.Load(reader);
+                if (xmlDocument == null) { return null; }
+                XElement versionElement = xmlDocument.Root.Element("version");
+                if (versionElement == null) { return null; }
+                loadedXMLVersion = new Version(versionElement.Value);
+                if (!loadedXMLVersion.valid)
+                {
+                    Console.WriteLine($"[CM] [WARNING] Failed to read version from '{versionElement.Value}'");
+                    return null;
+                }
             }
+            if (xmlDocument is null) { return null; }
+            if (loadedXMLVersion is null) { return null; }
+
+            if (ContractManager.version == loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} matches loaded Version {loadedXMLVersion.ToString()}'.");
+            }
+            else
+            if (ContractManager.version > loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is newer than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                // Do migration
+                bool migratedSuccessfully = ContractBlueprint.Migrate(ref xmlDocument, ref loadedXMLVersion);
+                if (!migratedSuccessfully) { return null;}
+            }
+            else
+            if (ContractManager.version < loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                return null;
+            }
+
+            XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
+            ContractBlueprint loadedContractBlueprint = (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+            return loadedContractBlueprint;
+            //using (var reader = new System.IO.StreamReader(filePath))
+            //{
+            //    ContractBlueprint loadedContractBlueprint = (ContractBlueprint)serializer.Deserialize(reader);
+            //    return loadedContractBlueprint;
+            //}
+        }
+
+        private static bool Migrate(ref XDocument xmlDocument, ref Version xmlVersion)
+        {
+            Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlVersion < "0.2.1")
+                {
+                // version 0.2.1 flattens prerequisite
+                XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
+                if (prerequisitesElement != null )
+                {
+                    int numPrerequisteElements = prerequisitesElement.Elements("Prerequisite").Count();
+                    Console.WriteLine($"[CM] [INFO] prerequisite elements {numPrerequisteElements}.");
+                    if (numPrerequisteElements == 1)
+                    {
+                        // flatten to this element only
+                        xmlDocument.Root.Add(prerequisitesElement.Element("Prerequisite"));
+                        // TODO remove the type element.
+                    }
+                    else
+                    if (numPrerequisteElements > 1)
+                    {
+                        // need to combine multiple Prerequisite into one.
+                    }
+                    prerequisitesElement.Remove();
+                }
+                
+                xmlVersion.FromString("0.2.1");
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            
+            if (xmlVersion < ContractManager.version)
+            {
+                xmlVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()} == {ContractManager.version.ToString()}.");
+            }
+            return true;
         }
 
         internal bool Validate()
@@ -134,12 +218,12 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
                 return false;
             }
-            // It should have at least one prerequisite to know when to offer a contract from the contract blueprint
-            if (this.prerequisites.Count == 0)
-            {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
-                return false;
-            }
+            //// It should have at least one prerequisite to know when to offer a contract from the contract blueprint
+            //if (this.prerequisites.Count == 0)
+            //{
+            //    Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
+            //    return false;
+            //}
             // It should have at least one requirement to know when to the contract should be completed.
             if (this.requirements.Count == 0)
             {
@@ -166,11 +250,11 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
                 return false;
             }
-
-            foreach (var prerequisite in prerequisites)
-            {
-                if (!prerequisite.Validate()) { return false; }
-            }
+            prerequisite.Validate();
+            //foreach (var prerequisite in prerequisites)
+            //{
+            //    if (!prerequisite.Validate()) { return false; }
+            //}
             foreach (var requirement in requirements)
             {
                 if (!requirement.Validate()) { return false; }
@@ -180,32 +264,32 @@ namespace ContractManager.ContractBlueprint
                 if (!action.Validate()) { return false; }
             }
 
-            // FIXME(#78): flattening prerequisites would not require creating this entry to not offer multiple of the same contract (by default)
-            // Use validation to add certain prerequisites if they were not defined.
-            // Add a maxCompleteCount prerequisite if not already defined. Otherwise by default the same contract can be offered again after completion.
-            List<Prerequisite> maxCompletePrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
-            if (maxCompletePrerequisites.Count == 0)
-            {
-                // Add defaulted prerequisite for maxCompleteCount
-                this.prerequisites.Add(new Prerequisite
-                {
-                    type = PrerequisiteType.MaxCompleteCount
-                    // maxCompleteCount = 0 // default value
-                }
-                );
-            }
-            // Add a maxConcurrentCount prerequisite if not already defined. Otherwise by default the same contract can be offered again while accepted.
-            List<Prerequisite> maxConcurrentPrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
-            if (maxConcurrentPrerequisites.Count == 0)
-            {
-                // Add defaulted prerequisite for maxConcurrentCount
-                this.prerequisites.Add(new Prerequisite
-                {
-                    type = PrerequisiteType.MaxConcurrentCount
-                    // maxConcurrentCount = 0 // default value
-                }
-                );
-            }
+            //// FIXME(#78): flattening prerequisites would not require creating this entry to not offer multiple of the same contract (by default)
+            //// Use validation to add certain prerequisites if they were not defined.
+            //// Add a maxCompleteCount prerequisite if not already defined. Otherwise by default the same contract can be offered again after completion.
+            //List<Prerequisite> maxCompletePrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            //if (maxCompletePrerequisites.Count == 0)
+            //{
+            //    // Add defaulted prerequisite for maxCompleteCount
+            //    this.prerequisites.Add(new Prerequisite
+            //    {
+            //        type = PrerequisiteType.MaxCompleteCount
+            //        // maxCompleteCount = 0 // default value
+            //    }
+            //    );
+            //}
+            //// Add a maxConcurrentCount prerequisite if not already defined. Otherwise by default the same contract can be offered again while accepted.
+            //List<Prerequisite> maxConcurrentPrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
+            //if (maxConcurrentPrerequisites.Count == 0)
+            //{
+            //    // Add defaulted prerequisite for maxConcurrentCount
+            //    this.prerequisites.Add(new Prerequisite
+            //    {
+            //        type = PrerequisiteType.MaxConcurrentCount
+            //        // maxConcurrentCount = 0 // default value
+            //    }
+            //    );
+            //}
             return true;
         }
     }

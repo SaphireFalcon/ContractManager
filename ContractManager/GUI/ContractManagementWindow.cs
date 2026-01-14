@@ -91,23 +91,23 @@ namespace ContractManager.GUI
             return leftPanelListItems;
         }
         
-        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Prerequisite prerequisite)
-        { 
-            this._window = window;
-            this._title = prerequisite.type.ToString();
-            this._uid = prerequisite.uid;
-            this._guid = $"mission_{this._uid}";
-            this._rightPanelDetailType = RightPanelDetailType.PREREQUISITE;
-        }
-        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Prerequisite> prerequisites)
-        {
-            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
-            foreach (ContractBlueprint.Prerequisite prerequisite in prerequisites)
-            {
-                leftPanelListItems.Add(new LeftPanelListItem(window, prerequisite));
-            }
-            return leftPanelListItems;
-        }
+        //internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Prerequisite prerequisite)
+        //{ 
+        //    this._window = window;
+        //    this._title = prerequisite.type.ToString();
+        //    this._uid = prerequisite.uid;
+        //    this._guid = $"mission_{this._uid}";
+        //    this._rightPanelDetailType = RightPanelDetailType.PREREQUISITE;
+        //}
+        //internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Prerequisite> prerequisites)
+        //{
+        //    List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
+        //    foreach (ContractBlueprint.Prerequisite prerequisite in prerequisites)
+        //    {
+        //        leftPanelListItems.Add(new LeftPanelListItem(window, prerequisite));
+        //    }
+        //    return leftPanelListItems;
+        //}
         
         internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Requirement requirement)
         { 
@@ -217,7 +217,7 @@ namespace ContractManager.GUI
         MISSION,
         CONTRACTBLUEPRINT,
         MISSIONBLUEPRINT,
-        PREREQUISITE,
+        //PREREQUISITE, // Depreciated since v0.2.1
         REQUIREMENT,
         ACTION,
     }
