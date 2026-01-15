@@ -127,6 +127,7 @@ namespace ContractManager.Mission
         private static bool Migrate(ref XDocument xmlDocument, ref Version xmlVersion)
         {
             Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlDocument.Root == null) { return false; }
             if (xmlVersion < "0.2.1")
             {
                 // version 0.2.1 flattens prerequisiteElement
@@ -141,6 +142,18 @@ namespace ContractManager.Mission
                     prerequisitesElement.Remove();
                 }
                 xmlVersion.FromString("0.2.1");
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            if (xmlVersion < "0.2.2")
+            {
+                // version 0.2.2 adds uid to Action
+                XElement? actionsElement = xmlDocument.Root.Element("actions");
+                XElement? uidElement = xmlDocument.Root.Element("uid");
+                if (actionsElement != null && uidElement != null )
+                {
+                    ContractBlueprint.Action.MigrateAddUID(ref actionsElement, uidElement.Value);
+                }
+                xmlVersion.FromString("0.2.2");
                 Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
             }
             

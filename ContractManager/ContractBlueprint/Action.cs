@@ -1,6 +1,7 @@
 ﻿using System.Xml.Serialization;
 using System.Collections.Generic;
 using ContractManager.Contract;
+using System.Xml.Linq;
 
 namespace ContractManager.ContractBlueprint
 {
@@ -108,6 +109,16 @@ namespace ContractManager.ContractBlueprint
             }
             // ActionType and TriggerType don't need to be validated loading XML will throw an exception.
             return true;
+        }
+
+        // Migrate function for v0.2.2 adding UID to Action.
+        internal static void MigrateAddUID(ref XElement actionsElement, in string parentUID)
+        {
+            int actionElementCounter = 0;
+            foreach (XElement actionElement in actionsElement.Elements())
+            {
+                actionElement.Add(new XElement("uid", String.Format("{0}_{1}", parentUID, actionElementCounter++)));
+            }
         }
     }
 

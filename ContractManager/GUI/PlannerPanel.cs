@@ -77,23 +77,6 @@ namespace ContractManager.GUI
                         ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                     }
                     else
-                    //if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE)
-                    //{
-                    //    if (ImGui.BeginChild("PlannerLeftPrerequisitesPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
-                    //    {
-                    //        if (ImGui.ArrowButton("##planner_leftPrerequisites_return", ImGuiDir.Left))
-                    //        {
-                    //            ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
-                    //            ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                    //        }
-                    //        ImGui.SameLine();
-                    //        ImGui.SeparatorText("Prerequisite");
-                    //        ImGui.Text("Edit the prerequisite on the right.");
-
-                    //        ImGui.EndChild();  // End of LeftContractPanel
-                    //    }
-                    //}
-                    //else
                     if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT)
                     {
                         if (ImGui.BeginChild("PlannerLeftRequirementsPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))

@@ -199,7 +199,7 @@ namespace ContractManager.GUI
         MISSION,
         CONTRACTBLUEPRINT,
         MISSIONBLUEPRINT,
-        PREREQUISITE, // Depreciated since v0.2.1
+        // PREREQUISITE, // Depreciated since v0.2.1
         REQUIREMENT,
         ACTION,
     }
