@@ -22,7 +22,7 @@ namespace ContractManager.GUI
         { 
             this._window = window;
             this._title = contract._contractBlueprint.title;
-            this._uid = contract.contractUID;
+            this._uid = contract.uid;
             this._guid = $"contract_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.CONTRACT;
             this._colors = Colors.GetContractStatusColor(contract.status);
@@ -41,7 +41,7 @@ namespace ContractManager.GUI
         { 
             this._window = window;
             this._title = mission._missionBlueprint.title;
-            this._uid = mission.missionUID;
+            this._uid = mission.uid;
             this._guid = $"mission_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.MISSION;
             this._colors = Colors.GetMissionStatusColor(mission.status);
@@ -228,7 +228,7 @@ namespace ContractManager.GUI
             // FIXME: make this a callable function to set.
             if (contractToShowDetails != null)
             {
-                this.rightPanelDetailUID = contractToShowDetails.contractUID;
+                this.rightPanelDetailUID = contractToShowDetails.uid;
                 this.rightPanelDetailType = RightPanelDetailType.CONTRACT;
             }
 

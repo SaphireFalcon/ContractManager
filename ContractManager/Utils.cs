@@ -3,6 +3,7 @@ using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ContractManager
 {
@@ -256,10 +257,22 @@ namespace ContractManager
 
         public bool valid = false;
 
+        public Version() { }
+
         public Version(string version)
         {
             this.FromString(version);
         }
+        
+        public Version(XDocument? xmlDocument)
+        {
+            if (xmlDocument == null) { return; }
+            if (xmlDocument.Root == null) { return; }
+            XElement? versionElement = xmlDocument.Root.Element("version");
+            if (versionElement == null) { return; }
+            this.FromString(versionElement.Value);
+        }
+        
 
         public void UpdateTo(Version version)
         {

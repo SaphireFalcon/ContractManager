@@ -12,7 +12,7 @@ namespace ContractManager.Mission
             bool foundMission = false;
             foreach (Mission mission in missions)
             {
-                foundMission = mission.missionUID== missionUID;
+                foundMission = mission.uid == missionUID;
                 if (foundMission)
                 {
                     // Found matching mission.

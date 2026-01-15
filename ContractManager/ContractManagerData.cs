@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace ContractManager
@@ -15,27 +16,27 @@ namespace ContractManager
         public string version { get; set; } = ContractManager.version.ToString();
 
         // List of offered contracts, loaded from save game / file.
-        [XmlElement("offeredContracts")]
+        [XmlArray("offeredContracts")]
         public List<Contract.Contract> offeredContracts { get; set; } = new List<Contract.Contract>();
 
         // List of accepted contracts, loaded from save game / file.
-        [XmlElement("acceptedContracts")]
+        [XmlArray("acceptedContracts")]
         public List<Contract.Contract> acceptedContracts { get; set; } = new List<Contract.Contract>();
         
         // List of finished contracts, loaded from save game / file.
-        [XmlElement("finishedContracts")]
+        [XmlArray("finishedContracts")]
         public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
 
         // List of offered missions, loaded from save game / file.
-        [XmlElement("offeredMissions")]
+        [XmlArray("offeredMissions")]
         public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
 
         // List of accepted missions, loaded from save game / file.
-        [XmlElement("acceptedMissions")]
+        [XmlArray("acceptedMissions")]
         public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
         
         // List of finished missions, loaded from save game / file.
-        [XmlElement("finishedMissions")]
+        [XmlArray("finishedMissions")]
         public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
         
         // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the management building at the launch site.
@@ -64,25 +65,34 @@ namespace ContractManager
         // List of popup(s) to show
         internal List<GUI.PopupWindow> popupWindows { get; set; } = new List<GUI.PopupWindow>();
 
-        private static XmlSerializer _contractManagerDataXmlSerializer = new XmlSerializer(typeof(ContractManagerData));
-
         // Load data from save path.
-        public void LoadFrom(string savePath)
+        public bool LoadFrom(string savePath)
         {
             Console.WriteLine("[CM] ContractManager.LoadFrom(uncompressedSave)");
             string filePathContractManagerXmlFile = Path.Combine(savePath, "contractmanager.xml");
-            if (!File.Exists(filePathContractManagerXmlFile))
+            if (!File.Exists(filePathContractManagerXmlFile)) { return false; }
+
+            XDocument? xmlDocument = null;
+            using (var reader = new System.IO.StreamReader(filePathContractManagerXmlFile))
             {
-                throw new NullReferenceException("contractmanager file '" + filePathContractManagerXmlFile + "' does not exist");
+                xmlDocument = XDocument.Load(reader);
             }
 
-            StreamReader streamReader = new StreamReader(filePathContractManagerXmlFile);
-            if (!(_contractManagerDataXmlSerializer.Deserialize(streamReader) is ContractManagerData contractManagerData))
+            if (!this.Migrate(ref xmlDocument))
             {
-                streamReader.Close();
-                throw new NullReferenceException("contract manager data is null");
+                Console.WriteLine("[CM] ContractManager.LoadFrom migrating failed.");
+                return false;
+            }
+
+            XmlSerializer serializer = new XmlSerializer(typeof(ContractManagerData));
+            ContractManagerData? contractManagerData = (ContractManagerData)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+            if (contractManagerData == null)
+            {
+                Console.WriteLine("[CM] ContractManager.LoadFrom can't deserialize from migrated data.");
+                return false;
             }
             // Need to deep copy because the data loaded by the stream reader will be destroyed.
+            // TODO: Is this still true when using string reader?
             this.offeredContracts.Clear();
             foreach (Contract.Contract contract in contractManagerData.offeredContracts)
             {
@@ -143,15 +153,182 @@ namespace ContractManager
             this.maxNumberOfAcceptedContracts = contractManagerData.maxNumberOfAcceptedContracts;
             this.maxNumberOfOfferedMissions = contractManagerData.maxNumberOfOfferedMissions;
             this.maxNumberOfAcceptedMissions = contractManagerData.maxNumberOfAcceptedMissions;
-
-            streamReader.Close();
+            return true;
         }
 
         // Write data to save file
         public void WriteTo(DirectoryInfo directory)
         {
-            Console.WriteLine("[CM] ContractManager.WriteTo(directory)");
-            XmlHelper.SerializeWithoutNaN(_contractManagerDataXmlSerializer, this, Path.Combine(directory.FullName, "contractmanager.xml"));
+            XmlSerializer serializer = new XmlSerializer(typeof(ContractManagerData));
+            XmlHelper.SerializeWithoutNaN(serializer, this, Path.Combine(directory.FullName, "contractmanager.xml"));
+        }
+
+        private bool Migrate(ref XDocument xmlDocument)
+        {
+            Version loadedXMLVersion = new Version(xmlDocument);
+            if (!loadedXMLVersion.valid) { return false; }
+            if (ContractManager.version < loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}'.");
+                return false;
+            }
+            Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlDocument.Root == null) { return false; }
+            if (loadedXMLVersion < "0.2.3")
+            {
+                XElement newOfferedContracts = new XElement("offeredContracts", null);
+                foreach (XElement offeredContractsElement in xmlDocument.Root.Elements("offeredContracts"))
+                {
+                    XElement migratedOfferedContract = new XElement(offeredContractsElement);
+                    migratedOfferedContract.Name = "Contract";
+                    newOfferedContracts.Add(migratedOfferedContract);
+                }
+                xmlDocument.Root.Elements("offeredContracts").Remove();
+                xmlDocument.Root.Add(newOfferedContracts);
+                
+                XElement newAcceptedContracts = new XElement("acceptedContracts", null);
+                foreach (XElement acceptedContractsElement in xmlDocument.Root.Elements("acceptedContracts"))
+                {
+                    XElement migratedAcceptedContract = new XElement(acceptedContractsElement);
+                    migratedAcceptedContract.Name = "Contract";
+                    newAcceptedContracts.Add(migratedAcceptedContract);
+                }
+                xmlDocument.Root.Elements("acceptedContracts").Remove();
+                xmlDocument.Root.Add(newAcceptedContracts);
+
+                XElement newFinishedContracts = new XElement("finishedContracts", null);
+                foreach (XElement finishedContractsElement in xmlDocument.Root.Elements("finishedContracts"))
+                {
+                    XElement migratedFinishedContract = new XElement(finishedContractsElement);
+                    migratedFinishedContract.Name = "Contract";
+                    newFinishedContracts.Add(migratedFinishedContract);
+                }
+                xmlDocument.Root.Elements("finishedContracts").Remove();
+                xmlDocument.Root.Add(newFinishedContracts);
+                
+                XElement newOfferedMissions = new XElement("offeredMissions", null);
+                foreach (XElement offeredMissionsElement in xmlDocument.Root.Elements("offeredMissions"))
+                {
+                    XElement migratedOfferedContract = new XElement(offeredMissionsElement);
+                    migratedOfferedContract.Name = "Mission";
+                    newOfferedMissions.Add(migratedOfferedContract);
+                }
+                xmlDocument.Root.Elements("offeredMissions").Remove();
+                xmlDocument.Root.Add(newOfferedMissions);
+                
+                XElement newAcceptedMissions = new XElement("acceptedMissions", null);
+                foreach (XElement acceptedMissionsElement in xmlDocument.Root.Elements("acceptedMissions"))
+                {
+                    XElement migratedAcceptedContract = new XElement(acceptedMissionsElement);
+                    migratedAcceptedContract.Name = "Mission";
+                    newAcceptedMissions.Add(migratedAcceptedContract);
+                }
+                xmlDocument.Root.Elements("acceptedMissions").Remove();
+                xmlDocument.Root.Add(newAcceptedMissions);
+                
+                XElement newFinishedMissions = new XElement("finishedMissions", null);
+                foreach (XElement finishedMissionsElement in xmlDocument.Root.Elements("finishedMissions"))
+                {
+                    XElement migratedFinishedContract = new XElement(finishedMissionsElement);
+                    migratedFinishedContract.Name = "Mission";
+                    newFinishedMissions.Add(migratedFinishedContract);
+                }
+                xmlDocument.Root.Elements("finishedMissions").Remove();
+                xmlDocument.Root.Add(newFinishedContracts);
+
+                loadedXMLVersion.FromString("0.2.3");
+                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
+            }
+            if (loadedXMLVersion < "0.2.4")
+            {
+                XElement? offeredContractsElement = xmlDocument.Root.Element("offeredContracts");
+                if (offeredContractsElement != null)
+                {
+                    foreach (XElement contractElement in offeredContractsElement.Elements("Contract"))
+                    {
+                        XElement? uidElement = contractElement.Element("contractUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+
+                XElement? acceptedContractsElement = xmlDocument.Root.Element("acceptedContracts");
+                if (acceptedContractsElement != null)
+                {
+                    foreach (XElement contractElement in acceptedContractsElement.Elements("Contract"))
+                    {
+                        XElement? uidElement = contractElement.Element("contractUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+
+                XElement? finishedContractsElement = xmlDocument.Root.Element("finishedContracts");
+                if (finishedContractsElement != null)
+                {
+                    foreach (XElement contractElement in finishedContractsElement.Elements("Contract"))
+                    {
+                        XElement? uidElement = contractElement.Element("contractUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+                
+                XElement? offeredMissionsElement = xmlDocument.Root.Element("offeredMissions");
+                if (offeredMissionsElement != null)
+                {
+                    foreach (XElement missionElement in offeredMissionsElement.Elements("Mission"))
+                    {
+                        XElement? uidElement = missionElement.Element("missionUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+
+                XElement? acceptedMissionsElement = xmlDocument.Root.Element("acceptedMissions");
+                if (acceptedMissionsElement != null)
+                {
+                    foreach (XElement missionElement in acceptedMissionsElement.Elements("Mission"))
+                    {
+                        XElement? uidElement = missionElement.Element("missionUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+
+                XElement? finishedMissionsElement = xmlDocument.Root.Element("finishedMissions");
+                if (finishedMissionsElement != null)
+                {
+                    foreach (XElement missionElement in finishedMissionsElement.Elements("Mission"))
+                    {
+                        XElement? uidElement = missionElement.Element("missionUID");
+                        if (uidElement != null)
+                        {
+                            uidElement.Name = "uid";
+                        }
+                    }
+                }
+
+                loadedXMLVersion.FromString("0.2.4");
+                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
+            }
+            
+            if (loadedXMLVersion < ContractManager.version)
+            {
+                loadedXMLVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {loadedXMLVersion.ToString()}.");
+            }
+            return true;
         }
     }
 }

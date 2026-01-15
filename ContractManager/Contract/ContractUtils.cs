@@ -129,7 +129,7 @@ namespace ContractManager.Contract
             bool foundContract = false;
             foreach (Contract contract in contracts)
             {
-                foundContract = contract.contractUID == contractUID;
+                foundContract = contract.uid == contractUID;
                 if (foundContract)
                 {
                     // Found matching contract.

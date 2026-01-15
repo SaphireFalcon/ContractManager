@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ContractManager.Mission;
+using KSA;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -106,10 +108,7 @@ namespace ContractManager.ContractBlueprint
         internal void WriteToFile(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
-            using (var writer = new System.IO.StreamWriter(filePath))
-            {
-                serializer.Serialize(writer, this);
-            }
+            XmlHelper.SerializeWithoutNaN(serializer, this, filePath);
         }
 
         // Load a contract blueprint from an XML file.
@@ -120,47 +119,27 @@ namespace ContractManager.ContractBlueprint
             {
                 xmlDocument = XDocument.Load(reader);
             }
-            if (xmlDocument == null) { return null; }
-            if (xmlDocument.Root == null) { return null; }
-            XElement? versionElement = xmlDocument.Root.Element("version");
-            if (versionElement == null) { return null; }
-            Version loadedXMLVersion = new Version(versionElement.Value);
-            if (!loadedXMLVersion.valid)
+            if (ContractBlueprint.Migrate(ref xmlDocument, filePath))
             {
-                Console.WriteLine($"[CM] [WARNING] Failed to read version from '{versionElement.Value}'");
-                return null;
+                XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
+                return (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
             }
+            return null;
+        }
 
-            //  Check for migration
-            if (ContractManager.version == loadedXMLVersion)
-            {
-                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} matches loaded Version {loadedXMLVersion.ToString()}'.");
-            }
-            else
-            if (ContractManager.version > loadedXMLVersion)
-            {
-                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is newer than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
-                // Do migration
-                bool migratedSuccessfully = ContractBlueprint.Migrate(ref xmlDocument, ref loadedXMLVersion);
-                if (!migratedSuccessfully) { return null;}
-                // Export the migrated file to export folder
-            }
-            else
+        private static bool Migrate(ref XDocument xmlDocument, string filePath)
+        {
+            Version loadedXMLVersion = new Version(xmlDocument);
+            if (!loadedXMLVersion.valid) { return false; }
             if (ContractManager.version < loadedXMLVersion)
             {
                 Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
-                return null;
+                return false;
             }
 
-            XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
-            return (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
-        }
-
-        private static bool Migrate(ref XDocument xmlDocument, ref Version xmlVersion)
-        {
             Console.WriteLine($"[CM] [INFO] Running Migration.");
             if (xmlDocument.Root == null) { return false; }
-            if (xmlVersion < "0.2.1")
+            if (loadedXMLVersion < "0.2.1")
             {
                 // version 0.2.1 flattens prerequisiteElement
                 XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
@@ -173,10 +152,10 @@ namespace ContractManager.ContractBlueprint
                     }
                     prerequisitesElement.Remove();
                 }
-                xmlVersion.FromString("0.2.1");
-                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+                loadedXMLVersion.FromString("0.2.1");
+                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
             }
-            if (xmlVersion < "0.2.2")
+            if (loadedXMLVersion < "0.2.2")
             {
                 // version 0.2.2 adds uid to Action
                 XElement? actionsElement = xmlDocument.Root.Element("actions");
@@ -185,14 +164,14 @@ namespace ContractManager.ContractBlueprint
                 {
                     Action.MigrateAddUID(ref actionsElement, uidElement.Value);
                 }
-                xmlVersion.FromString("0.2.2");
-                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+                loadedXMLVersion.FromString("0.2.2");
+                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
             }
             
-            if (xmlVersion < ContractManager.version)
+            if (loadedXMLVersion < ContractManager.version)
             {
-                xmlVersion.UpdateTo(ContractManager.version);
-                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()} == {ContractManager.version.ToString()}.");
+                loadedXMLVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {loadedXMLVersion.ToString()}.");
             }
             return true;
         }

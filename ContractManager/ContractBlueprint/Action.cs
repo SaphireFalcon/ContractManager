@@ -71,7 +71,7 @@ namespace ContractManager.ContractBlueprint
                 new GUI.PopupWindow
                 {
                     title = contract._contractBlueprint.title,
-                    uid = String.Format("contract{0}_{1}", contract.contractUID, this.trigger),
+                    uid = String.Format("contract{0}_{1}", contract.uid, this.trigger),
                     messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
@@ -87,7 +87,7 @@ namespace ContractManager.ContractBlueprint
                 new GUI.PopupWindow
                 {
                     title = mission._missionBlueprint.title,
-                    uid = String.Format("mission{0}_{1}", mission.missionUID, this.trigger),
+                    uid = String.Format("mission{0}_{1}", mission.uid, this.trigger),
                     messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal
                 }
