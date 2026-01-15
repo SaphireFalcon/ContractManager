@@ -1,6 +1,7 @@
 ﻿using ContractManager.ContractBlueprint;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace ContractManager.Mission
@@ -48,9 +49,13 @@ namespace ContractManager.Mission
         [XmlElement("isAutoAccepted", DataType = "boolean")]
         public bool isAutoAccepted { get; set; } = false;
 
-        // List of prerequisites for the misison to be offered automatically
-        [XmlArray("prerequisites")]
-        public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+        // [DEPRECIATED v0.2.1] List of prerequisites for the misison to be offered automatically
+        //[XmlArray("prerequisites")]
+        //public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+
+        // [v0.2.1] Prerequisite to offer contract
+        [XmlElement("Prerequisite")]
+        public Prerequisite prerequisite { get; set; } = new Prerequisite();
 
         // List of actions for the misison
         [XmlArray("actions")]
@@ -76,14 +81,75 @@ namespace ContractManager.Mission
         }
 
         // Load a mission blueprint from an XML file.
-        internal static MissionBlueprint LoadFromFile(string filePath)
+        internal static MissionBlueprint? LoadFromFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
+            XDocument? xmlDocument = null;
             using (var reader = new System.IO.StreamReader(filePath))
             {
-                return (MissionBlueprint)serializer.Deserialize(reader);
+                xmlDocument = XDocument.Load(reader);
             }
-            // 
+            if (xmlDocument == null) { return null; }
+            if (xmlDocument.Root == null) { return null; }
+            XElement? versionElement = xmlDocument.Root.Element("version");
+            if (versionElement == null) { return null; }
+            Version loadedXMLVersion = new Version(versionElement.Value);
+            if (!loadedXMLVersion.valid)
+            {
+                Console.WriteLine($"[CM] [WARNING] Failed to read version from '{versionElement.Value}'");
+                return null;
+            }
+            
+            //  Check for migration
+            if (ContractManager.version == loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} matches loaded Version {loadedXMLVersion.ToString()}'.");
+            }
+            else
+            if (ContractManager.version > loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is newer than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                // Do migration
+                bool migratedSuccessfully = MissionBlueprint.Migrate(ref xmlDocument, ref loadedXMLVersion);
+                if (!migratedSuccessfully) { return null;}
+                // Export the migrated file to export folder
+            }
+            else
+            if (ContractManager.version < loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                return null;
+            }
+
+            XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
+            return (MissionBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+        }
+
+        private static bool Migrate(ref XDocument xmlDocument, ref Version xmlVersion)
+        {
+            Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlVersion < "0.2.1")
+            {
+                // version 0.2.1 flattens prerequisiteElement
+                XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
+                if (prerequisitesElement != null )
+                {
+                    XElement? migratedPrerequisiteElement = ContractBlueprint.Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
+                    if(migratedPrerequisiteElement != null)
+                    {
+                        xmlDocument.Root.Add(migratedPrerequisiteElement);
+                    }
+                    prerequisitesElement.Remove();
+                }
+                xmlVersion.FromString("0.2.1");
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            
+            if (xmlVersion < ContractManager.version)
+            {
+                xmlVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()} == {ContractManager.version.ToString()}.");
+            }
+            return true;
         }
 
         internal bool Validate(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
@@ -128,10 +194,7 @@ namespace ContractManager.Mission
                 return false;
             }
 
-            foreach (var prerequisite in prerequisites)
-            {
-                if (!prerequisite.Validate()) { return false; }
-            }
+            if (!this.prerequisite.Validate()) { return false; }
             foreach (var action in actions)
             {
                 if (!action.Validate()) { return false; }

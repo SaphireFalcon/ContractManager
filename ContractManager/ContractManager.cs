@@ -429,61 +429,26 @@ public class ContractManager
     private bool CanOfferMissionFromBlueprint(in Mission.MissionBlueprint missionBlueprint)
     {
         // Check if the mission is already being offered.
-        {
-            string blueprintUID = missionBlueprint.uid;
-            List<Mission.Mission> offeredMissions = data.offeredMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Offered).ToList();
-            if (offeredMissions.Count > 0) { return false; }  // already offered!
-        }
-        bool canOfferContract = true;
-        foreach (ContractBlueprint.Prerequisite prerequisite in missionBlueprint.prerequisites)
-        {
-            // Mision specific
-            if (prerequisite.type == PrerequisiteType.MaxNumOfferedMissions && ContractManager.data.offeredMissions.Count >= prerequisite.maxNumOfferedMissions)
-            {
-                canOfferContract = false;
-                break;
-            }
-            if (prerequisite.type == PrerequisiteType.MaxNumAcceptedMissions && ContractManager.data.acceptedMissions.Count >= prerequisite.maxNumAcceptedMissions)
-            {
-                canOfferContract = false;
-                break;
-            }
-            if (prerequisite.type == PrerequisiteType.MaxCompleteCount)
-            {
-                string blueprintUID = missionBlueprint.uid;
-                List<Mission.Mission> completedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Completed).ToList();
-                if (completedContracts.Count > prerequisite.maxCompleteCount)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
-            if (prerequisite.type == PrerequisiteType.MaxFailedCount)
-            {
-                string blueprintUID = missionBlueprint.uid;
-                List<Mission.Mission> failedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Failed).ToList();
-                if (failedContracts.Count > prerequisite.maxFailedCount)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
-            if (prerequisite.type == PrerequisiteType.MaxConcurrentCount)
-            {
-                string blueprintUID = missionBlueprint.uid;
-                List<Mission.Mission> acceptedContracts = data.acceptedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Accepted).ToList();
-                if (acceptedContracts.Count > prerequisite.maxConcurrentCount)
-                {
-                    canOfferContract = false;
-                    break;
-                }
-            }
+        string blueprintUID = missionBlueprint.uid;
+        List<Mission.Mission> offeredMissions = data.offeredMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Offered).ToList();
+        if (offeredMissions.Count > 0) { return false; }  // already offered!
 
-            // Generic
-            canOfferContract = CheckGenericPrerequisite(prerequisite);
-            if (!canOfferContract) break;
-        }
-        return canOfferContract;
+        ContractBlueprint.Prerequisite prerequisite = missionBlueprint.prerequisite;
+        // Mision specific
+        if (ContractManager.data.offeredMissions.Count >= prerequisite.maxNumOfferedMissions) { return false; }
+        if (ContractManager.data.acceptedMissions.Count >= prerequisite.maxNumAcceptedMissions) { return false; }
+
+        List<Mission.Mission> completedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Completed).ToList();
+        if (completedContracts.Count > prerequisite.maxCompleteCount) { return false; }
+
+        List<Mission.Mission> failedContracts = data.finishedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Failed).ToList();
+        if (failedContracts.Count > prerequisite.maxFailedCount) { return false; }
+
+        List<Mission.Mission> acceptedContracts = data.acceptedMissions.Where(c => c._missionBlueprint.uid == blueprintUID && c.status == Mission.MissionStatus.Accepted).ToList();
+        if (acceptedContracts.Count > prerequisite.maxConcurrentCount) { return false; }
+
+        // Generic
+        return CheckGenericPrerequisite(prerequisite);
     }
 
     private void LoadMissionBlueprints()

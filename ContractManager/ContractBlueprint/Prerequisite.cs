@@ -1,18 +1,16 @@
-﻿using System.Xml.Serialization;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace ContractManager.ContractBlueprint
 {
 
     public class Prerequisite
     {
-        // The unique identifier for the prerequisite.
-        [XmlElement("uid", DataType = "string")]
-        public string uid { get; set; }
-
-        // Type of the prerequisite.
-        [XmlElement("type")]
-        public PrerequisiteType type { get; set; }
+        // [DEPRECIATED v0.2.1] Type of the prerequisite.
+        //[XmlElement("type")]
+        //public PrerequisiteType type { get; set; }
 
         // Fields for specific prerequisite types.
 
@@ -84,78 +82,237 @@ namespace ContractManager.ContractBlueprint
         
         public void WriteToConsole()
         {
-            if (type == PrerequisiteType.MaxNumOfferedContracts)
-            {
-                Console.WriteLine($"  - Require less than {maxNumOfferedContracts} offered contracts");
-            }
-            if (type == PrerequisiteType.MaxNumAcceptedContracts)
-            {
-                Console.WriteLine($"  - Require less than {maxNumAcceptedContracts} accepted contracts");
-            }
+            Console.WriteLine($"  - Require less than {maxNumOfferedContracts} offered contracts");
+            Console.WriteLine($"  - Require less than {maxNumAcceptedContracts} accepted contracts");
+            Console.WriteLine($"  - Require less than {maxNumOfferedMissions} offered missions");
+            Console.WriteLine($"  - Require less than {maxNumAcceptedMissions} accepted missions");
+            Console.WriteLine($"  - Require less than {maxCompleteCount} ");
+            Console.WriteLine($"  - Require less than {maxFailedCount} ");
+            Console.WriteLine($"  - Require less than {maxConcurrentCount} ");
+            Console.WriteLine($"  - Require to have compeleted '{hasCompletedContract}' contract");
+            Console.WriteLine($"  - Require to have failed '{hasFailedContract}' contract");
+            Console.WriteLine($"  - Require to have accepted '{hasAcceptedContract}' contract");
+            Console.WriteLine($"  - Require to have compeleted '{hasCompletedMission}' mission");
+            Console.WriteLine($"  - Require to have failed '{hasFailedMission}' mission");
+            Console.WriteLine($"  - Require to have accepted '{hasAcceptedMission}' mission");
+            Console.WriteLine($"  - Require more than {minNumberOfVessels} vessels");
+            Console.WriteLine($"  - Require less than {maxNumberOfVessels} vessels");
         }
 
         internal bool Validate()
         {
-            // The uid can't be empty
-            if (String.IsNullOrEmpty(this.uid))
-            {
-                Console.WriteLine("[CM] [WARNING] prerequisite uid has be to be defined.");
-                return false;
-            }
-            if (this.type == PrerequisiteType.HasCompletedContract && String.IsNullOrEmpty(this.hasCompletedContract))
-            {
-                Console.WriteLine("[CM] [WARNING] prerequisite with type 'hasCompletedContract' requires a contract blueprint uid to be defined in hasCompletedContract.");
-                return false;
-            }
-            if (this.type == PrerequisiteType.HasFailedContract && String.IsNullOrEmpty(this.hasFailedContract))
-            {
-                Console.WriteLine("[CM] [WARNING] prerequisite with type 'hasFailedContract' requires a contract blueprint uid to be defined in hasFailedContract.");
-                return false;
-            }
-            if (this.type == PrerequisiteType.HasAcceptedContract && String.IsNullOrEmpty(this.hasAcceptedContract))
-            {
-                Console.WriteLine("[CM] [WARNING] prerequisite with type 'hasAcceptedContract' requires a contract blueprint uid to be defined in hasAcceptedContract.");
-                return false;
-            }
-            // PrerequisiteType doesn't need to be validated, loading XML will throw an exception.
+            // Validate if the has*Contract/Mission also exists?
             return true;
+        }
+
+        // Migrate function for v0.2.1 when PrerequisiteType was depreciated and Prerequisite was flattened to a single entry in Contract and Mission blueprints.
+        internal static XElement? MigratePrerequisteWithTypeFlatten(XElement? prerequisitesElement)
+        {
+            if (prerequisitesElement == null ) { return null; }
+
+            int numPrerequisteElements = prerequisitesElement.Elements("Prerequisite").Count();
+            Console.WriteLine($"[CM] [INFO] prerequisite elements {numPrerequisteElements}.");
+            if (numPrerequisteElements == 0) { return null; }
+            if (numPrerequisteElements == 1)
+            {
+                // flatten to this element only
+                XElement? prerequisiteElement = prerequisitesElement.Element("Prerequisite");
+                if (prerequisiteElement == null) { return null; } // wtf, this shouldn't happen...
+                // remove the type element.
+                XElement? prerequisiteTypeElement = prerequisiteElement.Element("type");
+                if (prerequisiteTypeElement != null )
+                {
+                    prerequisiteTypeElement.Remove();
+                }
+                return prerequisiteElement;
+            }
+            else
+            if (numPrerequisteElements > 1)
+            {
+                // need to combine multiple Prerequisite into one.
+                XElement migratedPrerequisiteElement = new XElement("prerequisite", null);
+                foreach (XElement prerequisiteElement in prerequisitesElement.Elements("Prerequisite"))
+                {
+                    XElement? prerequisiteTypeElement = prerequisiteElement.Element("type");
+                    if (prerequisiteTypeElement == null ) { continue; }
+                    string prerequisiteTypeString = (string)prerequisiteTypeElement.Value;
+                                
+                    if (prerequisiteTypeString == "maxNumOfferedContracts")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxNumOfferedContracts");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxNumOfferedContracts", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxNumAcceptedContracts")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxNumAcceptedContracts");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxNumAcceptedContracts", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxNumOfferedMissions")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxNumOfferedMissions");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxNumOfferedMissions", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxNumAcceptedMissions")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxNumAcceptedMissions");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxNumAcceptedMissions", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxCompleteCount")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxCompleteCount");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxCompleteCount", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxFailedCount")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxFailedCount");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxFailedCount", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxConcurrentCount")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxConcurrentCount");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxConcurrentCount", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasCompletedContract")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasCompletedContract");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasCompletedContract", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasFailedContract")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasFailedContract");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasFailedContract", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasAcceptedContract")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasAcceptedContract");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasAcceptedContract", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasCompletedMission")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasCompletedMission");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasCompletedMission", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasFailedMission")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasFailedMission");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasFailedMission", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "hasAcceptedMission")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("hasAcceptedMission");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("hasAcceptedMission", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "minNumberOfVessels")
+                    {
+                        XElement? prerequisiteValue = prerequisiteElement.Element("minNumberOfVessels");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("minNumberOfVessels", prerequisiteValue.Value);
+                        }
+                    }
+                    else
+                    if (prerequisiteTypeString == "maxNumberOfVessels")
+                    { 
+                        XElement? prerequisiteValue = prerequisiteElement.Element("maxNumberOfVessels");
+                        if (prerequisiteValue != null)
+                        {
+                            migratedPrerequisiteElement.Add("maxNumberOfVessels", prerequisiteValue.Value);
+                        }
+                    }
+                }
+                return migratedPrerequisiteElement;
+            }
+            return null;
         }
     }
 
-    public enum PrerequisiteType
-    {
-        [XmlEnum("maxNumOfferedContracts")]
-        MaxNumOfferedContracts,
-        [XmlEnum("maxNumAcceptedContracts")]
-        MaxNumAcceptedContracts,
+    // [DEPRECIATED v0.2.1]
+    //public enum PrerequisiteType
+    //{
+    //    [XmlEnum("maxNumOfferedContracts")]
+    //    MaxNumOfferedContracts,
+    //    [XmlEnum("maxNumAcceptedContracts")]
+    //    MaxNumAcceptedContracts,
 
-        [XmlEnum("maxNumOfferedMissions")]
-        MaxNumOfferedMissions,
-        [XmlEnum("maxNumAcceptedMissions")]
-        MaxNumAcceptedMissions,
+    //    [XmlEnum("maxNumOfferedMissions")]
+    //    MaxNumOfferedMissions,
+    //    [XmlEnum("maxNumAcceptedMissions")]
+    //    MaxNumAcceptedMissions,
 
-        [XmlEnum("maxCompleteCount")]
-        MaxCompleteCount,
-        [XmlEnum("maxFailedCount")]
-        MaxFailedCount,
-        [XmlEnum("maxConcurrentCount")]
-        MaxConcurrentCount,
+    //    [XmlEnum("maxCompleteCount")]
+    //    MaxCompleteCount,
+    //    [XmlEnum("maxFailedCount")]
+    //    MaxFailedCount,
+    //    [XmlEnum("maxConcurrentCount")]
+    //    MaxConcurrentCount,
 
-        [XmlEnum("hasCompletedContract")]
-        HasCompletedContract,
-        [XmlEnum("hasFailedContract")]
-        HasFailedContract,
-        [XmlEnum("hasAcceptedContract")]
-        HasAcceptedContract,
-        [XmlEnum("hasCompletedMission")]
-        HasCompletedMission,
-        [XmlEnum("hasFailedMission")]
-        HasFailedMission,
-        [XmlEnum("hasAcceptedMission")]
-        HasAcceptedMission,
-        [XmlEnum("minNumberOfVessels")]
-        MinNumberOfVessels,
-        [XmlEnum("maxNumberOfVessels")]
-        MaxNumberOfVessels,
-    }
+    //    [XmlEnum("hasCompletedContract")]
+    //    HasCompletedContract,
+    //    [XmlEnum("hasFailedContract")]
+    //    HasFailedContract,
+    //    [XmlEnum("hasAcceptedContract")]
+    //    HasAcceptedContract,
+    //    [XmlEnum("hasCompletedMission")]
+    //    HasCompletedMission,
+    //    [XmlEnum("hasFailedMission")]
+    //    HasFailedMission,
+    //    [XmlEnum("hasAcceptedMission")]
+    //    HasAcceptedMission,
+    //    [XmlEnum("minNumberOfVessels")]
+    //    MinNumberOfVessels,
+    //    [XmlEnum("maxNumberOfVessels")]
+    //    MaxNumberOfVessels,
+    //}
 }
