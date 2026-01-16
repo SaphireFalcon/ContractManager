@@ -124,6 +124,12 @@ namespace ContractManager.ContractBlueprint
                 {
                     prerequisiteTypeElement.Remove();
                 }
+                // remove the uid element.
+                XElement? prerequisiteUIDElement = prerequisiteElement.Element("uid");
+                if (prerequisiteUIDElement != null )
+                {
+                    prerequisiteUIDElement.Remove();
+                }
                 return prerequisiteElement;
             }
             else
@@ -142,7 +148,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxNumOfferedContracts");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxNumOfferedContracts", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxNumOfferedContracts", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -151,7 +157,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxNumAcceptedContracts");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxNumAcceptedContracts", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxNumAcceptedContracts", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -160,7 +166,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxNumOfferedMissions");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxNumOfferedMissions", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxNumOfferedMissions", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -169,7 +175,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxNumAcceptedMissions");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxNumAcceptedMissions", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxNumAcceptedMissions", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -178,7 +184,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxCompleteCount");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxCompleteCount", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxCompleteCount", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -187,7 +193,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxFailedCount");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxFailedCount", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxFailedCount", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -196,7 +202,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxConcurrentCount");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxConcurrentCount", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxConcurrentCount", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -205,7 +211,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasCompletedContract");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasCompletedContract", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasCompletedContract", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -214,7 +220,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasFailedContract");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasFailedContract", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasFailedContract", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -223,7 +229,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasAcceptedContract");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasAcceptedContract", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasAcceptedContract", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -232,7 +238,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasCompletedMission");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasCompletedMission", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasCompletedMission", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -241,7 +247,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasFailedMission");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasFailedMission", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasFailedMission", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -250,7 +256,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("hasAcceptedMission");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("hasAcceptedMission", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("hasAcceptedMission", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -259,7 +265,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("minNumberOfVessels");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("minNumberOfVessels", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("minNumberOfVessels", prerequisiteValue.Value));
                         }
                     }
                     else
@@ -268,7 +274,7 @@ namespace ContractManager.ContractBlueprint
                         XElement? prerequisiteValue = prerequisiteElement.Element("maxNumberOfVessels");
                         if (prerequisiteValue != null)
                         {
-                            migratedPrerequisiteElement.Add("maxNumberOfVessels", prerequisiteValue.Value);
+                            migratedPrerequisiteElement.Add(new XElement("maxNumberOfVessels", prerequisiteValue.Value));
                         }
                     }
                 }

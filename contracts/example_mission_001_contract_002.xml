@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <version>0.2.0</version>
+  <version>0.2.4</version>
   <uid>example_mission_001_contract_002</uid>
   <missionBlueprintUID>example_mission_001</missionBlueprintUID>
   <title>Return to Earth</title>
@@ -8,13 +8,6 @@
   <description>Create an escape trajectory from Luna. Then achieve an orbit around Earth between 150~200km.</description>
   <isRejectable>false</isRejectable>
   <isAutoAccepted>true</isAutoAccepted>
-  <prerequisites>
-    <Prerequisite>
-	  <uid>hasCompletedContract-example_mission_001_contract_001</uid>
-      <type>hasCompletedContract</type>
-      <hasCompletedContract>example_mission_001_contract_001</hasCompletedContract>
-    </Prerequisite>
-  </prerequisites>
   <completionCondition>all</completionCondition>
   <requirements>
     <Requirement>
@@ -45,4 +38,7 @@
     </Requirement>
   </requirements>
   <actions />
+  <Prerequisite>
+    <hasCompletedContract>example_mission_001_contract_001</hasCompletedContract>
+  </Prerequisite>
 </Contract>

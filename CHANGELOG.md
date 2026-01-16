@@ -29,10 +29,11 @@
 - Add example mission with 2 contracts to fly to Luna and back to Earth.
 - Add `maxNumberOfOfferedMissions` and `maxNumberOfAcceptedMissions` fields to `ContractManagerData`.
 - Add `Version` type to track and compare versions.
-- Add Migration of `ContractBlueprint`, `MissionBlueprint` and `ContractManagerData` files.
+- Add migration of `ContractBlueprint`, `MissionBlueprint` and `ContractManagerData` files.
 - Add storing the migrated `ContractBlueprint` and `MissionBlueprint` to the documents game folder.
 - Add storing the migrated `ContractManagerData` to the saves folder and making back-up of the original file.
 - Add `Action.uid` and used migration to automatically fill the field.
+- Add migration to `ContractManagerData` to store contacts and missions as array and not multiple of the same items.
 
 ### Changed
 - Reordered `ContractStatus` from `Failed` -> `Completed`.
@@ -52,6 +53,7 @@
 - Fix to check all required orbit fields if the required orbit is achieved.
 - Fix to show in *Active Contracts Window* the required orbited body and orbit type.
 - Fix to show max Apoapsis/Periapsis if the requirement was not yet started.
+- Fix `ContractManagerData` to store contracts and missions as array and not multiple of the same items.
 
 ### Depreciated
 

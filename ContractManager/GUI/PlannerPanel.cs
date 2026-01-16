@@ -180,23 +180,6 @@ namespace ContractManager.GUI
                             ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                         }
                         else
-                        //if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE &&
-                        //    ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
-                        //{
-                        //    ContractBlueprint.Prerequisite? prerequisiteToShow = Contract.ContractUtils.FindPrerequisiteFromUID(
-                        //        contractBlueprintToShow.prerequisites,
-                        //        ContractManager.contractManagementWindow.rightPanelDetailSubUID
-                        //    );
-                        //    if (prerequisiteToShow != null )
-                        //    {
-                        //        this.DrawPrerequisiteDetails(prerequisiteToShow);
-                        //    }
-                        //    else
-                        //    {
-                        //        ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                        //    }
-                        //}
-                        //else
                         if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT &&
                             ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
                         {
@@ -286,20 +269,6 @@ namespace ContractManager.GUI
             }
             this._missionBlueprintEditingPanel.Draw();
         }
-        
-        //internal void DrawPrerequisiteDetails(ContractBlueprint.Prerequisite prerequisiteToShow)
-        //{
-        //    if (this._prerequisiteEditingPanel == null)
-        //    {
-        //        this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref prerequisiteToShow);
-        //    }
-        //    else
-        //    if (this._prerequisiteEditingPanel.prerequisiteUID != prerequisiteToShow.uid)
-        //    {
-        //        this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref prerequisiteToShow);
-        //    }
-        //    this._prerequisiteEditingPanel.Draw();
-        //}
         
         internal void DrawRequirementDetails(ContractBlueprint.Requirement requirementToShow)
         {
@@ -871,7 +840,7 @@ namespace ContractManager.GUI
         {
             if (ImGui.BeginTable("PrerequisitePanelTable", 2))
             {
-                            ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
 
                 // Show fields
