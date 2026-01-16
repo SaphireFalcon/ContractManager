@@ -17,17 +17,7 @@ namespace ContractManager.ContractBlueprint
                 synopsis = "This is an example contract, changing the orbit in 2 steps.",
                 description = "Complete the objectives to fulfill this contract. \nFirst, change the Periapsis to within 150 and 200 km altitude. \nNext, change the Apoapsis to within 150 and 200 km altitude."
             };
-            
-            //contractToWrite.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.MaxNumOfferedContracts,
-            //    maxNumOfferedContracts = 1
-            //});
-            //contractToWrite.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.MaxNumAcceptedContracts,
-            //    maxNumAcceptedContracts = 1
-            //});
+
             contractToWrite.prerequisite.maxNumOfferedContracts = 1;
             contractToWrite.prerequisite.maxNumAcceptedContracts = 1;
 
@@ -100,17 +90,7 @@ namespace ContractManager.ContractBlueprint
                 synopsis = "This is an example contract, changing the orbit 2 times.",
                 description = "Complete the objectives to fulfill this contract. \nFirst, change the Periapsis to within 150 and 200 km altitude. \nNext, change the Apoapsis to within 150 and 200 km altitude.\nThen, change both Apoapsis and Periapsis to with 200 and 220km altitude."
             };
-            
-            //contractToWrite.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.MaxNumOfferedContracts,
-            //    maxNumOfferedContracts = 1
-            //});
-            //contractToWrite.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.MaxNumAcceptedContracts,
-            //    maxNumAcceptedContracts = 1
-            //});
+
             contractToWrite.prerequisite.maxNumOfferedContracts = 1;
             contractToWrite.prerequisite.maxNumAcceptedContracts = 1;
 
@@ -224,11 +204,6 @@ namespace ContractManager.ContractBlueprint
                 isAutoAccepted = true,
                 isRejectable = false,
             };
-            //contractToLuna.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.MaxNumOfferedContracts,
-            //    maxNumOfferedContracts = 4,
-            //});
             contractToLuna.prerequisite.maxNumOfferedContracts = 4;
             // Not needed to check if the mission has been accepted, this is already built in.
             
@@ -287,11 +262,6 @@ namespace ContractManager.ContractBlueprint
                 isAutoAccepted = true,
                 isRejectable = false,
             };
-            //contractToEarth.prerequisites.Add(new Prerequisite
-            //{
-            //    type = PrerequisiteType.HasCompletedContract,
-            //    hasCompletedContract = "example_mission_001_contract_001",
-            //});
             contractToEarth.prerequisite.hasCompletedContract = "example_mission_001_contract_001";
 
             contractToEarth.requirements.Add(new Requirement
