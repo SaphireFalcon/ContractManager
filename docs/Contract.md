@@ -17,7 +17,7 @@ The base xml tag for the contract blueprint is `<Contract>`. The following table
 | `isRejectable`  | `<isRejectable>` | Flag to allow rejecting a contract, default is true. |
 | `deadline`  | `<deadline>` | Time in seconds after which the accepted contract fails, default is no deadline. |
 | `isAutoAccepted`  | `<isAutoAccepted>` | Flag to auto-accept an offered contract, default is false. |
-| `prerequisites` | `<prerequisites>` | Prerequisites for the contract, contains [`Prerequisite`](#prerequisite-class) |
+| `prerequisite` | `<prerequisite>` | Prerequisite for the contract, of type [`Prerequisite`](#prerequisite-class) |
 | `completionCondition` | `<completionCondition>` | Completion condition of the contract based on the requirements. One of [`CompletionConditions`](#completionconditions) |
 | `requirements` | `<requirements>` | Requirements for the contract, contains [`Requirement`](#requirement-class)       |
 | `actions`      | `<actions>`  | Actions to be executed as part of the contract, contains [`Action`](#action-class) |
@@ -39,8 +39,6 @@ The following table describes the mapping between the `Prerequisite` class varia
 
 | class variable | xml tag    | description                                 |
 | :------------- | :--------- | :------------------------------------------ |
-| `type`         | `<type>`   | Type of the prerequisite. One of [`PrerequisiteType`](#prerequisitetype) |
-| | |  Below fields as needed by `PrerequisiteType` |
 | `maxNumOfferedContracts` | `<maxNumOfferedContracts>` | Offer contract if number of offered contracts is less than this number (Default: unlimited). Used if `prerequisiteType` is `maxNumOfferedContracts` |
 | `maxNumAcceptedContracts` | `<maxNumAcceptedContracts>` | Offer contract if number of accepted contracts is less than this number (Default: unlimited).  Used if `prerequisiteType` is `maxNumAcceptedContracts` |
 | `maxCompleteCount` | `<maxCompleteCount>` | Offer contract if number of completed instances of this contract blueprint is less than this number (Default: 0). Used if `prerequisiteType` is `maxCompleteCount` |
@@ -54,21 +52,7 @@ The following table describes the mapping between the `Prerequisite` class varia
 
 > The number of vessels is determined only within the current celestial system. It also does not differentiate between actual vessels and kittens in EVA. Also, it does not differentiate if the vessel is owned/controllable by the player.
 
-#### `PrerequisiteType`
-
-The following types are supported:
-* `maxNumOfferedContracts`: Offer contract if number of offered contracts is less than number defined in `maxNumOfferedContracts` field.
-* `maxNumAcceptedContracts`: Offer contract if number of accepted contracts is less than number defined in `maxNumAcceptedContracts` field.
-* `maxCompleteCount`: Offer contract if number of completed instances of this contract blueprint  is less than number defined in `maxCompleteCount` field.
-* `maxFailedCount`: Offer contract if number of failed instances of this contract blueprint is less than number defined in `maxFailedCount` field.
-* `maxConcurrentCount`: Offer contract if number of accepted contracts of this contract blueprint is less than number defined in `maxConcurrentCount` field.
-* `hasCompletedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasCompletedContract` field has been completed.
-* `hasFailedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasFailedContract` field has been failed.
-* `hasAcceptedContract`: Offer contract if a contract with contract blueprint uid as defined in `hasAcceptedContract` field has been accepted (and not yet completed).
-* `minNumberOfVessels`: There are more than this number of vessels in the current celestial system.
-* `maxNumberOfVessels`: There are less than this number of vessels in the current celestial system.
-
-In the future more types will be added, such as:
+In the future more fields will be added, such as:
 
 * `unlockedTech`: Unlocked technology / node in science tree.
 * `minMoney`: player has more than this amount of money.
@@ -164,6 +148,7 @@ The following table describes the mapping between the `Action` class variables a
 
 | class variable | xml tag    | description                                 |
 | :------------- | :--------- | :------------------------------------------ |
+| `uid`          | `<uid>`    | Unique identifier of the `Action`        |
 | `trigger`      | `<trigger>` | Trigger for the action. One of [`TriggerType`](#triggertype) |
 | `type`         | `<type>`   | Type of the action to execute. One of [`ActionType`](#actiontype) |
 | | |  Below fields as needed by `ActionType` or `TriggerType` |

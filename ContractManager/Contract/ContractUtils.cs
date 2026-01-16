@@ -129,7 +129,7 @@ namespace ContractManager.Contract
             bool foundContract = false;
             foreach (Contract contract in contracts)
             {
-                foundContract = contract.contractUID == contractUID;
+                foundContract = contract.uid == contractUID;
                 if (foundContract)
                 {
                     // Found matching contract.
@@ -148,21 +148,6 @@ namespace ContractManager.Contract
             if (contract != null) { return contract; }
             contract = ContractUtils.FindContractFromContractUID(ContractManager.data.finishedContracts, contractUID);
             return contract;
-        }
-
-        internal static ContractBlueprint.Prerequisite? FindPrerequisiteFromUID(List<ContractBlueprint.Prerequisite> blueprintPrerequisites, string prerequisiteUID)
-        {
-            bool foundBlueprintPrerequisite = false;
-            foreach (ContractBlueprint.Prerequisite blueprintPrerequisite in blueprintPrerequisites)
-            {
-                foundBlueprintPrerequisite = blueprintPrerequisite.uid == prerequisiteUID;
-                if (foundBlueprintPrerequisite)
-                {
-                    // Found matching blueprint requirement.
-                    return blueprintPrerequisite;
-                }
-            }
-            return null;
         }
 
         internal static ContractBlueprint.Requirement? FindRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements, string requirementUID)

@@ -16,8 +16,11 @@ namespace ContractManager.Contract
 
         // Serializable fields.
         // Unique identifier for the contract.
-        [XmlElement("contractUID", DataType = "string")]
-        public string contractUID { get; set; } = string.Empty;
+        // [RENAMED v0.2.4]
+        //[XmlElement("contractUID", DataType = "string")]
+        //public string contractUID { get; set; } = string.Empty;
+        [XmlElement("uid", DataType = "string")]
+        public string uid { get; set; } = string.Empty;
 
         // Unique identifier for which blueprint the contract was instantiated from.
         [XmlElement("blueprintUID", DataType = "string")]
@@ -62,7 +65,7 @@ namespace ContractManager.Contract
         {
             Contract clonedContract = new Contract
             {
-                contractUID = this.contractUID,
+                uid = this.uid,
                 blueprintUID = this.blueprintUID,
                 status = this.status,
                 offeredTimeS = this.offeredTimeS,
@@ -94,7 +97,7 @@ namespace ContractManager.Contract
             }
             else
             {
-                Console.WriteLine($"[CM] [ERROR] Contract could not find ContractBlueprint matching uid '{this.blueprintUID}'");
+                Console.WriteLine($"[CM] [ERROR] Contract '{this.uid}' could not find ContractBlueprint matching uid '{this.blueprintUID}'");
                 return null;
             }
             return clonedContract;
@@ -107,7 +110,7 @@ namespace ContractManager.Contract
             this._contractBlueprint = contractBlueprint;
             this.offeredSimTime = simTime;
             this.status = ContractStatus.Offered;
-            this.contractUID = String.Format("{0}_{1:F0}", contractBlueprint.uid, this.offeredSimTime.Seconds());
+            this.uid = String.Format("{0}_{1:F0}", contractBlueprint.uid, this.offeredSimTime.Seconds());
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
@@ -120,8 +123,8 @@ namespace ContractManager.Contract
             {
                 List<Mission.Mission> missions = Mission.MissionUtils.FindMissionsFromMissionBlueprintUID(ContractManager.data.acceptedMissions, contractBlueprint.missionBlueprintUID);
                 if (missions.Count == 1) {
-                    this.missionUID = missions[0].missionUID;
-                    missions[0].contractUIDs.Add(this.contractUID);
+                    this.missionUID = missions[0].uid;
+                    missions[0].contractUIDs.Add(this.uid);
                 }
                 else
                 {

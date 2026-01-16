@@ -1,12 +1,9 @@
 ﻿using Brutal.ImGuiApi;
 using Brutal.ImGuiApi.Extensions;
 using Brutal.Numerics;
-using ContractManager.Contract;
+using ContractManager;
 using ContractManager.ContractBlueprint;
-using ContractManager.Mission;
 using KSA;
-using System;
-using System.Collections.Generic;
 
 namespace ContractManager.GUI
 {
@@ -15,7 +12,6 @@ namespace ContractManager.GUI
     {
         private ContractBlueprintEditingPanel? _contractBlueprintEditingPanel = null;
         private MissionBlueprintEditingPanel? _missionBlueprintEditingPanel = null;
-        private PrerequisiteEditingPanel? _prerequisiteEditingPanel = null;
         private RequirementEditingPanel? _requirementEditingPanel = null;
         private ActionEditingPanel? _actionEditingPanel = null;
 
@@ -71,7 +67,7 @@ namespace ContractManager.GUI
                 if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT &&
                     ContractManager.contractManagementWindow.rightPanelDetailUID != string.Empty)
                 { 
-                    ContractBlueprint.ContractBlueprint? contractBlueprint = ContractUtils.FindContractBlueprintFromUID(
+                    ContractBlueprint.ContractBlueprint? contractBlueprint = Contract.ContractUtils.FindContractBlueprintFromUID(
                         ContractManager.data.contractBlueprints,
                         ContractManager.contractManagementWindow.rightPanelDetailUID
                     );
@@ -79,31 +75,6 @@ namespace ContractManager.GUI
                         // reset
                         ContractManager.contractManagementWindow.rightPanelDetailType = RightPanelDetailType.NONE;
                         ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
-                    }
-                    else
-                    if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE)
-                    {
-                        if (ImGui.BeginChild("PlannerLeftPrerequisitesPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
-                        {
-                            if (ImGui.ArrowButton("##planner_leftPrerequisites_return", ImGuiDir.Left))
-                            {
-                                ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                            }
-                            ImGui.SameLine();
-                            ImGui.SeparatorText("Prerequisites");
-                            ImGui.SameLine();
-                            if (ImGui.Button("+##planner_leftPrerequisites_add"))
-                            {
-
-                            }
-
-                            List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, contractBlueprint.prerequisites);
-                            ImGui.Text(String.Format("list: {0}", listItems.Count));
-                            ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints_prerequisites");
-
-                            ImGui.EndChild();  // End of LeftContractPanel
-                        }
                     }
                     else
                     if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT)
@@ -198,7 +169,7 @@ namespace ContractManager.GUI
                     else
                     if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT)
                     {
-                        ContractBlueprint.ContractBlueprint? contractBlueprintToShow = ContractUtils.FindContractBlueprintFromUID(
+                        ContractBlueprint.ContractBlueprint? contractBlueprintToShow = Contract.ContractUtils.FindContractBlueprintFromUID(
                             ContractManager.data.contractBlueprints,
                             ContractManager.contractManagementWindow.rightPanelDetailUID
                         );
@@ -209,27 +180,10 @@ namespace ContractManager.GUI
                             ContractManager.contractManagementWindow.rightPanelDetailUID = string.Empty;
                         }
                         else
-                        if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.PREREQUISITE &&
-                            ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
-                        {
-                            ContractBlueprint.Prerequisite? prerequisiteToShow = ContractUtils.FindPrerequisiteFromUID(
-                                contractBlueprintToShow.prerequisites,
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID
-                            );
-                            if (prerequisiteToShow != null )
-                            {
-                                this.DrawPrerequisiteDetails(prerequisiteToShow);
-                            }
-                            else
-                            {
-                                ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                            }
-                        }
-                        else
                         if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT &&
                             ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
                         {
-                            ContractBlueprint.Requirement? requirementToShow = ContractUtils.FindRequirementFromUID(
+                            ContractBlueprint.Requirement? requirementToShow = Contract.ContractUtils.FindRequirementFromUID(
                                 contractBlueprintToShow.requirements,
                                 ContractManager.contractManagementWindow.rightPanelDetailSubUID
                             );
@@ -246,7 +200,7 @@ namespace ContractManager.GUI
                         if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.ACTION &&
                             ContractManager.contractManagementWindow.rightPanelDetailSubUID != string.Empty)
                         {
-                            ContractBlueprint.Action? actionToShow = ContractUtils.FindActionFromUID(
+                            ContractBlueprint.Action? actionToShow = Contract.ContractUtils.FindActionFromUID(
                                 contractBlueprintToShow.actions,
                                 ContractManager.contractManagementWindow.rightPanelDetailSubUID
                             );
@@ -268,7 +222,7 @@ namespace ContractManager.GUI
                     else
                     if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.MISSIONBLUEPRINT)
                     {
-                        Mission.MissionBlueprint? missionBlueprintToShow = MissionUtils.FindMissionBlueprintFromUID(
+                        Mission.MissionBlueprint? missionBlueprintToShow = Mission.MissionUtils.FindMissionBlueprintFromUID(
                             ContractManager.data.missionBlueprints,
                             ContractManager.contractManagementWindow.rightPanelDetailUID
                         );
@@ -316,20 +270,6 @@ namespace ContractManager.GUI
             this._missionBlueprintEditingPanel.Draw();
         }
         
-        internal void DrawPrerequisiteDetails(ContractBlueprint.Prerequisite prerequisiteToShow)
-        {
-            if (this._prerequisiteEditingPanel == null)
-            {
-                this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref prerequisiteToShow);
-            }
-            else
-            if (this._prerequisiteEditingPanel.prerequisiteUID != prerequisiteToShow.uid)
-            {
-                this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref prerequisiteToShow);
-            }
-            this._prerequisiteEditingPanel.Draw();
-        }
-        
         internal void DrawRequirementDetails(ContractBlueprint.Requirement requirementToShow)
         {
             if (this._requirementEditingPanel == null)
@@ -363,6 +303,8 @@ namespace ContractManager.GUI
     {
         private ContractBlueprint.ContractBlueprint _contractBlueprint;
         internal string blueprintUID = string.Empty;
+        private Prerequisite? _prerequisite = null;
+        private PrerequisiteEditingPanel? _prerequisiteEditingPanel = null;
 
         // variables for inputs
         private Brutal.ImGuiApi.ImInputString _blueprintUID;
@@ -386,6 +328,8 @@ namespace ContractManager.GUI
             this._isRejectable = contractBlueprintToEdit.isRejectable;
             this._deadline = contractBlueprintToEdit.deadline;
             this._isAutoAccepted = contractBlueprintToEdit.isAutoAccepted;
+            this._prerequisite = contractBlueprintToEdit.prerequisite;
+            this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref this._prerequisite);
         }
 
         internal void Draw()
@@ -422,7 +366,7 @@ namespace ContractManager.GUI
                 string selectedMissionBlueprint = "None";
                 if (!string.IsNullOrEmpty(this._contractBlueprint.missionBlueprintUID))
                 {
-                    Mission.MissionBlueprint? mission = MissionUtils.FindMissionBlueprintFromUID(ContractManager.data.missionBlueprints, this._contractBlueprint.missionBlueprintUID);
+                    Mission.MissionBlueprint? mission = Mission.MissionUtils.FindMissionBlueprintFromUID(ContractManager.data.missionBlueprints, this._contractBlueprint.missionBlueprintUID);
                     if (mission != null)
                     {
                         selectedMissionBlueprint = mission.title;
@@ -541,14 +485,9 @@ namespace ContractManager.GUI
             }
             
             ImGui.SeparatorText("Prerequisites");
-            ImGuiTreeNodeFlags prerequisiteTreeNodeFlags = ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes;
-            if (ImGui.TreeNodeEx("Contract prerequisites:", prerequisiteTreeNodeFlags))
+            if (this._prerequisiteEditingPanel != null)
             {
-                foreach (ContractBlueprint.Prerequisite prerequisite in this._contractBlueprint.prerequisites)
-                {
-                    this.DrawPrerequisiteTreeNode(prerequisite);
-                }
-                ImGui.TreePop();
+                this._prerequisiteEditingPanel.Draw();
             }
 
             ImGui.SeparatorText("Requirements");
@@ -612,40 +551,6 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("deadline: {0}", this._contractBlueprint.deadline));
             ImGui.Text(String.Format("isAutoAccepted: {0}", this._contractBlueprint.isAutoAccepted));
             ImGui.Text(String.Format("completionCondition: {0}", this._contractBlueprint.completionCondition.ToString()));
-        }
-        
-        internal void DrawPrerequisiteTreeNode(ContractBlueprint.Prerequisite prerequisite)
-        {
-            var style = ImGui.GetStyle();
-            float buttonEditWidth = ImGui.CalcTextSize("Edit").X + style.FramePadding.X * 2.0f;
-            float buttonDeleteWidth = ImGui.CalcTextSize("Delete").X + style.FramePadding.X * 2.0f;
-            float ContentRegionAvailWidth = ImGui.GetContentRegionAvail().X;
-            float triangleWidth = 20.0f * 2.0f;  // Width of the tree node triangle to fold the node. (twice because of the parent?)
-            float maxTitleWidth = ContentRegionAvailWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
-            // Ensure the title can fit in a way to leave space for the buttons
-            string titleForNode = prerequisite.type.ToString(); // TODO: convert to easier to read strings
-            float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
-            while (textSize > maxTitleWidth)
-            {
-                titleForNode = titleForNode[0..^3] + "..";
-                textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
-            }
-            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", titleForNode, prerequisite.uid), ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.DrawLinesToNodes))
-            {
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ContentRegionAvailWidth - textSize - buttonEditWidth - buttonDeleteWidth - triangleWidth);
-                if (ImGui.SmallButton("Edit"))
-                {
-                    ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.PREREQUISITE;
-                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = prerequisite.uid;
-                }
-                ImGui.SameLine();
-                if (ImGui.SmallButton("Delete"))
-                {
-                    // TODO: need to set some flag to edit the prerequisites outside of the foreach loop
-                }
-                ImGui.TreePop();
-            }
         }
 
         internal void DrawRequirementTreeNode(ContractBlueprint.Requirement requirement)
@@ -728,6 +633,8 @@ namespace ContractManager.GUI
     {
         private Mission.MissionBlueprint _missionBlueprint;
         internal string blueprintUID = string.Empty;
+        private Prerequisite? _prerequisite = null;
+        private PrerequisiteEditingPanel? _prerequisiteEditingPanel = null;
 
         // variables for inputs
         private Brutal.ImGuiApi.ImInputString _blueprintUID;
@@ -751,6 +658,8 @@ namespace ContractManager.GUI
             this._isRejectable = missionBlueprintToEdit.isRejectable;
             this._deadline = missionBlueprintToEdit.deadline;
             this._isAutoAccepted = missionBlueprintToEdit.isAutoAccepted;
+            this._prerequisite = missionBlueprintToEdit.prerequisite;
+            this._prerequisiteEditingPanel = new PrerequisiteEditingPanel(ref this._prerequisite);
         }
 
         internal void Draw()
@@ -862,6 +771,12 @@ namespace ContractManager.GUI
 
                 ImGui.EndTable();
             }
+            
+            ImGui.SeparatorText("Prerequisites");
+            if (this._prerequisiteEditingPanel != null)
+            {
+                this._prerequisiteEditingPanel.Draw();
+            }
 
             // TODO: remove
             ImGui.SeparatorText("Debug");
@@ -884,7 +799,6 @@ namespace ContractManager.GUI
         internal string prerequisiteUID = string.Empty;
 
         // Input fields
-        private Brutal.ImGuiApi.ImInputString _uid;
         private int _selectedTypeIndex;
         private int _maxNumOfferedContracts;
         private int _maxNumAcceptedContracts;
@@ -905,9 +819,6 @@ namespace ContractManager.GUI
         internal PrerequisiteEditingPanel(ref ContractBlueprint.Prerequisite prerequisiteToEdit)
         {
             this._prerequisite = prerequisiteToEdit;
-            this.prerequisiteUID = prerequisiteToEdit.uid;
-            this._uid = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.uid);
-            this._selectedTypeIndex = (int)prerequisiteToEdit.type;
             this._maxNumOfferedContracts = (int)prerequisiteToEdit.maxNumOfferedContracts;
             this._maxNumAcceptedContracts = (int)prerequisiteToEdit.maxNumAcceptedContracts;
             this._maxNumOfferedMissions = (int)prerequisiteToEdit.maxNumOfferedMissions;
@@ -927,286 +838,224 @@ namespace ContractManager.GUI
 
         internal void Draw()
         {
-            ImGui.SeparatorText("Edit Prerequisite");
-
             if (ImGui.BeginTable("PrerequisitePanelTable", 2))
             {
                 ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
 
-                // UID
+                // Show fields
+                // MaxNumOfferedContracts:
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("UID:");
-                ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this prerequisite. Needs to be unique across all prerequisites. (max 64)");
+                ImGui.Text("Max Offered Contracts:");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputText("##Prerequisite_input_uid", this._uid))
+                if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedContracts", ref this._maxNumOfferedContracts))
                 {
-                    this._prerequisite.uid = this._uid.ToString();
-                    // Update to prevent editing this will not show the prerequisite.
-                    ContractManager.contractManagementWindow.rightPanelDetailSubUID = this._prerequisite.uid;
-                }
-
-                // Type
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Type:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                
-                this._selectedTypeIndex = 0;
-                string[] typeNames = Enum.GetNames(typeof(ContractBlueprint.PrerequisiteType));
-                string selectedTypeName = typeNames[0];
-                if (ImGui.BeginCombo("##Prerequisite_combo_type", selectedTypeName))
-                {
-                    for (int typeIndex = 0; typeIndex < typeNames.Length; typeIndex++)
+                    if (this._maxNumOfferedContracts < 0)
                     {
-                        if (ImGui.Selectable(typeNames[typeIndex]))
-                        {
-                            this._prerequisite.type = ((ContractBlueprint.PrerequisiteType)typeIndex);
-                        }
-                        if (selectedTypeName == typeNames[typeIndex])
-                        {
-                            ImGui.SetItemDefaultFocus();
-                            this._selectedTypeIndex = typeIndex;
-                        }
+                        this._maxNumOfferedContracts = 0;
                     }
-                    ImGui.EndCombo();
+                    else
+                    {
+                        this._prerequisite.maxNumOfferedContracts = (uint)this._maxNumOfferedContracts;
+                    }
                 }
-
-                // Show fields based on type
-                var type = (ContractBlueprint.PrerequisiteType)this._selectedTypeIndex;
-                switch (type)
+                // MaxNumAcceptedContracts:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Accepted Contracts:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedContracts", ref this._maxNumAcceptedContracts))
                 {
-                    case ContractBlueprint.PrerequisiteType.MaxNumOfferedContracts:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Offered Contracts:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedContracts", ref this._maxNumOfferedContracts))
-                        {
-                            if (this._maxNumOfferedContracts < 0)
-                            {
-                            this._maxNumOfferedContracts = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxNumOfferedContracts = (uint)this._maxNumOfferedContracts;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxNumAcceptedContracts:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Accepted Contracts:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedContracts", ref this._maxNumAcceptedContracts))
-                        {
-                            if (this._maxNumAcceptedContracts < 0)
-                            {
-                                this._maxNumAcceptedContracts = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxNumAcceptedContracts = (uint)this._maxNumAcceptedContracts;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxNumOfferedMissions:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Offered Missions:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedMissions", ref this._maxNumOfferedMissions))
-                        {
-                            if (this._maxNumOfferedMissions < 0)
-                            {
-                                this._maxNumOfferedMissions = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxNumOfferedMissions = (uint)this._maxNumOfferedMissions;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxNumAcceptedMissions:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Accepted Missions:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedMissions", ref this._maxNumAcceptedMissions))
-                        {
-                            if (this._maxNumAcceptedMissions < 0)
-                            {
-                                this._maxNumAcceptedMissions = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxNumAcceptedMissions = (uint)this._maxNumAcceptedMissions;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxCompleteCount:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Complete Count:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxCompleteCount", ref this._maxCompleteCount))
-                        {
-                            if (this._maxCompleteCount < 0)
-                            {
-                                this._maxCompleteCount = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxCompleteCount = (uint)this._maxCompleteCount;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxFailedCount:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Failed Count:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxFailedCount", ref this._maxFailedCount))
-                        {
-                            if (this._maxFailedCount < 0)
-                            {
-                                this._maxFailedCount = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxFailedCount = (uint)this._maxFailedCount;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxConcurrentCount:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Concurrent Count:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxConcurrentCount", ref this._maxConcurrentCount))
-                        {
-                            if (this._maxConcurrentCount < 0)
-                            {
-                                this._maxConcurrentCount = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxConcurrentCount = (uint)this._maxConcurrentCount;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasCompletedContract:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Completed Contract UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasCompletedContract", this._hasCompletedContract))
-                        {
-                            this._prerequisite.hasCompletedContract = this._hasCompletedContract.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasFailedContract:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Failed Contract UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasFailedContract", this._hasFailedContract))
-                        {
-                            this._prerequisite.hasFailedContract = this._hasFailedContract.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasAcceptedContract:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Accepted Contract UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasAcceptedContract", this._hasAcceptedContract))
-                        {
-                            this._prerequisite.hasAcceptedContract = this._hasAcceptedContract.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasCompletedMission:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Completed Mission UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasCompletedMission", this._hasCompletedMission))
-                        {
-                            this._prerequisite.hasCompletedMission = this._hasCompletedMission.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasFailedMission:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Failed Mission UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasFailedMission", this._hasFailedMission))
-                        {
-                            this._prerequisite.hasFailedMission = this._hasFailedMission.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.HasAcceptedMission:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Has Accepted Mission UID:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputText("##Prerequisite_input_hasAcceptedMission", this._hasAcceptedMission))
-                        {
-                            this._prerequisite.hasAcceptedMission = this._hasAcceptedMission.ToString();
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MinNumberOfVessels:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Min Number Of Vessels:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_minNumberOfVessels", ref this._minNumberOfVessels))
-                        {
-                            if (this._minNumberOfVessels < 0)
-                            {
-                                this._minNumberOfVessels = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.minNumberOfVessels = (uint)this._minNumberOfVessels;
-                            }
-                        }
-                        break;
-                    case ContractBlueprint.PrerequisiteType.MaxNumberOfVessels:
-                        ImGui.TableNextRow();
-                        ImGui.TableNextColumn();
-                        ImGui.Text("Max Number Of Vessels:");
-                        ImGui.TableNextColumn();
-                        ImGui.SetNextItemWidth(-1.0f);
-                        if (ImGui.InputInt("##Prerequisite_input_maxNumberOfVessels", ref this._maxNumberOfVessels))
-                        {
-                            if (this._maxNumberOfVessels < 0)
-                            {
-                                this._maxNumberOfVessels = 0;
-                            }
-                            else
-                            {
-                                this._prerequisite.maxNumberOfVessels = (uint)this._maxNumberOfVessels;
-                            }
-                        }
-                        break;
+                    if (this._maxNumAcceptedContracts < 0)
+                    {
+                        this._maxNumAcceptedContracts = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxNumAcceptedContracts = (uint)this._maxNumAcceptedContracts;
+                    }
+                }
+                // MaxNumOfferedMissions:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Offered Missions:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedMissions", ref this._maxNumOfferedMissions))
+                {
+                    if (this._maxNumOfferedMissions < 0)
+                    {
+                        this._maxNumOfferedMissions = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxNumOfferedMissions = (uint)this._maxNumOfferedMissions;
+                    }
+                }
+                // MaxNumAcceptedMissions:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Accepted Missions:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedMissions", ref this._maxNumAcceptedMissions))
+                {
+                    if (this._maxNumAcceptedMissions < 0)
+                    {
+                        this._maxNumAcceptedMissions = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxNumAcceptedMissions = (uint)this._maxNumAcceptedMissions;
+                    }
+                }
+                // MaxCompleteCount:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Complete Count:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxCompleteCount", ref this._maxCompleteCount))
+                {
+                    if (this._maxCompleteCount < 0)
+                    {
+                        this._maxCompleteCount = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxCompleteCount = (uint)this._maxCompleteCount;
+                    }
+                }
+                // MaxFailedCount:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Failed Count:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxFailedCount", ref this._maxFailedCount))
+                {
+                    if (this._maxFailedCount < 0)
+                    {
+                        this._maxFailedCount = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxFailedCount = (uint)this._maxFailedCount;
+                    }
+                }
+                // MaxConcurrentCount:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Concurrent Count:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxConcurrentCount", ref this._maxConcurrentCount))
+                {
+                    if (this._maxConcurrentCount < 0)
+                    {
+                        this._maxConcurrentCount = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxConcurrentCount = (uint)this._maxConcurrentCount;
+                    }
+                }
+                // HasCompletedContract:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Completed Contract UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasCompletedContract", this._hasCompletedContract))
+                {
+                    this._prerequisite.hasCompletedContract = this._hasCompletedContract.ToString();
+                }
+                // HasFailedContract:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Failed Contract UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasFailedContract", this._hasFailedContract))
+                {
+                    this._prerequisite.hasFailedContract = this._hasFailedContract.ToString();
+                }
+                // HasAcceptedContract:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Accepted Contract UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasAcceptedContract", this._hasAcceptedContract))
+                {
+                    this._prerequisite.hasAcceptedContract = this._hasAcceptedContract.ToString();
+                }
+                // HasCompletedMission:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Completed Mission UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasCompletedMission", this._hasCompletedMission))
+                {
+                    this._prerequisite.hasCompletedMission = this._hasCompletedMission.ToString();
+                }
+                // HasFailedMission:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Failed Mission UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasFailedMission", this._hasFailedMission))
+                {
+                    this._prerequisite.hasFailedMission = this._hasFailedMission.ToString();
+                }
+                // HasAcceptedMission:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Has Accepted Mission UID:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputText("##Prerequisite_input_hasAcceptedMission", this._hasAcceptedMission))
+                {
+                    this._prerequisite.hasAcceptedMission = this._hasAcceptedMission.ToString();
+                }
+                // MinNumberOfVessels:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Min Number Of Vessels:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_minNumberOfVessels", ref this._minNumberOfVessels))
+                {
+                    if (this._minNumberOfVessels < 0)
+                    {
+                        this._minNumberOfVessels = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.minNumberOfVessels = (uint)this._minNumberOfVessels;
+                    }
+                }
+                // MaxNumberOfVessels:
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Max Number Of Vessels:");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputInt("##Prerequisite_input_maxNumberOfVessels", ref this._maxNumberOfVessels))
+                {
+                    if (this._maxNumberOfVessels < 0)
+                    {
+                        this._maxNumberOfVessels = 0;
+                    }
+                    else
+                    {
+                        this._prerequisite.maxNumberOfVessels = (uint)this._maxNumberOfVessels;
+                    }
                 }
 
                 ImGui.EndTable();
@@ -1214,8 +1063,6 @@ namespace ContractManager.GUI
 
             // TODO: Remove
             ImGui.SeparatorText("Debug");
-            ImGui.Text(String.Format("uid: {0}", this._prerequisite.uid));
-            ImGui.Text(String.Format("type: {0}", this._prerequisite.type));
             ImGui.Text(String.Format("maxNumOfferedContracts: {0}", this._prerequisite.maxNumOfferedContracts));
             ImGui.Text(String.Format("maxNumAcceptedContracts: {0}", this._prerequisite.maxNumAcceptedContracts));
             ImGui.Text(String.Format("maxNumOfferedMissions: {0}", this._prerequisite.maxNumOfferedMissions));

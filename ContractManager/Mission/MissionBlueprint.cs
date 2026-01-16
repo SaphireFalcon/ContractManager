@@ -1,6 +1,9 @@
 ﻿using ContractManager.ContractBlueprint;
+using KSA;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace ContractManager.Mission
@@ -10,7 +13,7 @@ namespace ContractManager.Mission
     {
         // The version for which the contract was created.
         [XmlElement("version", DataType = "string")]
-        public string version { get; set; } = ContractManager.version;
+        public string version { get; set; } = ContractManager.version.ToString();
         
         // The unique identifier for the mission
         [XmlElement("uid", DataType = "string")]
@@ -48,9 +51,13 @@ namespace ContractManager.Mission
         [XmlElement("isAutoAccepted", DataType = "boolean")]
         public bool isAutoAccepted { get; set; } = false;
 
-        // List of prerequisites for the misison to be offered automatically
-        [XmlArray("prerequisites")]
-        public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+        // [DEPRECIATED v0.2.1] List of prerequisites for the misison to be offered automatically
+        //[XmlArray("prerequisites")]
+        //public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
+
+        // [v0.2.1] Prerequisite to offer contract
+        [XmlElement("Prerequisite")]
+        public Prerequisite prerequisite { get; set; } = new Prerequisite();
 
         // List of actions for the misison
         [XmlArray("actions")]
@@ -69,21 +76,23 @@ namespace ContractManager.Mission
         internal void WriteToFile(string filePath)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
-            using (var writer = new System.IO.StreamWriter(filePath))
-            {
-                serializer.Serialize(writer, this);
-            }
+            XmlHelper.SerializeWithoutNaN(serializer, this, filePath);
         }
 
         // Load a mission blueprint from an XML file.
-        internal static MissionBlueprint LoadFromFile(string filePath)
+        internal static MissionBlueprint? LoadFromFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
+            XDocument? xmlDocument = null;
             using (var reader = new System.IO.StreamReader(filePath))
             {
-                return (MissionBlueprint)serializer.Deserialize(reader);
+                xmlDocument = XDocument.Load(reader);
             }
-            // 
+            if (MissionBlueprint.Migrate(ref xmlDocument, filePath))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
+                return (MissionBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+            }
+            return null;
         }
 
         internal bool Validate(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
@@ -128,15 +137,124 @@ namespace ContractManager.Mission
                 return false;
             }
 
-            foreach (var prerequisite in prerequisites)
-            {
-                if (!prerequisite.Validate()) { return false; }
-            }
+            if (!this.prerequisite.Validate()) { return false; }
             foreach (var action in actions)
             {
                 if (!action.Validate()) { return false; }
             }
 
+            return true;
+        }
+
+        private static bool Migrate(ref XDocument xmlDocument, string filePath)
+        {
+            bool migratedFile = false;
+            Version loadedXMLVersion = new Version(xmlDocument);
+            if (!loadedXMLVersion.valid) { return false; }
+            if (ContractManager.version < loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                return false;
+            }
+
+            Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlDocument.Root == null) { return false; }
+            Version xmlVersion = new Version(loadedXMLVersion);
+            
+            if (!MissionBlueprint.MigratePrerequisteWithTypeFlatten(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            if (!MissionBlueprint.MigrateAddActionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+                        
+            if (xmlVersion < ContractManager.version)
+            {
+                xmlVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()}.");
+            }
+            xmlDocument.Root.SetElementValue("version", xmlVersion.ToString());
+            if (migratedFile)
+            {
+                // Write to disk
+                string modFolderContractPath = Path.GetDirectoryName(filePath);
+                string contentDirectoryPath = Path.GetFullPath(@"Content");
+                if (modFolderContractPath.StartsWith(contentDirectoryPath))
+                {
+                    // This has to be true, because contracts are loaded from Content/[mod]/missions
+                    modFolderContractPath = modFolderContractPath.Substring(contentDirectoryPath.Length);
+                }
+                string contractsVersionExportFolderPath = Path.Combine(
+                    KSA.Constants.DocumentsFolderPath,
+                    "migration",
+                    String.Format("version_{0}_{1}_{2}", xmlVersion.major, xmlVersion.minor, xmlVersion.patch),
+                    modFolderContractPath
+                );
+                try
+                {
+                    Directory.CreateDirectory(contractsVersionExportFolderPath);
+                }
+                catch { }  // silently catch any error.
+                if (Directory.Exists(contractsVersionExportFolderPath))
+                {
+                    string migratedContractExportPath = Path.Combine(contractsVersionExportFolderPath, Path.GetFileName(filePath));
+                    Console.WriteLine($"[CM] [INFO] export migrated contract to: {migratedContractExportPath}.");
+                    xmlDocument.Save(migratedContractExportPath);
+                    // Create/add to popup
+                    GUI.PopupWindow popupWindow = ContractManager.data.FindPopupWindowFromUID("migration");
+                    if (popupWindow == null)
+                    {
+                        ContractManager.data.popupWindows.Add(new GUI.PopupWindow
+                        {
+                            uid = "migration",
+                            title = "Migrated files exported to disk.",
+                            popupType = GUI.PopupType.Popup,
+                            messageToShow = $"Contract Manager found old files and has migrated these, please move them into the respective mod/game folders:\n'{migratedContractExportPath}'",
+                        }
+                        );
+                    }
+                    else
+                    {
+                        popupWindow.messageToShow += $"\n'{migratedContractExportPath}'";
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool MigratePrerequisteWithTypeFlatten(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.1")
+            {
+                // version 0.2.1 flattens prerequisiteElement
+                XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
+                if (prerequisitesElement != null )
+                {
+                    XElement? migratedPrerequisiteElement = ContractBlueprint.Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
+                    if(migratedPrerequisiteElement != null)
+                    {
+                        xmlDocument.Root.Add(migratedPrerequisiteElement);
+                    }
+                    prerequisitesElement.Remove();
+                }
+                xmlVersion.FromString("0.2.1");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            return true;
+        }
+
+        private static bool MigrateAddActionUID(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.2")
+            {
+                // version 0.2.2 adds uid to Action
+                XElement? actionsElement = xmlDocument.Root.Element("actions");
+                XElement? uidElement = xmlDocument.Root.Element("uid");
+                if (actionsElement != null && uidElement != null )
+                {
+                    ContractBlueprint.Action.MigrateAddUID(ref actionsElement, uidElement.Value);
+                }
+                xmlVersion.FromString("0.2.2");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
             return true;
         }
     }

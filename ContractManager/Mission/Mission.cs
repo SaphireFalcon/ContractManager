@@ -13,8 +13,11 @@ namespace ContractManager.Mission
 
         // Serializable fields.
         // Unique identifier for the mission.
-        [XmlElement("missionUID", DataType = "string")]
-        public string missionUID { get; set; } = string.Empty;
+        // [RENAMED v0.2.4]
+        //[XmlElement("missionUID", DataType = "string")]
+        //public string missionUID { get; set; } = string.Empty;
+        [XmlElement("uid", DataType = "string")]
+        public string uid { get; set; } = string.Empty;
 
         // Unique identifier for which blueprint the mission was instantiated from.
         [XmlElement("blueprintUID", DataType = "string")]
@@ -52,7 +55,7 @@ namespace ContractManager.Mission
         {
             var clonedMission = new Mission
             {
-                missionUID = this.missionUID,
+                uid = this.uid,
                 blueprintUID = this.blueprintUID,
                 status = this.status,
                 offeredTimeS = this.offeredTimeS,
@@ -69,7 +72,7 @@ namespace ContractManager.Mission
             clonedMission._missionBlueprint = MissionUtils.FindMissionBlueprintFromUID(missionBlueprints, this.blueprintUID);
             if (clonedMission._missionBlueprint == null)
             {
-                Console.WriteLine($"[CM] [ERROR] Mission could not find MissionBlueprint matching uid '{this.blueprintUID}'");
+                Console.WriteLine($"[CM] [ERROR] Mission '{this.uid}' could not find MissionBlueprint matching uid '{this.blueprintUID}'");
                 return null;
             }
 
@@ -83,7 +86,7 @@ namespace ContractManager.Mission
             this._missionBlueprint = missionBlueprint;
             this.offeredSimTime = simTime;
             this.status = MissionStatus.Offered;
-            this.missionUID = String.Format("{0}_{1:F0}", missionBlueprint.uid, this.offeredSimTime.Seconds());
+            this.uid = String.Format("{0}_{1:F0}", missionBlueprint.uid, this.offeredSimTime.Seconds());
 
             // Should we create contracts here? We should just allow the "normal" offer procedure do that.
         }

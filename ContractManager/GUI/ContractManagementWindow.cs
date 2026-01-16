@@ -22,7 +22,7 @@ namespace ContractManager.GUI
         { 
             this._window = window;
             this._title = contract._contractBlueprint.title;
-            this._uid = contract.contractUID;
+            this._uid = contract.uid;
             this._guid = $"contract_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.CONTRACT;
             this._colors = Colors.GetContractStatusColor(contract.status);
@@ -41,7 +41,7 @@ namespace ContractManager.GUI
         { 
             this._window = window;
             this._title = mission._missionBlueprint.title;
-            this._uid = mission.missionUID;
+            this._uid = mission.uid;
             this._guid = $"mission_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.MISSION;
             this._colors = Colors.GetMissionStatusColor(mission.status);
@@ -87,24 +87,6 @@ namespace ContractManager.GUI
             foreach (Mission.MissionBlueprint missionBlueprint in missionBlueprints)
             {
                 leftPanelListItems.Add(new LeftPanelListItem(window, missionBlueprint));
-            }
-            return leftPanelListItems;
-        }
-        
-        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Prerequisite prerequisite)
-        { 
-            this._window = window;
-            this._title = prerequisite.type.ToString();
-            this._uid = prerequisite.uid;
-            this._guid = $"mission_{this._uid}";
-            this._rightPanelDetailType = RightPanelDetailType.PREREQUISITE;
-        }
-        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Prerequisite> prerequisites)
-        {
-            List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
-            foreach (ContractBlueprint.Prerequisite prerequisite in prerequisites)
-            {
-                leftPanelListItems.Add(new LeftPanelListItem(window, prerequisite));
             }
             return leftPanelListItems;
         }
@@ -217,7 +199,7 @@ namespace ContractManager.GUI
         MISSION,
         CONTRACTBLUEPRINT,
         MISSIONBLUEPRINT,
-        PREREQUISITE,
+        // PREREQUISITE, // Depreciated since v0.2.1
         REQUIREMENT,
         ACTION,
     }
@@ -246,7 +228,7 @@ namespace ContractManager.GUI
             // FIXME: make this a callable function to set.
             if (contractToShowDetails != null)
             {
-                this.rightPanelDetailUID = contractToShowDetails.contractUID;
+                this.rightPanelDetailUID = contractToShowDetails.uid;
                 this.rightPanelDetailType = RightPanelDetailType.CONTRACT;
             }
 

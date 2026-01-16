@@ -28,6 +28,12 @@
 - Add generate function for a mission with 2 contracts to fly to Luna and back to Earth.
 - Add example mission with 2 contracts to fly to Luna and back to Earth.
 - Add `maxNumberOfOfferedMissions` and `maxNumberOfAcceptedMissions` fields to `ContractManagerData`.
+- Add `Version` type to track and compare versions.
+- Add migration of `ContractBlueprint`, `MissionBlueprint` and `ContractManagerData` files.
+- Add storing the migrated `ContractBlueprint` and `MissionBlueprint` to the documents game folder.
+- Add storing the migrated `ContractManagerData` to the saves folder and making back-up of the original file.
+- Add `Action.uid` and used migration to automatically fill the field.
+- Add migration to `ContractManagerData` to store contacts and missions as array and not multiple of the same items.
 
 ### Changed
 - Reordered `ContractStatus` from `Failed` -> `Completed`.
@@ -35,13 +41,26 @@
 - Reordered the `PrerequisiteType` to group by specific and generic types.
 - Changed to only offer a contract if the linked mission is accepted.
 - Renamed *Contract Management Window* to *Mission & Contract Management Window*.
-
+- Refactored all usages of `ContractBlueprint.prerequisites` value.
+- Refactored all usages of `MissionBlueprint.prerequisites` value.
+- Removed  all usages of `PrerequisiteType`.
+- Removed  all usages of `Prerequisite.uid`.
+- Changed `Contract.contractUID` to `Contract.uid` and created migration to update save file when loaded.
+- Changed `Mission.contractUID` to `Mission.uid` and created migration to update save file when loaded.
 
 ### Fixed
 
 - Fix to check all required orbit fields if the required orbit is achieved.
 - Fix to show in *Active Contracts Window* the required orbited body and orbit type.
 - Fix to show max Apoapsis/Periapsis if the requirement was not yet started.
+- Fix `ContractManagerData` to store contracts and missions as array and not multiple of the same items.
+
+### Depreciated
+
+- `ContractBlueprint.prerequisites`: flattened into a single instance of `Prerequisite` as `ContractBlueprint.prerequisite`.
+- `MissionBlueprint.prerequisites`: flattened into a single instance of `Prerequisite` as `MissionBlueprint.prerequisite`.
+- `PrerequisiteType`: not needed anymore after flattening.
+- `Prerequisite.uid`: not needed anymore after flattening.
 
 ## [0.2.0] - 2026-01-04
 

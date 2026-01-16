@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <version>0.2.0</version>
+  <version>0.2.4</version>
   <uid>example_mission_001_contract_001</uid>
   <missionBlueprintUID>example_mission_001</missionBlueprintUID>
   <title>Fly to Luna</title>
@@ -8,13 +8,6 @@
   <description>Create a randevous trajectory with Luna. Then achieve an orbit around Luna below 30km.</description>
   <isRejectable>false</isRejectable>
   <isAutoAccepted>true</isAutoAccepted>
-  <prerequisites>
-    <Prerequisite>
-	  <uid>maxNumOfferedContracts_4</uid>
-      <type>maxNumOfferedContracts</type>
-      <maxNumOfferedContracts>4</maxNumOfferedContracts>
-    </Prerequisite>
-  </prerequisites>
   <completionCondition>all</completionCondition>
   <requirements>
     <Requirement>
@@ -58,4 +51,7 @@
     </Requirement>
   </requirements>
   <actions />
+  <Prerequisite>
+    <maxNumOfferedContracts>4</maxNumOfferedContracts>
+  </Prerequisite>
 </Contract>

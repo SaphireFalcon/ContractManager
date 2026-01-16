@@ -56,7 +56,7 @@ namespace ContractManager.GUI
                     textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
                 }
                 // Draw tree node for contract
-                if (ImGui.TreeNodeEx(contract.contractUID, ImGuiTreeNodeFlags.DrawLinesToNodes, titleForNode))
+                if (ImGui.TreeNodeEx(contract.uid, ImGuiTreeNodeFlags.DrawLinesToNodes, titleForNode))
                 {
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + windowAvailableWidth - textSize - buttonWidthDetails - triangleWidth);
@@ -138,7 +138,7 @@ namespace ContractManager.GUI
             ImGui.PushStyleColor(ImGuiCol.Text, colorText);
             bool poppedStyleColor = false;
             if (ImGui.TreeNodeEx(
-                String.Format("{0}_{1}", contract.contractUID, trackedRequirement.requirementUID),
+                String.Format("{0}_{1}", contract.uid, trackedRequirement.requirementUID),
                 requirementTreeNodeFlags,
                 trackedRequirement._blueprintRequirement.title
             ))
