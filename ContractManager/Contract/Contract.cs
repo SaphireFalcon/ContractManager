@@ -97,7 +97,7 @@ namespace ContractManager.Contract
             }
             else
             {
-                Console.WriteLine($"[CM] [ERROR] Contract could not find ContractBlueprint matching uid '{this.blueprintUID}'");
+                Console.WriteLine($"[CM] [ERROR] Contract '{this.uid}' could not find ContractBlueprint matching uid '{this.blueprintUID}'");
                 return null;
             }
             return clonedContract;

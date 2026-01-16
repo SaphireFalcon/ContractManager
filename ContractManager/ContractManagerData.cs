@@ -65,6 +65,15 @@ namespace ContractManager
         // List of popup(s) to show
         internal List<GUI.PopupWindow> popupWindows { get; set; } = new List<GUI.PopupWindow>();
 
+        internal GUI.PopupWindow? FindPopupWindowFromUID(string uid)
+        {
+            foreach (GUI.PopupWindow popupWindow in this.popupWindows)
+            {
+                if (popupWindow.uid == uid) { return popupWindow; }
+            }
+            return null;
+        }
+
         // Load data from save path.
         public bool LoadFrom(string savePath)
         {
@@ -78,11 +87,12 @@ namespace ContractManager
                 xmlDocument = XDocument.Load(reader);
             }
 
-            if (!this.Migrate(ref xmlDocument))
+            if (!this.Migrate(ref xmlDocument, filePathContractManagerXmlFile))
             {
                 Console.WriteLine("[CM] ContractManager.LoadFrom migrating failed.");
                 return false;
             }
+            // Overwrite the save file?
 
             XmlSerializer serializer = new XmlSerializer(typeof(ContractManagerData));
             ContractManagerData? contractManagerData = (ContractManagerData)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
@@ -163,8 +173,9 @@ namespace ContractManager
             XmlHelper.SerializeWithoutNaN(serializer, this, Path.Combine(directory.FullName, "contractmanager.xml"));
         }
 
-        private bool Migrate(ref XDocument xmlDocument)
+        private bool Migrate(ref XDocument xmlDocument, string filePathContractManagerXmlFile)
         {
+            bool migratedFile = false;
             Version loadedXMLVersion = new Version(xmlDocument);
             if (!loadedXMLVersion.valid) { return false; }
             if (ContractManager.version < loadedXMLVersion)
@@ -174,7 +185,35 @@ namespace ContractManager
             }
             Console.WriteLine($"[CM] [INFO] Running Migration.");
             if (xmlDocument.Root == null) { return false; }
-            if (loadedXMLVersion < "0.2.3")
+            Version xmlVersion = new Version(loadedXMLVersion);
+            if (!this.MigrateContractMissionAsList(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            if (!this.MigrateContractMissionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            
+            if (xmlVersion < ContractManager.version)
+            {
+                xmlVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()}.");
+            }
+            xmlDocument.Root.SetElementValue("version", xmlVersion.ToString());
+            if (migratedFile)
+            {
+                string backupPath = filePathContractManagerXmlFile.Substring(0, filePathContractManagerXmlFile.Length - 3);
+                backupPath += String.Format("v{0}_{1}_{2}", loadedXMLVersion.major, loadedXMLVersion.minor, loadedXMLVersion.patch);
+                try
+                {
+                    File.Move(filePathContractManagerXmlFile, backupPath);
+                    Console.WriteLine($"[CM] [INFO] backup to '{backupPath}'");
+                }
+                catch { }
+
+                xmlDocument.Save(filePathContractManagerXmlFile);
+            }
+            return true;
+        }
+
+        private bool MigrateContractMissionAsList(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.3")
             {
                 XElement newOfferedContracts = new XElement("offeredContracts", null);
                 foreach (XElement offeredContractsElement in xmlDocument.Root.Elements("offeredContracts"))
@@ -185,7 +224,7 @@ namespace ContractManager
                 }
                 xmlDocument.Root.Elements("offeredContracts").Remove();
                 xmlDocument.Root.Add(newOfferedContracts);
-                
+
                 XElement newAcceptedContracts = new XElement("acceptedContracts", null);
                 foreach (XElement acceptedContractsElement in xmlDocument.Root.Elements("acceptedContracts"))
                 {
@@ -205,7 +244,7 @@ namespace ContractManager
                 }
                 xmlDocument.Root.Elements("finishedContracts").Remove();
                 xmlDocument.Root.Add(newFinishedContracts);
-                
+
                 XElement newOfferedMissions = new XElement("offeredMissions", null);
                 foreach (XElement offeredMissionsElement in xmlDocument.Root.Elements("offeredMissions"))
                 {
@@ -215,7 +254,7 @@ namespace ContractManager
                 }
                 xmlDocument.Root.Elements("offeredMissions").Remove();
                 xmlDocument.Root.Add(newOfferedMissions);
-                
+
                 XElement newAcceptedMissions = new XElement("acceptedMissions", null);
                 foreach (XElement acceptedMissionsElement in xmlDocument.Root.Elements("acceptedMissions"))
                 {
@@ -225,7 +264,7 @@ namespace ContractManager
                 }
                 xmlDocument.Root.Elements("acceptedMissions").Remove();
                 xmlDocument.Root.Add(newAcceptedMissions);
-                
+
                 XElement newFinishedMissions = new XElement("finishedMissions", null);
                 foreach (XElement finishedMissionsElement in xmlDocument.Root.Elements("finishedMissions"))
                 {
@@ -234,12 +273,18 @@ namespace ContractManager
                     newFinishedMissions.Add(migratedFinishedContract);
                 }
                 xmlDocument.Root.Elements("finishedMissions").Remove();
-                xmlDocument.Root.Add(newFinishedContracts);
+                xmlDocument.Root.Add(newFinishedMissions);
 
-                loadedXMLVersion.FromString("0.2.3");
-                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
+                xmlVersion.FromString("0.2.3");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
             }
-            if (loadedXMLVersion < "0.2.4")
+            return true;
+        }
+
+        private bool MigrateContractMissionUID(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.4")
             {
                 XElement? offeredContractsElement = xmlDocument.Root.Element("offeredContracts");
                 if (offeredContractsElement != null)
@@ -319,14 +364,9 @@ namespace ContractManager
                     }
                 }
 
-                loadedXMLVersion.FromString("0.2.4");
-                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
-            }
-            
-            if (loadedXMLVersion < ContractManager.version)
-            {
-                loadedXMLVersion.UpdateTo(ContractManager.version);
-                Console.WriteLine($"[CM] [INFO] migrated to latest version: {loadedXMLVersion.ToString()}.");
+                xmlVersion.FromString("0.2.4");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
             }
             return true;
         }

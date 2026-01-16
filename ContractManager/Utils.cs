@@ -256,8 +256,18 @@ namespace ContractManager
         public int patch = 0;
 
         public bool valid = false;
-
+        
         public Version() { }
+
+        public Version(Version versionToCopy)
+        {
+            this.valid = versionToCopy.valid;
+            if (versionToCopy.valid) {
+                this.major = versionToCopy.major;
+                this.minor = versionToCopy.minor;
+                this.patch = versionToCopy.patch;
+            }
+        }
 
         public Version(string version)
         {

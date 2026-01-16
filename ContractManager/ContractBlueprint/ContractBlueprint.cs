@@ -7,6 +7,14 @@ using System.Xml.Serialization;
 
 namespace ContractManager.ContractBlueprint
 {
+    public enum CompletionCondition
+    {
+        [XmlEnum("all")]
+        All,
+        [XmlEnum("any")]
+        Any
+    }
+
     [XmlRoot("Contract")]    
     public class ContractBlueprint
     {
@@ -127,55 +135,6 @@ namespace ContractManager.ContractBlueprint
             return null;
         }
 
-        private static bool Migrate(ref XDocument xmlDocument, string filePath)
-        {
-            Version loadedXMLVersion = new Version(xmlDocument);
-            if (!loadedXMLVersion.valid) { return false; }
-            if (ContractManager.version < loadedXMLVersion)
-            {
-                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
-                return false;
-            }
-
-            Console.WriteLine($"[CM] [INFO] Running Migration.");
-            if (xmlDocument.Root == null) { return false; }
-            if (loadedXMLVersion < "0.2.1")
-            {
-                // version 0.2.1 flattens prerequisiteElement
-                XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
-                if (prerequisitesElement != null )
-                {
-                    XElement? migratedPrerequisiteElement = Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
-                    if(migratedPrerequisiteElement != null)
-                    {
-                        xmlDocument.Root.Add(migratedPrerequisiteElement);
-                    }
-                    prerequisitesElement.Remove();
-                }
-                loadedXMLVersion.FromString("0.2.1");
-                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
-            }
-            if (loadedXMLVersion < "0.2.2")
-            {
-                // version 0.2.2 adds uid to Action
-                XElement? actionsElement = xmlDocument.Root.Element("actions");
-                XElement? uidElement = xmlDocument.Root.Element("uid");
-                if (actionsElement != null && uidElement != null )
-                {
-                    Action.MigrateAddUID(ref actionsElement, uidElement.Value);
-                }
-                loadedXMLVersion.FromString("0.2.2");
-                Console.WriteLine($"[CM] [INFO] migrated to {loadedXMLVersion.ToString()}.");
-            }
-            
-            if (loadedXMLVersion < ContractManager.version)
-            {
-                loadedXMLVersion.UpdateTo(ContractManager.version);
-                Console.WriteLine($"[CM] [INFO] migrated to latest version: {loadedXMLVersion.ToString()}.");
-            }
-            return true;
-        }
-
         internal bool Validate()
         {
             // Validate the contract blueprint.
@@ -191,12 +150,7 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
                 return false;
             }
-            //// It should have at least one prerequisiteElement to know when to offer a contract from the contract blueprint
-            //if (this.prerequisites.Count == 0)
-            //{
-            //    Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
-            //    return false;
-            //}
+            // FIXME: It should have at least one prerequisiteElement to know when to offer a contract from the contract 
             // It should have at least one requirement to know when to the contract should be completed.
             if (this.requirements.Count == 0)
             {
@@ -223,11 +177,9 @@ namespace ContractManager.ContractBlueprint
                 Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
                 return false;
             }
+
             prerequisite.Validate();
-            //foreach (var prerequisiteElement in prerequisites)
-            //{
-            //    if (!prerequisiteElement.Validate()) { return false; }
-            //}
+
             foreach (var requirement in requirements)
             {
                 if (!requirement.Validate()) { return false; }
@@ -236,42 +188,119 @@ namespace ContractManager.ContractBlueprint
             {
                 if (!action.Validate()) { return false; }
             }
-
-            //// FIXME(#78): flattening prerequisites would not require creating this entry to not offer multiple of the same contract (by default)
-            //// Use validation to add certain prerequisites if they were not defined.
-            //// Add a maxCompleteCount prerequisiteElement if not already defined. Otherwise by default the same contract can be offered again after completion.
-            //List<Prerequisite> maxCompletePrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
-            //if (maxCompletePrerequisites.Count == 0)
-            //{
-            //    // Add defaulted prerequisiteElement for maxCompleteCount
-            //    this.prerequisites.Add(new Prerequisite
-            //    {
-            //        type = PrerequisiteType.MaxCompleteCount
-            //        // maxCompleteCount = 0 // default value
-            //    }
-            //    );
-            //}
-            //// Add a maxConcurrentCount prerequisiteElement if not already defined. Otherwise by default the same contract can be offered again while accepted.
-            //List<Prerequisite> maxConcurrentPrerequisites = this.prerequisites.Where(p => p.type == PrerequisiteType.MaxConcurrentCount).ToList();
-            //if (maxConcurrentPrerequisites.Count == 0)
-            //{
-            //    // Add defaulted prerequisiteElement for maxConcurrentCount
-            //    this.prerequisites.Add(new Prerequisite
-            //    {
-            //        type = PrerequisiteType.MaxConcurrentCount
-            //        // maxConcurrentCount = 0 // default value
-            //    }
-            //    );
-            //}
             return true;
         }
-    }
 
-    public enum CompletionCondition
-    {
-        [XmlEnum("all")]
-        All,
-        [XmlEnum("any")]
-        Any
+        private static bool Migrate(ref XDocument xmlDocument, string filePath)
+        {
+            bool migratedFile = false;
+            Version loadedXMLVersion = new Version(xmlDocument);
+            if (!loadedXMLVersion.valid) { return false; }
+            if (ContractManager.version < loadedXMLVersion)
+            {
+                Console.WriteLine($"[CM] [INFO] Mod version {ContractManager.version.ToString()} is older than loaded Version {loadedXMLVersion.ToString()}' for '{filePath}'.");
+                return false;
+            }
+
+            Console.WriteLine($"[CM] [INFO] Running Migration.");
+            if (xmlDocument.Root == null) { return false; }
+            Version xmlVersion = new Version(loadedXMLVersion);
+            
+            if (!ContractBlueprint.MigratePrerequisteWithTypeFlatten(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            if (!ContractBlueprint.MigrateAddActionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+
+            if (xmlVersion < ContractManager.version)
+            {
+                xmlVersion.UpdateTo(ContractManager.version);
+                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()}.");
+            }
+            xmlDocument.Root.SetElementValue("version", xmlVersion.ToString());
+            if (migratedFile)
+            {
+                // Write to disk
+                string modFolderContractPath = Path.GetDirectoryName(filePath);
+                string contentDirectoryPath = Path.GetFullPath(@"Content");
+                if (modFolderContractPath.StartsWith(contentDirectoryPath))
+                {
+                    // This has to be true, because contracts are loaded from Content/[mod]/contracts
+                    modFolderContractPath = modFolderContractPath.Substring(contentDirectoryPath.Length);
+                }
+                string contractsVersionExportFolderPath = Path.Combine(
+                    KSA.Constants.DocumentsFolderPath,
+                    "migration",
+                    String.Format("version_{0}_{1}_{2}", xmlVersion.major, xmlVersion.minor, xmlVersion.patch),
+                    modFolderContractPath
+                );
+                try
+                {
+                    Directory.CreateDirectory(contractsVersionExportFolderPath);
+                }
+                catch { }  // silently catch any error.
+                if (Directory.Exists(contractsVersionExportFolderPath))
+                {
+                    string migratedContractExportPath = Path.Combine(contractsVersionExportFolderPath, Path.GetFileName(filePath));
+                    Console.WriteLine($"[CM] [INFO] export migrated contract to: {migratedContractExportPath}.");
+                    xmlDocument.Save(migratedContractExportPath);
+                    // Create/add to popup
+                    GUI.PopupWindow popupWindow = ContractManager.data.FindPopupWindowFromUID("migration");
+                    if (popupWindow == null)
+                    {
+                        ContractManager.data.popupWindows.Add(new GUI.PopupWindow
+                        {
+                            uid = "migration",
+                            title = "Migrated files exported to disk.",
+                            popupType = GUI.PopupType.Popup,
+                            messageToShow = $"Contract Manager found old files and has migrated these, please move them into the respective mod/game folders:\n'{migratedContractExportPath}'",
+                        }
+                        );
+                    }
+                    else
+                    {
+                        popupWindow.messageToShow += $"\n'{migratedContractExportPath}'";
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool MigratePrerequisteWithTypeFlatten(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.1")
+            {
+                // version 0.2.1 flattens prerequisiteElement
+                XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
+                if (prerequisitesElement != null )
+                {
+                    XElement? migratedPrerequisiteElement = Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
+                    if(migratedPrerequisiteElement != null)
+                    {
+                        xmlDocument.Root.Add(migratedPrerequisiteElement);
+                    }
+                    prerequisitesElement.Remove();
+                }
+                xmlVersion.FromString("0.2.1");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            return true;
+        }
+
+        private static bool MigrateAddActionUID(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.2.2")
+            {
+                // version 0.2.2 adds uid to Action
+                XElement? actionsElement = xmlDocument.Root.Element("actions");
+                XElement? uidElement = xmlDocument.Root.Element("uid");
+                if (actionsElement != null && uidElement != null )
+                {
+                    Action.MigrateAddUID(ref actionsElement, uidElement.Value);
+                }
+                xmlVersion.FromString("0.2.2");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            return true;
+        }
     }
 }

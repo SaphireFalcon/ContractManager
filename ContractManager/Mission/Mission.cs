@@ -72,7 +72,7 @@ namespace ContractManager.Mission
             clonedMission._missionBlueprint = MissionUtils.FindMissionBlueprintFromUID(missionBlueprints, this.blueprintUID);
             if (clonedMission._missionBlueprint == null)
             {
-                Console.WriteLine($"[CM] [ERROR] Mission could not find MissionBlueprint matching uid '{this.blueprintUID}'");
+                Console.WriteLine($"[CM] [ERROR] Mission '{this.uid}' could not find MissionBlueprint matching uid '{this.blueprintUID}'");
                 return null;
             }
 
