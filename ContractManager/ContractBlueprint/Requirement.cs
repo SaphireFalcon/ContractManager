@@ -9,6 +9,7 @@ namespace ContractManager.ContractBlueprint
         // The unique identifier for the requirement.
         [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
+        internal static int uidMaxLength = 128;
 
         // Type of the requirement.
         [XmlElement("type")]
@@ -17,14 +18,17 @@ namespace ContractManager.ContractBlueprint
         // The title of the requirement.
         [XmlElement("title", DataType = "string")]
         public string title { get; set; }
+        internal static int titleMaxLength = 128;
 
         // A brief synopsis of the requirement.
         [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; } = string.Empty;
+        internal static int synopsisMaxLength = 1024;
 
         // Detailed description of the requirement.
         [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
+        internal static int descriptionMaxLength = 4096;
 
         // Flag if the requirement is completed upon achievement.
         [XmlElement("isCompletedOnAchievement", DataType = "boolean")]

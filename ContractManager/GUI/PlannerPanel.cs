@@ -1,5 +1,4 @@
 ﻿using Brutal.ImGuiApi;
-using Brutal.ImGuiApi.Extensions;
 using Brutal.Numerics;
 using ContractManager;
 using ContractManager.ContractBlueprint;
@@ -337,14 +336,15 @@ namespace ContractManager.GUI
             // Draw contract blueprint details
             ImGui.SeparatorText("Contract blueprint: " + this._contractBlueprint.title);
 
-            if (ImGui.BeginTable("PlannerRightPanel_EditContractBlueprint", 2))
+            if (ImGui.BeginTable("PlannerRightPanel_EditContractBlueprint", 3))
             {
                 ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("blueprintUID:");
+                ImGui.Text("uid:");
                 ImGui.SameLine();
                 ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this contract blueprint. Needs to be unique across all contract blueprints. (max 64)");
                 ImGui.TableNextColumn();
@@ -355,6 +355,8 @@ namespace ContractManager.GUI
                     // Update to prevent editing this will not showing this blueprint.
                     ContractManager.contractManagementWindow.rightPanelDetailUID = this._contractBlueprint.uid;
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
                 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
@@ -407,6 +409,8 @@ namespace ContractManager.GUI
                 {
                     this._contractBlueprint.title = this._title.ToString();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
                 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
@@ -438,10 +442,12 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("Expiration:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the contract is offered for it to expire. Use 'inf' to disable.");
+                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the contract is offered for it to expire. Use 'inf' to disable. Use ctrl to in/decrease by 1 day.");
                 ImGui.TableNextColumn();
+                ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._contractBlueprint.expiration)));
+                ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
-                if (ImGui.InputDouble("##ContractBlueprint_input_expiration", ref this._expiration, -1.0, Double.PositiveInfinity, "%.0f"))
+                if (ImGui.InputDouble("##ContractBlueprint_input_expiration", ref this._expiration, 3600, 24*3600, "%.0f"))
                 {
                     this._contractBlueprint.expiration = this._expiration;
                 }
@@ -462,10 +468,12 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("Deadline:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the contract is accepted for it to expire, and it will fail. Use 'inf' to disable.");
+                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the contract is accepted for it to expire, and it will fail. Use 'inf' to disable.Use ctrl to in/decrease by 1 day.");
                 ImGui.TableNextColumn();
+                ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._contractBlueprint.deadline)));
+                ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
-                if (ImGui.InputDouble("##ContractBlueprint_input_deadline", ref this._deadline, -1.0, Double.PositiveInfinity, "%.0f"))
+                if (ImGui.InputDouble("##ContractBlueprint_input_deadline", ref this._deadline, 3600, 24*3600, "%.0f"))
                 {
                     this._contractBlueprint.deadline = this._deadline;
                 }
@@ -483,6 +491,8 @@ namespace ContractManager.GUI
                 }
                 ImGui.EndTable();
             }
+            
+            ImGui.Text("(*): required.");
             
             ImGui.SeparatorText("Prerequisites");
             if (this._prerequisiteEditingPanel != null)
@@ -650,10 +660,10 @@ namespace ContractManager.GUI
         {
             this._missionBlueprint = missionBlueprintToEdit;
             this.blueprintUID = missionBlueprintToEdit.uid;
-            this._blueprintUID = new ImInputString(64, missionBlueprintToEdit.uid);
-            this._title = new ImInputString(64, missionBlueprintToEdit.title);
-            this._synopsis = new ImInputString(1024, missionBlueprintToEdit.synopsis);
-            this._description = new ImInputString(4096, missionBlueprintToEdit.description);
+            this._blueprintUID = new ImInputString(Mission.MissionBlueprint.uidMaxLength, missionBlueprintToEdit.uid);
+            this._title = new ImInputString(Mission.MissionBlueprint.titleMaxLength, missionBlueprintToEdit.title);
+            this._synopsis = new ImInputString(Mission.MissionBlueprint.synopsisMaxLength, missionBlueprintToEdit.synopsis);
+            this._description = new ImInputString(Mission.MissionBlueprint.descriptionMaxLength, missionBlueprintToEdit.description);
             this._expiration = missionBlueprintToEdit.expiration;
             this._isRejectable = missionBlueprintToEdit.isRejectable;
             this._deadline = missionBlueprintToEdit.deadline;
@@ -666,14 +676,15 @@ namespace ContractManager.GUI
         {
             ImGui.SeparatorText("Mission blueprint: " + this._missionBlueprint.title);
 
-            if (ImGui.BeginTable("PlannerRightPanel_EditMissionBlueprint", 2))
+            if (ImGui.BeginTable("PlannerRightPanel_EditMissionBlueprint", 3))
             {
                 ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("blueprintUID:");
+                ImGui.Text("uid:");
                 ImGui.SameLine();
                 ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this mission blueprint. Needs to be unique across all mission blueprints. (max 64)");
                 ImGui.TableNextColumn();
@@ -682,18 +693,22 @@ namespace ContractManager.GUI
                 {
                     this._missionBlueprint.uid = this._blueprintUID.ToString();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("title:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The title of the mission blueprint. Should be something short and comprehensible. (max 64)");
+                ContractManagementWindow.DrawHelpTooltip("The title of the mission blueprint. Should be something short and comprehensible. (max 128)");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##MissionBlueprint_input_title", this._title))
                 {
                     this._missionBlueprint.title = this._title.ToString();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
@@ -712,7 +727,7 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("Description:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The full description of the mission. Can be fairly long and have new lines (ctrl+enter). (max 4096)");
+                ContractManagementWindow.DrawHelpTooltip("The description of the mission. Can be fairly long and have new lines (ctrl+enter). Could be used as part of the story-line. (max 4096)");
                 ImGui.TableNextColumn();
                 Brutal.Numerics.float2 descriptionSize = new Brutal.Numerics.float2 { X = 0.0f, Y = 16 * ImGui.GetTextLineHeight() };
                 ImGui.SetNextItemWidth(-1.0f);
@@ -725,10 +740,12 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("Expiration:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the mission is offered for it to expire. Use 'inf' to disable.");
+                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the mission is offered for it to expire. Use 'inf' to disable. Use ctrl to in/decrease by 1 day.");
                 ImGui.TableNextColumn();
+                ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._missionBlueprint.expiration)));
+                ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputDouble("##MissionBlueprint_input_expiration", ref this._expiration, -1.0, Double.PositiveInfinity, "%.0f"))
+                if (ImGui.InputDouble("##MissionBlueprint_input_expiration", ref this._expiration, 3600, 24 * 3600, "%.0f"))
                 {
                     this._missionBlueprint.expiration = this._expiration;
                 }
@@ -749,10 +766,12 @@ namespace ContractManager.GUI
                 ImGui.TableNextColumn();
                 ImGui.Text("Deadline:");
                 ImGui.SameLine();
-                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the mission is accepted for it to expire, and it will fail. Use 'inf' to disable.");
+                ContractManagementWindow.DrawHelpTooltip("The time in seconds after the mission is accepted for it to expire, and it will fail. Use 'inf' to disable. Use ctrl to in/decrease by 1 day.");
                 ImGui.TableNextColumn();
+                ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._missionBlueprint.deadline)));
+                ImGui.SameLine();
                 ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputDouble("##MissionBlueprint_input_deadline", ref this._deadline, -1.0, Double.PositiveInfinity, "%.0f"))
+                if (ImGui.InputDouble("##MissionBlueprint_input_deadline", ref this._deadline, 3600, 24 * 3600, "%.0f"))
                 {
                     this._missionBlueprint.deadline = this._deadline;
                 }
@@ -771,6 +790,8 @@ namespace ContractManager.GUI
 
                 ImGui.EndTable();
             }
+            
+            ImGui.Text("(*): required.");
             
             ImGui.SeparatorText("Prerequisites");
             if (this._prerequisiteEditingPanel != null)
@@ -826,12 +847,12 @@ namespace ContractManager.GUI
             this._maxCompleteCount = (int)prerequisiteToEdit.maxCompleteCount;
             this._maxFailedCount = (int)prerequisiteToEdit.maxFailedCount;
             this._maxConcurrentCount = (int)prerequisiteToEdit.maxConcurrentCount;
-            this._hasCompletedContract = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasCompletedContract ?? string.Empty);
-            this._hasFailedContract = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasFailedContract ?? string.Empty);
-            this._hasAcceptedContract = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasAcceptedContract ?? string.Empty);
-            this._hasCompletedMission = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasCompletedMission ?? string.Empty);
-            this._hasFailedMission = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasFailedMission ?? string.Empty);
-            this._hasAcceptedMission = new Brutal.ImGuiApi.ImInputString(64, prerequisiteToEdit.hasAcceptedMission ?? string.Empty);
+            this._hasCompletedContract = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.ContractBlueprint.uidMaxLength, prerequisiteToEdit.hasCompletedContract ?? string.Empty);
+            this._hasFailedContract = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.ContractBlueprint.uidMaxLength, prerequisiteToEdit.hasFailedContract ?? string.Empty);
+            this._hasAcceptedContract = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.ContractBlueprint.uidMaxLength, prerequisiteToEdit.hasAcceptedContract ?? string.Empty);
+            this._hasCompletedMission = new Brutal.ImGuiApi.ImInputString(Mission.MissionBlueprint.uidMaxLength, prerequisiteToEdit.hasCompletedMission ?? string.Empty);
+            this._hasFailedMission = new Brutal.ImGuiApi.ImInputString(Mission.MissionBlueprint.uidMaxLength, prerequisiteToEdit.hasFailedMission ?? string.Empty);
+            this._hasAcceptedMission = new Brutal.ImGuiApi.ImInputString(Mission.MissionBlueprint.uidMaxLength, prerequisiteToEdit.hasAcceptedMission ?? string.Empty);
             this._minNumberOfVessels = (int)prerequisiteToEdit.minNumberOfVessels;
             this._maxNumberOfVessels = (int)prerequisiteToEdit.maxNumberOfVessels;
         }
@@ -844,85 +865,103 @@ namespace ContractManager.GUI
                 ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
 
                 // Show fields
-                // MaxNumOfferedContracts:
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Max Offered Contracts:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedContracts", ref this._maxNumOfferedContracts))
+                if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT)
                 {
-                    if (this._maxNumOfferedContracts < 0)
+                    // MaxNumOfferedContracts:
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Max Offered Contracts:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("Offer contract if number of offered contracts is less than this number. Use -1 for unlimited.");
+                    ImGui.TableNextColumn();
+                    ImGui.SetNextItemWidth(-1.0f);
+                    if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedContracts", ref this._maxNumOfferedContracts))
                     {
-                        this._maxNumOfferedContracts = 0;
+                        if (this._maxNumOfferedContracts < -1)
+                        {
+                            this._maxNumOfferedContracts = -1;
+                        }
+                        else
+                        {
+                            this._prerequisite.maxNumOfferedContracts = (uint)this._maxNumOfferedContracts;
+                        }
                     }
-                    else
+                    // MaxNumAcceptedContracts:
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Max Accepted Contracts:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("Offer contract if number of accepted contracts is less than this number. Use -1 for unlimited.");
+                    ImGui.TableNextColumn();
+                    ImGui.SetNextItemWidth(-1.0f);
+                    if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedContracts", ref this._maxNumAcceptedContracts))
                     {
-                        this._prerequisite.maxNumOfferedContracts = (uint)this._maxNumOfferedContracts;
+                        if (this._maxNumAcceptedContracts < -1)
+                        {
+                            this._maxNumAcceptedContracts = -1;
+                        }
+                        else
+                        {
+                            this._prerequisite.maxNumAcceptedContracts = (uint)this._maxNumAcceptedContracts;
+                        }
                     }
                 }
-                // MaxNumAcceptedContracts:
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Max Accepted Contracts:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedContracts", ref this._maxNumAcceptedContracts))
+                if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.MISSIONBLUEPRINT)
                 {
-                    if (this._maxNumAcceptedContracts < 0)
+                    // MaxNumOfferedMissions:
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Max Offered Missions:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("Offer mission if number of offered missions is less than this number. Use -1 for unlimited.");
+                    ImGui.TableNextColumn();
+                    ImGui.SetNextItemWidth(-1.0f);
+                    if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedMissions", ref this._maxNumOfferedMissions))
                     {
-                        this._maxNumAcceptedContracts = 0;
+                        if (this._maxNumOfferedMissions < -1)
+                        {
+                            this._maxNumOfferedMissions = -1;
+                        }
+                        else
+                        {
+                            this._prerequisite.maxNumOfferedMissions = (uint)this._maxNumOfferedMissions;
+                        }
                     }
-                    else
+                    // MaxNumAcceptedMissions:
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Max Accepted Missions:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("Offer mission if number of accepted missions is less than this number. Use -1 for unlimited.");
+                    ImGui.TableNextColumn();
+                    ImGui.SetNextItemWidth(-1.0f);
+                    if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedMissions", ref this._maxNumAcceptedMissions))
                     {
-                        this._prerequisite.maxNumAcceptedContracts = (uint)this._maxNumAcceptedContracts;
+                        if (this._maxNumAcceptedMissions < -1)
+                        {
+                            this._maxNumAcceptedMissions = -1;
+                        }
+                        else
+                        {
+                            this._prerequisite.maxNumAcceptedMissions = (uint)this._maxNumAcceptedMissions;
+                        }
                     }
                 }
-                // MaxNumOfferedMissions:
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Max Offered Missions:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputInt("##Prerequisite_input_maxNumOfferedMissions", ref this._maxNumOfferedMissions))
-                {
-                    if (this._maxNumOfferedMissions < 0)
-                    {
-                        this._maxNumOfferedMissions = 0;
-                    }
-                    else
-                    {
-                        this._prerequisite.maxNumOfferedMissions = (uint)this._maxNumOfferedMissions;
-                    }
-                }
-                // MaxNumAcceptedMissions:
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Max Accepted Missions:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputInt("##Prerequisite_input_maxNumAcceptedMissions", ref this._maxNumAcceptedMissions))
-                {
-                    if (this._maxNumAcceptedMissions < 0)
-                    {
-                        this._maxNumAcceptedMissions = 0;
-                    }
-                    else
-                    {
-                        this._prerequisite.maxNumAcceptedMissions = (uint)this._maxNumAcceptedMissions;
-                    }
-                }
+
+                string parentType = ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT ? "contract" : "mission";
                 // MaxCompleteCount:
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Max Complete Count:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if number of completed instances of this {parentType} is less than this number. Use -1 for unlimited.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputInt("##Prerequisite_input_maxCompleteCount", ref this._maxCompleteCount))
                 {
-                    if (this._maxCompleteCount < 0)
+                    if (this._maxCompleteCount < -1)
                     {
-                        this._maxCompleteCount = 0;
+                        this._maxCompleteCount = -1;
                     }
                     else
                     {
@@ -933,13 +972,15 @@ namespace ContractManager.GUI
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Max Failed Count:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if number of failed instances of this {parentType} is less than this number. Use -1 for unlimited.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputInt("##Prerequisite_input_maxFailedCount", ref this._maxFailedCount))
                 {
-                    if (this._maxFailedCount < 0)
+                    if (this._maxFailedCount < -1)
                     {
-                        this._maxFailedCount = 0;
+                        this._maxFailedCount = -1;
                     }
                     else
                     {
@@ -950,6 +991,8 @@ namespace ContractManager.GUI
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Max Concurrent Count:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if number of accepted instances of this {parentType} is less than this number.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputInt("##Prerequisite_input_maxConcurrentCount", ref this._maxConcurrentCount))
@@ -964,9 +1007,12 @@ namespace ContractManager.GUI
                     }
                 }
                 // HasCompletedContract:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Completed Contract UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified contract has been completed.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasCompletedContract", this._hasCompletedContract))
@@ -974,9 +1020,12 @@ namespace ContractManager.GUI
                     this._prerequisite.hasCompletedContract = this._hasCompletedContract.ToString();
                 }
                 // HasFailedContract:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Failed Contract UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified contract has been failed.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasFailedContract", this._hasFailedContract))
@@ -984,9 +1033,12 @@ namespace ContractManager.GUI
                     this._prerequisite.hasFailedContract = this._hasFailedContract.ToString();
                 }
                 // HasAcceptedContract:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Accepted Contract UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified contract has been accepted.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasAcceptedContract", this._hasAcceptedContract))
@@ -994,9 +1046,12 @@ namespace ContractManager.GUI
                     this._prerequisite.hasAcceptedContract = this._hasAcceptedContract.ToString();
                 }
                 // HasCompletedMission:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Completed Mission UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified mission has been completed.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasCompletedMission", this._hasCompletedMission))
@@ -1004,9 +1059,12 @@ namespace ContractManager.GUI
                     this._prerequisite.hasCompletedMission = this._hasCompletedMission.ToString();
                 }
                 // HasFailedMission:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Failed Mission UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified mission has been failed.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasFailedMission", this._hasFailedMission))
@@ -1014,9 +1072,12 @@ namespace ContractManager.GUI
                     this._prerequisite.hasFailedMission = this._hasFailedMission.ToString();
                 }
                 // HasAcceptedMission:
+                // TODO: convert to combo
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Has Accepted Mission UID:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if specified mission has been accepted.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Prerequisite_input_hasAcceptedMission", this._hasAcceptedMission))
@@ -1027,6 +1088,8 @@ namespace ContractManager.GUI
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Min Number Of Vessels:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if there are more than this number of vessels in the current celestial system.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputInt("##Prerequisite_input_minNumberOfVessels", ref this._minNumberOfVessels))
@@ -1044,13 +1107,15 @@ namespace ContractManager.GUI
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Max Number Of Vessels:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip($"Offer {parentType} if there are less than this number of vessels in the current celestial system. Use -1 for unlimited.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputInt("##Prerequisite_input_maxNumberOfVessels", ref this._maxNumberOfVessels))
                 {
-                    if (this._maxNumberOfVessels < 0)
+                    if (this._maxNumberOfVessels < -1)
                     {
-                        this._maxNumberOfVessels = 0;
+                        this._maxNumberOfVessels = -1;
                     }
                     else
                     {
@@ -1089,8 +1154,12 @@ namespace ContractManager.GUI
         // Input fields
         private Brutal.ImGuiApi.ImInputString _uid;
         private Brutal.ImGuiApi.ImInputString _title;
-        private int _selectedTypeIndex;
+        private Brutal.ImGuiApi.ImInputString _synopsis;
         private Brutal.ImGuiApi.ImInputString _description;
+        private int _selectedTypeIndex;
+        private bool _isCompletedOnAchievement;
+        private bool _isHidden;
+        private bool _completeInOrder;
 
         // RequiredOrbit fields
         private Brutal.ImGuiApi.ImInputString _orbitTargetBody;
@@ -1114,10 +1183,14 @@ namespace ContractManager.GUI
         {
             this._requirement = requirementToEdit;
             this.requirementUID = requirementToEdit.uid;
-            this._uid = new Brutal.ImGuiApi.ImInputString(64, requirementToEdit.uid);
-            this._title = new Brutal.ImGuiApi.ImInputString(64, requirementToEdit.title ?? string.Empty);
+            this._uid = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.Requirement.uidMaxLength, requirementToEdit.uid);
+            this._title = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.Requirement.titleMaxLength, requirementToEdit.title ?? string.Empty);
+            this._synopsis = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.Requirement.synopsisMaxLength, requirementToEdit.synopsis ?? string.Empty);
+            this._description = new Brutal.ImGuiApi.ImInputString(ContractBlueprint.Requirement.descriptionMaxLength, requirementToEdit.description ?? string.Empty);
             this._selectedTypeIndex = (int)requirementToEdit.type;
-            this._description = new Brutal.ImGuiApi.ImInputString(256, requirementToEdit.description ?? string.Empty);
+            this._isCompletedOnAchievement = requirementToEdit.isCompletedOnAchievement;
+            this._isHidden = requirementToEdit.isHidden;
+            this._completeInOrder = requirementToEdit.completeInOrder;
 
             // RequiredOrbit fields
             var orbit = requirementToEdit.orbit;
@@ -1143,16 +1216,18 @@ namespace ContractManager.GUI
         {
             ImGui.SeparatorText("Edit Requirement");
 
-            if (ImGui.BeginTable("RequirementPanelTable", 2))
+            if (ImGui.BeginTable("RequirementPanelTable", 3))
             {
                 ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
 
                 // UID
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("UID:");
-                ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this requirement. Needs to be unique across all requirements. (max 64)");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this requirement. Needs to be unique across all requirements. (max 128)");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Requirement_input_uid", this._uid))
@@ -1160,22 +1235,95 @@ namespace ContractManager.GUI
                     this._requirement.uid = this._uid.ToString();
                     ContractManager.contractManagementWindow.rightPanelDetailSubUID = this._requirement.uid;
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 // Title
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Title:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The title of the requirement, shown in the Active Contracts window. Should be something short and comprehensible. (max 128)");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 if (ImGui.InputText("##Requirement_input_title", this._title))
                 {
                     this._requirement.title = this._title.ToString();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
+
+                // Synopsis
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Synopsis:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("A short description or summary of the requirement. (max 1024)");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputTextMultiline("##Requirement_input_synopsis", this._synopsis, new Brutal.Numerics.float2 { X = 0.0f, Y = 4 * ImGui.GetTextLineHeight() }, ImGuiInputTextFlags.CtrlEnterForNewLine))
+                {
+                    this._requirement.synopsis = this._synopsis.ToString();
+                }
+
+                // Description
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Description:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The description of the requirement. Can be fairly long and have new lines (ctrl+enter). Could be used to give hints on how to achieve this requirement, or as part of the story-line. (max 4096)");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.InputTextMultiline("##Requirement_input_description", this._description, new Brutal.Numerics.float2 { X = 0.0f, Y = 4 * ImGui.GetTextLineHeight() }, ImGuiInputTextFlags.CtrlEnterForNewLine))
+                {
+                    this._requirement.description = this._description.ToString();
+                }
+                
+                // isCompletedOnAchievement
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Completed on Achievement:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("Flag if the requirement is completed upon achievement. If not, the requirements after this one need to be achieved as well.");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.Checkbox("##MissionBlueprint_input_isCompletedOnAchievement", ref this._isCompletedOnAchievement))
+                {
+                    this._requirement.isCompletedOnAchievement = this._isCompletedOnAchievement;
+                }
+                
+                // isHidden
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Hidden:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("Flag if the requirement is hidden until previous requirement has been achieved. Can be used to hide things for story-telling.");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.Checkbox("##MissionBlueprint_input_isHidden", ref this._isHidden))
+                {
+                    this._requirement.isHidden = this._isHidden;
+                }
+                
+                // completeInOrder
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Rejectable:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("Flag if the requirement needs to be completed in order. If enabled, this requirement can only be achieved (started) if the previous requirement has been achieved.");
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1.0f);
+                if (ImGui.Checkbox("##MissionBlueprint_input_completeInOrder", ref this._completeInOrder))
+                {
+                    this._requirement.completeInOrder = this._completeInOrder;
+                }
 
                 // Type
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Type:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The type of requirement. Please check the documentation for more details.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 string[] typeNames = Enum.GetNames(typeof(ContractBlueprint.RequirementType));
@@ -1197,17 +1345,6 @@ namespace ContractManager.GUI
                     ImGui.EndCombo();
                 }
 
-                // Description
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text("Description:");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1.0f);
-                if (ImGui.InputTextMultiline("##Requirement_input_description", this._description, new Brutal.Numerics.float2 { X = 0.0f, Y = 4 * ImGui.GetTextLineHeight() }, ImGuiInputTextFlags.None))
-                {
-                    this._requirement.description = this._description.ToString();
-                }
-
                 // RequiredOrbit fields (only show if type is Orbit)
                 if (this._requirement.type == ContractBlueprint.RequirementType.Orbit && this._requirement.orbit != null)
                 {
@@ -1216,6 +1353,8 @@ namespace ContractManager.GUI
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Target Body:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The name of the target body to orbit.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
                     // TODO: Create a dropdown from the in-game available bodies.
@@ -1223,10 +1362,14 @@ namespace ContractManager.GUI
                     {
                         this._requirement.orbit.targetBody = this._orbitTargetBody.ToString();
                     }
+                    ImGui.TableNextColumn();
+                    ImGui.Text("(*)");
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Orbit Type:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The type of orbit, elliptical as orbiting a body, suborbit as intersecting with the orbited body, and escape as an orbit that will leave the current orbited body sphere of influence. Use 'Invalid' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
                     string[] orbitTypeNames = Enum.GetNames(typeof(ContractBlueprint.OrbitType));
@@ -1251,146 +1394,223 @@ namespace ContractManager.GUI
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Apoapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum height of the Apopasis in meters. Apopasis is defined as the highest point of the orbit. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatDistance(this._requirement.orbit.minApoapsis));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minApoapsis", ref this._minApoapsis, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("m##Requirement_input_minApoapsis", ref this._minApoapsis, 1e3, 1e5, "%.0f"))
                     {
+                        if (this._minApoapsis < 0) { this._minApoapsis = 0; }
+                        if (this._minApoapsis > this._maxApoapsis) { this._minApoapsis = this._maxApoapsis; }
                         this._requirement.orbit.minApoapsis = this._minApoapsis;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Apoapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum height of the Apopasis in meters. Apopasis is defined as the highest point of the orbit. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatDistance(this._requirement.orbit.maxApoapsis));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxApoapsis", ref this._maxApoapsis, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("m##Requirement_input_maxApoapsis", ref this._maxApoapsis, 1e3, 1e5, "%.0f"))
                     {
+                        if (this._maxApoapsis < 0) { this._maxApoapsis = 0; }
+                        if (this._maxApoapsis < this._minApoapsis) { this._maxApoapsis = this._minApoapsis; }
                         this._requirement.orbit.maxApoapsis = this._maxApoapsis;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Periapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum height of the Periapsis in meters. Periapsis is defined as the lowest point of the orbit. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatDistance(this._requirement.orbit.minPeriapsis));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minPeriapsis", ref this._minPeriapsis, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("m##Requirement_input_minPeriapsis", ref this._minPeriapsis, 1e3, 1e5, "%.0f"))
                     {
+                        if (this._minPeriapsis < 0) { this._minPeriapsis = 0; }
+                        if (this._minPeriapsis > this._maxPeriapsis) { this._minPeriapsis = this._maxPeriapsis; }
                         this._requirement.orbit.minPeriapsis = this._minPeriapsis;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Periapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum height of the Periapsis in meters. Periapsis is defined as the lowest point of the orbit. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatDistance(this._requirement.orbit.maxPeriapsis));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxPeriapsis", ref this._maxPeriapsis, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("m##Requirement_input_maxPeriapsis", ref this._maxPeriapsis, 1e3, 1e5, "%.0f"))
                     {
+                        if (this._maxPeriapsis < 0) { this._maxPeriapsis = 0; }
+                        if (this._maxPeriapsis < this._minPeriapsis) { this._maxPeriapsis = this._minPeriapsis; }
                         this._requirement.orbit.maxPeriapsis = this._maxPeriapsis;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Eccentricity:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum eccentricity of the orbit. Zero as perfect circular, <1 as elliptical, >1 hyperbolic, 1 as parabolic. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minEccentricity", ref this._minEccentricity, 0, 0, "%.3f"))
+                    if (ImGui.InputDouble("##Requirement_input_minEccentricity", ref this._minEccentricity, 1e-4, 1e-2, "%.6f"))
                     {
+                        if (this._minEccentricity < 0) { this._minEccentricity = 0; }
+                        if (this._minEccentricity > this._maxPeriapsis) { this._minEccentricity = this._maxPeriapsis; }
                         this._requirement.orbit.minEccentricity = this._minEccentricity;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Eccentricity:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum eccentricity of the orbit. Zero as perfect circular, <1 as elliptical, >1 hyperbolic, 1 as parabolic. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxEccentricity", ref this._maxEccentricity, 0, 0, "%.3f"))
+                    if (ImGui.InputDouble("##Requirement_input_maxEccentricity", ref this._maxEccentricity, 1e-4, 1e-2, "%.6f"))
                     {
+                        if (this._maxEccentricity < 0) { this._maxEccentricity = 0; }
+                        if (this._maxEccentricity < this._minEccentricity) { this._maxEccentricity = this._minEccentricity; }
                         this._requirement.orbit.maxEccentricity = this._maxEccentricity;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Period:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum time in seconds for a complete circumnavigation of the orbited body. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._requirement.orbit.minPeriod), true));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minPeriod", ref this._minPeriod, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("s##Requirement_input_minPeriod", ref this._minPeriod, 60, 3600, "%.0f"))
                     {
+                        if (this._minPeriod < 0) { this._minPeriod = 0; }
+                        if (this._minPeriod > this._maxPeriod) { this._minPeriod = this._maxPeriod; }
                         this._requirement.orbit.minPeriod = this._minPeriod;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Period:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum time in seconds for a complete circumnavigation of the orbited body. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
+                    ImGui.Text(Utils.FormatSimTimeAsRelative(new KSA.SimTime(this._requirement.orbit.maxPeriod), true));
+                    ImGui.SameLine();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxPeriod", ref this._maxPeriod, 0, 0, "%.0f"))
+                    if (ImGui.InputDouble("s##Requirement_input_maxPeriod", ref this._maxPeriod, 60, 3600, "%.0f"))
                     {
+                        if (this._maxPeriod < 0) { this._maxPeriod = 0; }
+                        if (this._maxPeriod < this._minPeriod) { this._maxPeriod = this._minPeriod; }
                         this._requirement.orbit.maxPeriod = this._maxPeriod;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Longitude Of Ascending Node:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum angle in degrees of the Longitude of the Ascending Node, defined by the angle between the reference direction and Ascending Node. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minLongitudeOfAscendingNode", ref this._minLongitudeOfAscendingNode, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_minLongitudeOfAscendingNode", ref this._minLongitudeOfAscendingNode, 0.1, 5, "%.3f"))
                     {
+                        if (this._minLongitudeOfAscendingNode < 0) { this._minLongitudeOfAscendingNode = 360; }
+                        if (this._minLongitudeOfAscendingNode > 360) { this._minLongitudeOfAscendingNode = 0; }
+                        if (this._minLongitudeOfAscendingNode > this._maxLongitudeOfAscendingNode) { this._minLongitudeOfAscendingNode = this._maxLongitudeOfAscendingNode; }
                         this._requirement.orbit.minLongitudeOfAscendingNode = this._minLongitudeOfAscendingNode;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Longitude Of Ascending Node:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum angle in degrees of the Longitude of the Ascending Node, defined by the angle between the reference direction and Ascending Node. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxLongitudeOfAscendingNode", ref this._maxLongitudeOfAscendingNode, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_maxLongitudeOfAscendingNode", ref this._maxLongitudeOfAscendingNode, 0.1, 5, "%.3f"))
                     {
+                        if (this._maxLongitudeOfAscendingNode < 0) { this._maxLongitudeOfAscendingNode = 360; }
+                        if (this._maxLongitudeOfAscendingNode > 360) { this._maxLongitudeOfAscendingNode = 0; }
+                        if (this._maxLongitudeOfAscendingNode < this._minLongitudeOfAscendingNode) { this._maxLongitudeOfAscendingNode = this._minLongitudeOfAscendingNode; }
                         this._requirement.orbit.maxLongitudeOfAscendingNode = this._maxLongitudeOfAscendingNode;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Inclination:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum angle in degrees of the inclination (0-180), defined by the angle between the reference plane and the orbital plane. Negative angle is an orbit in retrograde direction. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minInclination", ref this._minInclination, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_minInclination", ref this._minInclination, 0.1, 5, "%.3f"))
                     {
+                        if (this._minInclination < -180) { this._minInclination = -180; }
+                        if (this._minInclination > 180) { this._minInclination = 180; }
+                        if (this._minInclination > this._maxInclination) { this._minInclination = this._maxInclination; }
                         this._requirement.orbit.minInclination = this._minInclination;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Inclination:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum angle in degrees of the inclination (0-180), defined by the angle between the reference plane and the orbital plane. Negative angle is an orbit in retrograde direction. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxInclination", ref this._maxInclination, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_maxInclination", ref this._maxInclination, 0.1, 5, "%.3f"))
                     {
+                        if (this._maxInclination < -180) { this._maxInclination = -180; }
+                        if (this._maxInclination > 180) { this._maxInclination = 180; }
+                        if (this._maxInclination < this._minInclination) { this._maxInclination = this._minInclination; }
                         this._requirement.orbit.maxInclination = this._maxInclination;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Min Argument Of Periapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The minimum angle in degrees of the Argument of Periapsis, defined by the angle between the Ascending Node and the Periapsis. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_minArgumentOfPeriapsis", ref this._minArgumentOfPeriapsis, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_minArgumentOfPeriapsis", ref this._minArgumentOfPeriapsis, 0.1, 5, "%.3f"))
                     {
+                        if (this._minArgumentOfPeriapsis < 0) { this._minArgumentOfPeriapsis = 360; }
+                        if (this._minArgumentOfPeriapsis > 360) { this._minArgumentOfPeriapsis = 0; }
+                        if (this._minArgumentOfPeriapsis > this._maxArgumentOfPeriapsis) { this._minArgumentOfPeriapsis = this._maxArgumentOfPeriapsis; }
                         this._requirement.orbit.minArgumentOfPeriapsis = this._minArgumentOfPeriapsis;
                     }
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Max Argument Of Periapsis:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The maximum angle in degrees of the Argument of Periapsis, defined by the angle between the Ascending Node and the Periapsis. Use 'NaN' to disable.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputDouble("##Requirement_input_maxArgumentOfPeriapsis", ref this._maxArgumentOfPeriapsis, 0, 0, "%.2f"))
+                    if (ImGui.InputDouble("deg##Requirement_input_maxArgumentOfPeriapsis", ref this._maxArgumentOfPeriapsis, 0.1, 5, "%.3f"))
                     {
+                        if (this._maxArgumentOfPeriapsis < 0) { this._maxArgumentOfPeriapsis = 360; }
+                        if (this._maxArgumentOfPeriapsis > 360) { this._maxArgumentOfPeriapsis = 0; }
+                        if (this._maxArgumentOfPeriapsis < this._minArgumentOfPeriapsis) { this._maxArgumentOfPeriapsis = this._minArgumentOfPeriapsis; }
                         this._requirement.orbit.maxArgumentOfPeriapsis = this._maxArgumentOfPeriapsis;
                     }
                 }
 
                 ImGui.EndTable();
             }
+            
+            ImGui.Text("(*): required.");
+
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("uid: {0}", this._requirement.uid));
             ImGui.Text(String.Format("title: {0}", this._requirement.title));
@@ -1445,15 +1665,17 @@ namespace ContractManager.GUI
         {
             ImGui.SeparatorText("Edit Action");
 
-            if (ImGui.BeginTable("ActionPanelTable", 2))
+            if (ImGui.BeginTable("ActionPanelTable", 3))
             {
                 ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                 // UID
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("UID:");
+                ImGui.SameLine();
                 ContractManagementWindow.DrawHelpTooltip("The Unique Identifier of this action. Needs to be unique across all actions. (max 64)");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
@@ -1462,11 +1684,15 @@ namespace ContractManager.GUI
                     this._action.uid = this._uid.ToString();
                     ContractManager.contractManagementWindow.rightPanelDetailSubUID = this._action.uid;
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 // Trigger
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Trigger:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The trigger for this action. When a contract, requirement, or mission, is accepted, completed etc. Please check the documentation for more details.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 string[] triggerNames = Enum.GetNames(typeof(ContractBlueprint.TriggerType));
@@ -1488,11 +1714,15 @@ namespace ContractManager.GUI
                     }
                     ImGui.EndCombo();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 // Type
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.Text("Type:");
+                ImGui.SameLine();
+                ContractManagementWindow.DrawHelpTooltip("The type of action to execute. Please check the documentation for more details.");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1.0f);
                 string[] typeNames = Enum.GetNames(typeof(ContractBlueprint.ActionType));
@@ -1501,6 +1731,7 @@ namespace ContractManager.GUI
                 {
                     for (int typeIndex = 0; typeIndex < typeNames.Length; typeIndex++)
                     {
+                        // TODO: only show `OnRequirement` for contract blueprints.
                         if (ImGui.Selectable(typeNames[typeIndex]))
                         {
                             this._action.type = (ContractBlueprint.ActionType)typeIndex;
@@ -1513,6 +1744,8 @@ namespace ContractManager.GUI
                     }
                     ImGui.EndCombo();
                 }
+                ImGui.TableNextColumn();
+                ImGui.Text("(*)");
 
                 // ShowMessage (only for ShowMessage or ShowBlockingPopup)
                 if (this._action.type == ContractBlueprint.ActionType.ShowMessage ||
@@ -1521,15 +1754,25 @@ namespace ContractManager.GUI
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("Show Message:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The message to show in the popup or modal. Use ctrl+enter for a new line.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
-                    if (ImGui.InputTextMultiline("##Action_input_showMessage", this._showMessage, new Brutal.Numerics.float2 { X = 0.0f, Y = 4 * ImGui.GetTextLineHeight() }, ImGuiInputTextFlags.None))
+                    if (ImGui.InputTextMultiline(
+                        "##Action_input_showMessage",
+                        this._showMessage,
+                        new Brutal.Numerics.float2 { X = 0.0f, Y = 4 * ImGui.GetTextLineHeight() },
+                        ImGuiInputTextFlags.CtrlEnterForNewLine // | ImGuiInputTextFlags.WordWrap
+                    ))
                     {
                         this._action.showMessage = this._showMessage.ToString();
                     }
+                    ImGui.TableNextColumn();
+                    ImGui.Text("(*)");
                 }
 
                 // onRequirement (only for triggers that use it)
+                // TODO: Make this a combo, where the list is restricted to the requirements of the parent contract.
                 if (this._action.trigger is
                     ContractBlueprint.TriggerType.OnRequirementTracked or
                     ContractBlueprint.TriggerType.OnRequirementMaintained or
@@ -1540,16 +1783,22 @@ namespace ContractManager.GUI
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("On Requirement:");
+                    ImGui.SameLine();
+                    ContractManagementWindow.DrawHelpTooltip("The requirement uid on which the action will be triggered.");
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(-1.0f);
                     if (ImGui.InputText("##Action_input_onRequirement", this._onRequirement))
                     {
                         this._action.onRequirement = this._onRequirement.ToString();
                     }
+                    ImGui.TableNextColumn();
+                    ImGui.Text("(*)");
                 }
 
                 ImGui.EndTable();
             }
+            
+            ImGui.Text("(*): required.");
 
             // TODO: remove
             ImGui.SeparatorText("Debug");

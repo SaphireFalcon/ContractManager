@@ -142,7 +142,10 @@ namespace ContractManager.GUI
             }
 
             // Change the color for the button if it is currently selected for details.
-            bool showAsActive = (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid);
+            bool showAsActive = (
+                (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid) ||
+                (this._window.rightPanelDetailSubType == this._rightPanelDetailType && this._window.rightPanelDetailSubUID == this._uid)
+            );
             if (showAsActive)
             {
                 ImGui.PushStyleColor(ImGuiCol.Button, Colors.blueDefaultLight);
