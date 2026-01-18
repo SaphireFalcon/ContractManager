@@ -3,6 +3,7 @@ using Brutal.Numerics;
 using ContractManager;
 using ContractManager.ContractBlueprint;
 using KSA;
+using System.Numerics;
 
 namespace ContractManager.GUI
 {
@@ -78,23 +79,53 @@ namespace ContractManager.GUI
                     else
                     if (ContractManager.contractManagementWindow.rightPanelDetailSubType == RightPanelDetailType.REQUIREMENT)
                     {
+                        // TODO: Figure out a way how to show the requirements in a group, use the left column?
+                        //  separate by `,`?
                         if (ImGui.BeginChild("PlannerLeftRequirementsPanel", leftMissionPanelSize, ImGuiChildFlags.Borders, ImGuiWindowFlags.None))
                         {
+                            Brutal.Numerics.float2 leftRequirementsPanel = ImGui.GetContentRegionAvail();
+                            ImGui.SeparatorText("Requirements");
+
+                            // return button
                             if (ImGui.ArrowButton("##planner_leftRequirements_return", ImGuiDir.Left))
                             {
                                 ContractManager.contractManagementWindow.rightPanelDetailSubType = RightPanelDetailType.NONE;
                                 ContractManager.contractManagementWindow.rightPanelDetailSubUID = string.Empty;
-                            }
-                            ImGui.SameLine();
-                            ImGui.SeparatorText("Requirements");
-                            ImGui.SameLine();
-                            if (ImGui.Button("+##planner_leftRequirements_add"))
-                            {
 
                             }
-                            
+                            ImGui.SameLine();
+                            float leftArrowButtonWidth = 35.0f + style.FramePadding.X * 2.0f;  // guestimate
+                            float removeButtonWidth = ImGui.CalcTextSize("[-]").X + style.FramePadding.X * 2.0f;
+                            float addButtonWidth = ImGui.CalcTextSize("[+]").X + style.FramePadding.X * 2.0f;
+                            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + leftRequirementsPanel.X - removeButtonWidth - addButtonWidth - leftArrowButtonWidth - (style.FramePadding.X * 2.0f));
+                            // delete button (-)
+                            if (ContractManager.contractManagementWindow.rightPanelDetailSubUID == string.Empty) { ImGui.BeginDisabled(); }  // TODO: check editable
+                            if (ImGui.Button("[-]##planner_leftRequirements_delete"))
+                            {
+                                for (int requirementIndex = 0; requirementIndex < contractBlueprint.requirements.Count; requirementIndex++)
+                                {
+                                    if (contractBlueprint.requirements[requirementIndex].uid == ContractManager.contractManagementWindow.rightPanelDetailSubUID)
+                                    {
+                                        contractBlueprint.requirements.RemoveAt(requirementIndex);
+                                        break;
+                                    }
+                                }
+                            }
+                            if (ContractManager.contractManagementWindow.rightPanelDetailSubUID == string.Empty) { ImGui.EndDisabled(); }
+                            ImGui.SameLine();
+                            // add button (+)
+                            if (ImGui.Button("[+]##planner_leftRequirements_add"))
+                            {
+                                contractBlueprint.requirements.Add(
+                                    new ContractBlueprint.Requirement
+                                    {
+                                        uid = String.Format("{0}_new_requirement_{1}", contractBlueprint.uid, KSA.Universe.GetElapsedSimTime().Seconds()),
+                                        title = "!update me!"
+                                    }
+                                );
+                            }
+
                             List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, contractBlueprint.requirements);
-                            ImGui.Text(String.Format("list: {0}", listItems.Count));
                             ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints_requirements");
 
                             ImGui.EndChild();  // End of LeftContractPanel
@@ -338,9 +369,9 @@ namespace ContractManager.GUI
 
             if (ImGui.BeginTable("PlannerRightPanel_EditContractBlueprint", 3))
             {
-                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
@@ -678,9 +709,9 @@ namespace ContractManager.GUI
 
             if (ImGui.BeginTable("PlannerRightPanel_EditMissionBlueprint", 3))
             {
-                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
                 ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
@@ -861,8 +892,8 @@ namespace ContractManager.GUI
         {
             if (ImGui.BeginTable("PrerequisitePanelTable", 2))
             {
-                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
 
                 // Show fields
                 if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.CONTRACTBLUEPRINT)
@@ -1218,9 +1249,9 @@ namespace ContractManager.GUI
 
             if (ImGui.BeginTable("RequirementPanelTable", 3))
             {
-                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Req", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                 // UID
                 ImGui.TableNextRow();
@@ -1340,6 +1371,14 @@ namespace ContractManager.GUI
                         if (selectedTypeName == typeNames[typeIndex])
                         {
                             ImGui.SetItemDefaultFocus();
+                        }
+                        if (this._requirement.type == RequirementType.Orbit && this._requirement.orbit == null)
+                        {
+                            this._requirement.orbit = new ContractBlueprint.RequiredOrbit();
+                        }
+                        if (this._requirement.type == RequirementType.Group && this._requirement.group == null)
+                        {
+                            this._requirement.group = new ContractBlueprint.RequiredGroup();
                         }
                     }
                     ImGui.EndCombo();
@@ -1604,37 +1643,38 @@ namespace ContractManager.GUI
                         if (this._maxArgumentOfPeriapsis < this._minArgumentOfPeriapsis) { this._maxArgumentOfPeriapsis = this._minArgumentOfPeriapsis; }
                         this._requirement.orbit.maxArgumentOfPeriapsis = this._maxArgumentOfPeriapsis;
                     }
-                }
 
+                }
+            
                 ImGui.EndTable();
             }
-            
+                
             ImGui.Text("(*): required.");
 
-            ImGui.SeparatorText("Debug");
-            ImGui.Text(String.Format("uid: {0}", this._requirement.uid));
-            ImGui.Text(String.Format("title: {0}", this._requirement.title));
-            ImGui.Text(String.Format("type: {0}", this._requirement.type));
-            ImGui.Text(String.Format("description: {0}", this._requirement.description));
-            if (this._requirement.type == ContractBlueprint.RequirementType.Orbit && this._requirement.orbit != null)
-            {
-                ImGui.Text(String.Format("targetBody: {0}", this._requirement.orbit.targetBody));
-                ImGui.Text(String.Format("orbitType: {0}", this._requirement.orbit.type));
-                ImGui.Text(String.Format("minApoapsis: {0}", this._requirement.orbit.minApoapsis));
-                ImGui.Text(String.Format("maxApoapsis: {0}", this._requirement.orbit.maxApoapsis));
-                ImGui.Text(String.Format("minPeriapsis: {0}", this._requirement.orbit.minPeriapsis));
-                ImGui.Text(String.Format("maxPeriapsis: {0}", this._requirement.orbit.maxPeriapsis));
-                ImGui.Text(String.Format("minEccentricity: {0}", this._requirement.orbit.minEccentricity));
-                ImGui.Text(String.Format("maxEccentricity: {0}", this._requirement.orbit.maxEccentricity));
-                ImGui.Text(String.Format("minPeriod: {0}", this._requirement.orbit.minPeriod));
-                ImGui.Text(String.Format("maxPeriod: {0}", this._requirement.orbit.maxPeriod));
-                ImGui.Text(String.Format("minLongitudeOfAscendingNode: {0}", this._requirement.orbit.minLongitudeOfAscendingNode));
-                ImGui.Text(String.Format("maxLongitudeOfAscendingNode: {0}", this._requirement.orbit.maxLongitudeOfAscendingNode));
-                ImGui.Text(String.Format("minInclination: {0}", this._requirement.orbit.minInclination));
-                ImGui.Text(String.Format("maxInclination: {0}", this._requirement.orbit.maxInclination));
-                ImGui.Text(String.Format("minArgumentOfPeriapsis: {0}", this._requirement.orbit.minArgumentOfPeriapsis));
-                ImGui.Text(String.Format("maxArgumentOfPeriapsis: {0}", this._requirement.orbit.maxArgumentOfPeriapsis));
-            }
+            //ImGui.SeparatorText("Debug");
+            //ImGui.Text(String.Format("uid: {0}", this._requirement.uid));
+            //ImGui.Text(String.Format("title: {0}", this._requirement.title));
+            //ImGui.Text(String.Format("type: {0}", this._requirement.type));
+            //ImGui.Text(String.Format("description: {0}", this._requirement.description));
+            //if (this._requirement.type == ContractBlueprint.RequirementType.Orbit && this._requirement.orbit != null)
+            //{
+            //    ImGui.Text(String.Format("targetBody: {0}", this._requirement.orbit.targetBody));
+            //    ImGui.Text(String.Format("orbitType: {0}", this._requirement.orbit.type));
+            //    ImGui.Text(String.Format("minApoapsis: {0}", this._requirement.orbit.minApoapsis));
+            //    ImGui.Text(String.Format("maxApoapsis: {0}", this._requirement.orbit.maxApoapsis));
+            //    ImGui.Text(String.Format("minPeriapsis: {0}", this._requirement.orbit.minPeriapsis));
+            //    ImGui.Text(String.Format("maxPeriapsis: {0}", this._requirement.orbit.maxPeriapsis));
+            //    ImGui.Text(String.Format("minEccentricity: {0}", this._requirement.orbit.minEccentricity));
+            //    ImGui.Text(String.Format("maxEccentricity: {0}", this._requirement.orbit.maxEccentricity));
+            //    ImGui.Text(String.Format("minPeriod: {0}", this._requirement.orbit.minPeriod));
+            //    ImGui.Text(String.Format("maxPeriod: {0}", this._requirement.orbit.maxPeriod));
+            //    ImGui.Text(String.Format("minLongitudeOfAscendingNode: {0}", this._requirement.orbit.minLongitudeOfAscendingNode));
+            //    ImGui.Text(String.Format("maxLongitudeOfAscendingNode: {0}", this._requirement.orbit.maxLongitudeOfAscendingNode));
+            //    ImGui.Text(String.Format("minInclination: {0}", this._requirement.orbit.minInclination));
+            //    ImGui.Text(String.Format("maxInclination: {0}", this._requirement.orbit.maxInclination));
+            //    ImGui.Text(String.Format("minArgumentOfPeriapsis: {0}", this._requirement.orbit.minArgumentOfPeriapsis));
+            //    ImGui.Text(String.Format("maxArgumentOfPeriapsis: {0}", this._requirement.orbit.maxArgumentOfPeriapsis));
+            //}
         }
     }
 
@@ -1667,8 +1707,8 @@ namespace ContractManager.GUI
 
             if (ImGui.BeginTable("ActionPanelTable", 3))
             {
-                ImGui.TableSetupColumn("Field", ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                 // UID
