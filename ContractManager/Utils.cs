@@ -9,14 +9,20 @@ namespace ContractManager
 {
     internal static class Utils
     {
-        internal static string FormatDistance(double distanceInMeters, string format = "{0:N1}{1}")
+        internal static string FormatDistance(double distanceInMeters, string format = "{0:N2}{1}")
         {
             string unit = "m";
             double distance = distanceInMeters;
+            if (distanceInMeters >= 1e10d)
+            {
+                distance /= 1e9d;
+                unit = "Gm";
+            }
+            else
             if (distanceInMeters >= 1e7d)
             {
                 distance /= 1e6d;
-                unit = "Gm";
+                unit = "Mm";
             }
             else
             if (distanceInMeters >= 1e4d)
@@ -73,6 +79,10 @@ namespace ContractManager
             if (simTime.IsNaN())
             {
                 return "NaN";
+            }
+            if (Double.IsInfinity(simTime.Years))
+            {
+                return Double.PositiveInfinity.ToString();
             }
 
             StringBuilder stringBuilder = new StringBuilder();
