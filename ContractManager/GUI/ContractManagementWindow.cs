@@ -14,6 +14,7 @@ namespace ContractManager.GUI
         private readonly ContractManagementWindow? _window = null; // ToDo: remove, it's static available.
         private readonly string _title = string.Empty;
         private readonly string _uid = string.Empty;
+        private readonly string _subuid = string.Empty;
         private readonly string _guid = string.Empty;
         private readonly RightPanelDetailType _rightPanelDetailType = RightPanelDetailType.NONE;
         private readonly ColorTriplet? _colors = null;
@@ -91,20 +92,23 @@ namespace ContractManager.GUI
             return leftPanelListItems;
         }
         
-        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Requirement requirement)
+        internal LeftPanelListItem(ContractManagementWindow window, ContractBlueprint.Requirement requirement, string parentSubUID = "")
         { 
             this._window = window;
             this._title = requirement.title;
             this._uid = requirement.uid;
+            this._subuid = parentSubUID;
+            if (!string.IsNullOrEmpty(parentSubUID)) { this._subuid += "#,#";}
+            this._subuid += this._uid;
             this._guid = $"mission_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.REQUIREMENT;
         }
-        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Requirement> requirements)
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<ContractBlueprint.Requirement> requirements, string parentSubUID = "")
         {
             List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
             foreach (ContractBlueprint.Requirement requirement in requirements)
             {
-                leftPanelListItems.Add(new LeftPanelListItem(window, requirement));
+                leftPanelListItems.Add(new LeftPanelListItem(window, requirement, parentSubUID));
             }
             return leftPanelListItems;
         }
@@ -114,6 +118,7 @@ namespace ContractManager.GUI
             this._window = window;
             this._title = action.trigger.ToString() + " " + action.type.ToString();
             this._uid = action.uid;
+            this._subuid += this._uid;
             this._guid = $"mission_{this._uid}";
             this._rightPanelDetailType = RightPanelDetailType.ACTION;
         }
@@ -144,7 +149,7 @@ namespace ContractManager.GUI
             // Change the color for the button if it is currently selected for details.
             bool showAsActive = (
                 (this._window.rightPanelDetailType == this._rightPanelDetailType && this._window.rightPanelDetailUID == this._uid) ||
-                (this._window.rightPanelDetailSubType == this._rightPanelDetailType && this._window.rightPanelDetailSubUID == this._uid)
+                (this._window.rightPanelDetailSubType == this._rightPanelDetailType && this._window.rightPanelDetailSubUID == this._subuid)
             );
             if (showAsActive)
             {
@@ -162,13 +167,13 @@ namespace ContractManager.GUI
                 // Toggle what to show
                 if (this._window.rightPanelDetailSubType == this._rightPanelDetailType)
                 {
-                    if (this._window.rightPanelDetailSubUID == this._uid)
+                    if (this._window.rightPanelDetailSubUID == this._subuid)
                     {
                         this._window.rightPanelDetailSubUID = string.Empty;
                     }
                     else
                     {
-                        this._window.rightPanelDetailSubUID = this._uid;
+                        this._window.rightPanelDetailSubUID = this._subuid;
                     }
                 }
                 else
@@ -237,7 +242,7 @@ namespace ContractManager.GUI
 
             // Contract Management Window with two panels: left fixed-width, right flexible
             ImGui.SetNextWindowSizeConstraints(
-                new Brutal.Numerics.float2 { X = 600.0f, Y = 300.0f },
+                new Brutal.Numerics.float2 { X = 600.0f, Y = 400.0f },
                 new Brutal.Numerics.float2 { X = float.PositiveInfinity, Y = float.PositiveInfinity }  // no max size
             );
 
