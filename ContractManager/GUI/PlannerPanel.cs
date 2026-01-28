@@ -80,7 +80,6 @@ namespace ContractManager.GUI
                             );
                         }
                         List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, ContractManager.data.missionBlueprints);
-                        ImGui.Text(String.Format("list: {0}", listItems.Count));
                         ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_missionBlueprints");
                         ImGui.EndChild();  // End of LeftContractPanel
                     }
@@ -130,7 +129,6 @@ namespace ContractManager.GUI
                             );
                         }
                         List<LeftPanelListItem> listItems = LeftPanelListItem.GetLeftPanelListItems(ContractManager.contractManagementWindow, ContractManager.data.contractBlueprints);
-                        ImGui.Text(String.Format("list: {0}", listItems.Count));
                         ContractManager.contractManagementWindow.DrawItemList(listItems, "planner_contractBlueprints");
                         ImGui.EndChild();  // End of LeftContractPanel
                     }
@@ -429,12 +427,12 @@ namespace ContractManager.GUI
                 // Wrap contents in a child to make it scrollable if needed
                 if (ImGui.BeginChild("PlannerDetails", rightPanelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
                 {
-                    // TODO: Remove these debug text
+                    /* Debug info
                     ImGui.Text(String.Format("ContractManager.contractManagementWindow.rightPanelDetailType: {0}", ContractManager.contractManagementWindow.rightPanelDetailType));
                     ImGui.Text(String.Format("ContractManager.contractManagementWindow.rightPanelDetailUID: {0}", ContractManager.contractManagementWindow.rightPanelDetailUID));
                     ImGui.Text(String.Format("ContractManager.contractManagementWindow.rightPanelDetailSubType: {0}", ContractManager.contractManagementWindow.rightPanelDetailSubType));
                     ImGui.Text(String.Format("ContractManager.contractManagementWindow.rightPanelDetailSubUID: {0}", ContractManager.contractManagementWindow.rightPanelDetailSubUID));
-                    //------
+                    //------*/
 
                     if (ContractManager.contractManagementWindow.rightPanelDetailType == RightPanelDetailType.NONE || ContractManager.contractManagementWindow.rightPanelDetailUID == string.Empty)
                     {
@@ -893,7 +891,7 @@ namespace ContractManager.GUI
                 ImGui.TreePop();
             }
 
-            // TODO: remove debug
+            /* Debug info
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("uid: {0}", this._contractBlueprint.uid));
             ImGui.Text(String.Format("missionBlueprintUID: {0}", this._contractBlueprint.missionBlueprintUID));
@@ -907,6 +905,7 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("deadline: {0}", this._contractBlueprint.deadline));
             ImGui.Text(String.Format("isAutoAccepted: {0}", this._contractBlueprint.isAutoAccepted));
             ImGui.Text(String.Format("completionCondition: {0}", this._contractBlueprint.completionCondition.ToString()));
+            //------*/
         }
 
         internal void DrawRequirementTreeNodes(List<ContractBlueprint.Requirement> requirements, string parentUIDPath = "")
@@ -921,7 +920,7 @@ namespace ContractManager.GUI
                 float triangleWidth = 40.0f; // Guestimate of needed additional space
                 float maxTitleWidth = ContentRegionAvailableWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
                 // Ensure the title can fit in a way to leave space for the buttons
-                string titleForNode = requirement.title + ":" + parentUIDPath;
+                string titleForNode = requirement.title;
                 float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
                 while (textSize > maxTitleWidth)
                 {
@@ -1196,7 +1195,7 @@ namespace ContractManager.GUI
                 ImGui.TreePop();
             }
 
-            // TODO: remove
+            /* Debug info
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("uid: {0}", this._missionBlueprint.uid));
             ImGui.Text(String.Format("title: {0}", this._missionBlueprint.title));
@@ -1208,6 +1207,7 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("isRejectable: {0}", this._missionBlueprint.isRejectable));
             ImGui.Text(String.Format("deadline: {0}", this._missionBlueprint.deadline));
             ImGui.Text(String.Format("isAutoAccepted: {0}", this._missionBlueprint.isAutoAccepted));
+            //------*/
         }
 
         internal void DrawActionTreeNodes(List<ContractBlueprint.Action> actions)
@@ -1569,7 +1569,7 @@ namespace ContractManager.GUI
                 ImGui.EndTable();
             }
 
-            // TODO: Remove
+            /* Debug info
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("maxNumOfferedContracts: {0}", this._prerequisite.maxNumOfferedContracts));
             ImGui.Text(String.Format("maxNumAcceptedContracts: {0}", this._prerequisite.maxNumAcceptedContracts));
@@ -1586,6 +1586,7 @@ namespace ContractManager.GUI
             ImGui.Text(String.Format("hasAcceptedMission: {0}", this._prerequisite.hasAcceptedMission));
             ImGui.Text(String.Format("minNumberOfVessels: {0}", this._prerequisite.minNumberOfVessels));
             ImGui.Text(String.Format("maxNumberOfVessels: {0}", this._prerequisite.maxNumberOfVessels));
+            //------*/
         }
     }
 
@@ -1798,11 +1799,18 @@ namespace ContractManager.GUI
                     }
                     ImGui.EndCombo();
                 }
+                ImGui.EndTable();
+            }
 
-                // RequiredOrbit fields (only show if type is Orbit)
-                if (this._requirement.type == ContractBlueprint.RequirementType.Orbit && this._requirement.orbit != null)
+            // RequiredOrbit fields (only show if type is Orbit)
+            if (this._requirement.type == ContractBlueprint.RequirementType.Orbit && this._requirement.orbit != null)
+            {
+                ImGui.SeparatorText("Required Orbit");
+                if (ImGui.BeginTable("RequirementPanelTable", 3))
                 {
-                    ImGui.SeparatorText("Required Orbit");
+                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableSetupColumn("Required", ImGuiTableColumnFlags.WidthFixed);
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
@@ -2060,7 +2068,6 @@ namespace ContractManager.GUI
                     }
 
                 }
-            
                 ImGui.EndTable();
             }
             ImGui.Text("(*): required.");
@@ -2119,13 +2126,13 @@ namespace ContractManager.GUI
                             }
                         );
                     }
-                    // TODO: construct the right parentUIDPath
                     string nextParentUIDPath = ContractManager.contractManagementWindow.rightPanelDetailSubUID;
                     this.DrawRequirementTreeNodes(this._requirement.group.requirements, nextParentUIDPath);
                     ImGui.TreePop();
                 }
             }
 
+            /* Debug info
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("uid: {0}", this._requirement.uid));
             ImGui.Text(String.Format("title: {0}", this._requirement.title));
@@ -2150,6 +2157,7 @@ namespace ContractManager.GUI
                 ImGui.Text(String.Format("minArgumentOfPeriapsis: {0}", this._requirement.orbit.minArgumentOfPeriapsis));
                 ImGui.Text(String.Format("maxArgumentOfPeriapsis: {0}", this._requirement.orbit.maxArgumentOfPeriapsis));
             }
+            //------*/
         }
 
         internal void DrawRequirementTreeNodes(List<ContractBlueprint.Requirement> requirements, string parentUIDPath = "")
@@ -2164,7 +2172,7 @@ namespace ContractManager.GUI
                 float triangleWidth = 40.0f; // Guestimate of needed additional space
                 float maxTitleWidth = ContentRegionAvailableWidth - buttonEditWidth - buttonDeleteWidth - triangleWidth;
                 // Ensure the title can fit in a way to leave space for the buttons
-                string titleForNode = requirement.title + ":" + parentUIDPath;
+                string titleForNode = requirement.title;
                 float textSize = ImGui.CalcTextSize(titleForNode).X + style.FramePadding.X * 2.0f;
                 while (textSize > maxTitleWidth)
                 {
@@ -2368,13 +2376,14 @@ namespace ContractManager.GUI
             
             ImGui.Text("(*): required.");
 
-            // TODO: remove
+            /* Debug info
             ImGui.SeparatorText("Debug");
             ImGui.Text(String.Format("uid: {0}", this._action.uid));
             ImGui.Text(String.Format("trigger: {0}", this._action.trigger));
             ImGui.Text(String.Format("type: {0}", this._action.type));
             ImGui.Text(String.Format("showMessage: {0}", this._action.showMessage));
             ImGui.Text(String.Format("onRequirement: {0}", this._action.onRequirement));
+            //------*/
         }
     }
 }
