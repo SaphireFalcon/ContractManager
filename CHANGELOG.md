@@ -6,12 +6,15 @@
 
 #### GUI
 - Add to *Mission & Contract Management Window* three top tab-panels; *Mission Planner*, *Mission & Contract Management*, *Configuration*.
-- Add to the left panel a list of mission.
+- Add to the left panel a list of missions.
 - Add to highlight the selected item in the left panel.
 - Add to the right panel to show the selected mission.
 - Add to the *Management* tab if a mission or a contract with a mission is selected to show only details and contracts related to that mission.
 - Add status coloring for contracts and missions, used in the left panel list.
 - Add `ColorTriplet` type, to easily define the three colors for interactive modules.
+- Add to the *Planner* tab the option to see and edit all available `ContractBlueprint` and `MissionBlueprint`.
+- Add to the *Planner* tab to add, edit and delete actions for a `ContractBlueprint` or `MissionBlueprint`.
+- Add to the *Planner* tab to add, edit and delete requirements for a `ContractBlueprint`.
 
 #### Core
 - Add `MissionBlueprint` data structure as a blue print to create missions.
