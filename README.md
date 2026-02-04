@@ -11,12 +11,14 @@ Finally, the end-goals of this mod are:
 
 ### Currently implemented features:
 - Contract Manager Window to show offered, accepted and finished contracts and their details.
+- Contract Manager Window to create and modify missions and contracts.
 - Active Contracts Window to show the tracked requirements for the accepted contracts to achieve.
 - Save/Load contract manager state with in-game save/load feature.
 - Additional contracts can be created by adding them to the contracts folder
 
 ### Incomplete features:
-- Contract blueprints have a (very) incomplete set of features for prerequisites, requirements and actions.
+- Created missions and contracts in-game cannot be saved/loaded nor exported. Expect that in the next release.
+- Contract blueprints have an incomplete set of features for prerequisites, requirements and actions.
 - Very simplistic example contracts.
 - Loading contracts from other mods.
 
@@ -33,7 +35,7 @@ Finally, the end-goals of this mod are:
 
 ## How to install
 
-Follow the [StarMap
+Follow the [StarMap](https://github.com/StarMapLoader/StarMap?tab=readme-ov-file#installation) installation instructions.
 
 ## API References:
 * [Contracts](docs/Contract.md)
@@ -41,5 +43,7 @@ Follow the [StarMap
 ## Credits
 
 First of all, thanks to [jrossignol](https://github.com/jrossignol) and contributors for creating and maintaining [`ContractConfigurator`](https://github.com/jrossignol/ContractConfigurator) for KSP. It has been a really awesome mod, and motivited and inspired me to create this mod for KSA.
+
+Thanks to Arilynsky for reaching out and sharing ideas about creating missions and contracts in-game.
 
 Thanks, to the KSA community for using this mod, their feedback and suggestions. I hope this mod will bring joy to playing KSA.

@@ -166,7 +166,7 @@ namespace ContractManager.ContractBlueprint
 
         // The orbit type.
         [XmlElement("type")]
-        public OrbitType type { get; set; } = OrbitType.Invalid;
+        public OrbitType type { get; set; } = OrbitType.Elliptical;
 
         // minimum apoapsis altitude in meters.
         [XmlElement("minApoapsis", DataType = "double")]
