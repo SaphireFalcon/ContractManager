@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>0.2.4</version>
+  <uid>example_mission_001_contract_001</uid>
+  <missionBlueprintUID>example_mission_001</missionBlueprintUID>
+  <title>Fly to Luna</title>
+  <synopsis>Fly to Luna and achieve a stable orbit</synopsis>
+  <description>Create a randevous trajectory with Luna. Then achieve an orbit around Luna below 30km.</description>
+  <isRejectable>false</isRejectable>
+  <isAutoAccepted>true</isAutoAccepted>
+  <completionCondition>all</completionCondition>
+  <requirements>
+    <Requirement>
+      <uid>orbit_earth</uid>
+      <type>orbit</type>
+      <title>Orbit Earth</title>
+      <synopsis>Starting condition is to orbit Earth below 210km.</synopsis>
+      <description />
+      <Orbit>
+        <targetBody>Earth</targetBody>
+        <type>elliptical</type>
+        <maxApoapsis>210000</maxApoapsis>
+      </Orbit>
+    </Requirement>
+    <Requirement>
+      <uid>to_luna</uid>
+      <type>orbit</type>
+      <title>Rendevous with Luna</title>
+      <synopsis>Rendevous with Luna with periapsis below 200km.</synopsis>
+      <description>Change your orbit around Earth such that your trajectory will rendevous with Luna. TODO: Add hints.</description>
+      <Orbit>
+        <targetBody>Luna</targetBody>
+        <type>escape</type>
+        <maxPeriapsis>200000</maxPeriapsis>
+      </Orbit>
+    </Requirement>
+    <Requirement>
+      <uid>orbit_luna</uid>
+      <type>orbit</type>
+      <title>Orbit Luna</title>
+      <synopsis>Orbit Luna with apoapsis below 30km.</synopsis>
+      <description>Change your orbit around Luna to a low orbit of below 30km.</description>
+      <Orbit>
+        <targetBody>Luna</targetBody>
+        <type>elliptical</type>
+        <maxApoapsis>30000</maxApoapsis>
+        <minApoapsis>10000</minApoapsis>
+        <maxPeriapsis>30000</maxPeriapsis>
+        <minPeriapsis>10000</minPeriapsis>
+      </Orbit>
+    </Requirement>
+  </requirements>
+  <actions />
+  <Prerequisite>
+    <maxNumOfferedContracts>4</maxNumOfferedContracts>
+  </Prerequisite>
+</Contract>

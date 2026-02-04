@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mission xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>0.2.4</version>
+  <uid>example_mission_001</uid>
+  <title>Example Mission 001</title>
+  <synopsis>This is an example mission, with 2 contracts.</synopsis>
+  <description>Orbit around Luna and fly back to Earth.</description>
+  <isRejectable>true</isRejectable>
+  <isAutoAccepted>true</isAutoAccepted>
+  <actions>
+    <Action>
+      <trigger>onMissionComplete</trigger>
+      <type>showMessage</type>
+      <showMessage>Congratulations! You pawed that round trip.</showMessage>
+      <uid>example_mission_001_0</uid>
+    </Action>
+  </actions>
+  <contractBlueprintUIDs>
+    <string>example_mission_001_contract_001</string>
+    <string>example_mission_001_contract_002</string>
+  </contractBlueprintUIDs>
+</Mission>

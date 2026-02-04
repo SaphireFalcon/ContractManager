@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <version>0.2.0</version>
+  <version>0.2.4</version>
   <uid>example_contract_002</uid>
   <title>Example Contract 002</title>
   <synopsis>This is an example contract, changing all attributes of an orbit.</synopsis>
@@ -8,16 +8,6 @@
 Try to achieve all the orbit attributes.</description>
   <isRejectable>false</isRejectable>
   <deadline>3600.0</deadline>
-  <prerequisites>
-    <Prerequisite>
-      <type>maxNumOfferedContracts</type>
-      <maxNumOfferedContracts>4</maxNumOfferedContracts>
-    </Prerequisite>
-    <Prerequisite>
-      <type>maxNumAcceptedContracts</type>
-      <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
-    </Prerequisite>
-  </prerequisites>
   <completionCondition>all</completionCondition>
   <requirements>
     <Requirement>
@@ -29,7 +19,7 @@ Try to achieve all the orbit attributes.</description>
       <isHidden>true</isHidden>
       <Orbit>
         <targetBody>Earth</targetBody>
-		<type>elliptical</type>
+        <type>elliptical</type>
         <minApoapsis>200000</minApoapsis>
         <maxApoapsis>205000</maxApoapsis>
         <minPeriapsis>200000</minPeriapsis>
@@ -52,11 +42,17 @@ Try to achieve all the orbit attributes.</description>
       <trigger>onContractComplete</trigger>
       <type>showMessage</type>
       <showMessage>Congratulations! You pounced the example contract.</showMessage>
+      <uid>example_contract_002_0</uid>
     </Action>
     <Action>
       <trigger>onContractFail</trigger>
       <type>showMessage</type>
       <showMessage>Keep persevering; The road to success is pawed with failure.</showMessage>
+      <uid>example_contract_002_1</uid>
     </Action>
   </actions>
+  <prerequisite>
+    <maxNumOfferedContracts>4</maxNumOfferedContracts>
+    <maxNumAcceptedContracts>2</maxNumAcceptedContracts>
+  </prerequisite>
 </Contract>

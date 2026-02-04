@@ -16,12 +16,19 @@ namespace ContractManager.Contract
 
         // Serializable fields.
         // Unique identifier for the contract.
-        [XmlElement("contractUID", DataType = "string")]
-        public string contractUID { get; set; } = string.Empty;
+        // [RENAMED v0.2.4]
+        //[XmlElement("contractUID", DataType = "string")]
+        //public string contractUID { get; set; } = string.Empty;
+        [XmlElement("uid", DataType = "string")]
+        public string uid { get; set; } = string.Empty;
 
         // Unique identifier for which blueprint the contract was instantiated from.
         [XmlElement("blueprintUID", DataType = "string")]
         public string blueprintUID { get; set; } = string.Empty;
+
+        // Unique identifier for which mission the contract belongs to.
+        [XmlElement("missionUID", DataType = "string")]
+        public string missionUID { get; set; } = string.Empty;
         
         // Status of the contract.
         [XmlElement("status")]
@@ -58,7 +65,7 @@ namespace ContractManager.Contract
         {
             Contract clonedContract = new Contract
             {
-                contractUID = this.contractUID,
+                uid = this.uid,
                 blueprintUID = this.blueprintUID,
                 status = this.status,
                 offeredTimeS = this.offeredTimeS,
@@ -90,7 +97,7 @@ namespace ContractManager.Contract
             }
             else
             {
-                Console.WriteLine($"[CM] [ERROR] Contract could not find ContractBlueprint matching uid '{this.blueprintUID}'");
+                Console.WriteLine($"[CM] [ERROR] Contract '{this.uid}' could not find ContractBlueprint matching uid '{this.blueprintUID}'");
                 return null;
             }
             return clonedContract;
@@ -103,12 +110,26 @@ namespace ContractManager.Contract
             this._contractBlueprint = contractBlueprint;
             this.offeredSimTime = simTime;
             this.status = ContractStatus.Offered;
-            this.contractUID = String.Format("{0}_{1:F0}", contractBlueprint.uid, this.offeredSimTime.Seconds());
+            this.uid = String.Format("{0}_{1:F0}", contractBlueprint.uid, this.offeredSimTime.Seconds());
 
             foreach (Requirement blueprintRequirement in contractBlueprint.requirements)
             {
                 // Construct a tracked requirement from blueprint.
                 this.trackedRequirements.Add(TrackedRequirement.CreateFromBlueprintRequirement(blueprintRequirement, this));
+            }
+            
+            // Create the link between contract and mission when contract is part of a mission.
+            if (!String.IsNullOrEmpty(contractBlueprint.missionBlueprintUID))
+            {
+                List<Mission.Mission> missions = Mission.MissionUtils.FindMissionsFromMissionBlueprintUID(ContractManager.data.acceptedMissions, contractBlueprint.missionBlueprintUID);
+                if (missions.Count == 1) {
+                    this.missionUID = missions[0].uid;
+                    missions[0].contractUIDs.Add(this.uid);
+                }
+                else
+                {
+                    Console.WriteLine($"[CM] [WARNING] Creating contract that is part of mission, but {missions.Count} missions with {contractBlueprint.missionBlueprintUID} which should never happen!");
+                }
             }
         }
 
@@ -129,7 +150,7 @@ namespace ContractManager.Contract
         public bool Update(KSA.SimTime simTime)
         {
             // Check if offered contract expired -> Rejected
-            if (!Double.IsPositiveInfinity(this._contractBlueprint.expiration))
+            if (this.status == ContractStatus.Offered && !Double.IsPositiveInfinity(this._contractBlueprint.expiration))
             {
                 KSA.SimTime expireOnSimTime = this.offeredSimTime + this._contractBlueprint.expiration;
                 if (expireOnSimTime < simTime)
@@ -138,8 +159,8 @@ namespace ContractManager.Contract
                     return true;
                 }
             }
-
-            // Only check if status is Accepted, because that is the only situation the status can change through tracked requirements.
+            
+            // Return early if status is not accepted, when status can change (e.g. through tracked requirements).
             if (this.status != ContractStatus.Accepted) { return false; }
 
             ContractStatus previousStatus = this.status;
@@ -236,15 +257,15 @@ namespace ContractManager.Contract
     
     public enum ContractStatus
     {
-        [XmlEnum("Offered")]
-        Offered,
-        [XmlEnum("Rejected")]
-        Rejected,
-        [XmlEnum("Accepted")]
-        Accepted,
-        [XmlEnum("Completed")]
-        Completed,
         [XmlEnum("Failed")]
-        Failed
+        Failed = 0,
+        [XmlEnum("Rejected")]
+        Rejected = 1,
+        [XmlEnum("Offered")]
+        Offered = 2,
+        [XmlEnum("Accepted")]
+        Accepted = 3,
+        [XmlEnum("Completed")]
+        Completed = 4,
     }
 }

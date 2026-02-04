@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.3.0] - 2026-02-04
+
+### Added
+
+#### GUI
+- Add to *Mission & Contract Management Window* three top tab-panels; *Mission Planner*, *Mission & Contract Management*, *Configuration*.
+- Add to the left panel a list of missions.
+- Add to highlight the selected item in the left panel.
+- Add to the right panel to show the selected mission.
+- Add to the *Management* tab if a mission or a contract with a mission is selected to show only details and contracts related to that mission.
+- Add status coloring for contracts and missions, used in the left panel list.
+- Add `ColorTriplet` type, to easily define the three colors for interactive modules.
+- Add to the *Planner* tab the option to see and edit all available `ContractBlueprint` and `MissionBlueprint`.
+- Add to the *Planner* tab to add, edit and delete actions for a `ContractBlueprint` or `MissionBlueprint`.
+- Add to the *Planner* tab to add, edit and delete requirements for a `ContractBlueprint`.
+
+#### Core
+- Add `MissionBlueprint` data structure as a blue print to create missions.
+- Add `Mission` data structure to hold a contract instanciated from a `ContractBlueprint`.
+- Add `MissionBlueprintUID` field to `ContractBlueprint` to link it to a `MissionBlueprint`.
+- Add `missionUID` field to `Contract` data structure to link an offered contract to an accepted mission.
+- Add offering missions
+- Add functionality to set `Contract.missionUID` with `missionUID` of the linked mission.
+- Add functionality to add `ContractUID` to `Mission.contractUIDs` to link mission to contract(s).
+- Add function `ContractUtils.FindContractFromContractUID` to search through all or a given list of contracts.
+- Add `MissionUtils` with functions `FindMissionFromMissionUID`to search through all or a given list of contracts.
+- Add function `DoAction(Mission)` to do actions triggered by a mission.
+- Add function `ShowMessage(Mission)` to show a message triggered by a mission.
+- Add generate function for a mission with 2 contracts to fly to Luna and back to Earth.
+- Add example mission with 2 contracts to fly to Luna and back to Earth.
+- Add `maxNumberOfOfferedMissions` and `maxNumberOfAcceptedMissions` fields to `ContractManagerData`.
+- Add `Version` type to track and compare versions.
+- Add migration of `ContractBlueprint`, `MissionBlueprint` and `ContractManagerData` files.
+- Add storing the migrated `ContractBlueprint` and `MissionBlueprint` to the documents game folder.
+- Add storing the migrated `ContractManagerData` to the saves folder and making back-up of the original file.
+- Add `Action.uid` and used migration to automatically fill the field.
+- Add migration to `ContractManagerData` to store contacts and missions as array and not multiple of the same items.
+
+### Changed
+- Reordered `ContractStatus` from `Failed` -> `Completed`.
+- Renamed `ContractUtils.FindContractFromUID` to `ContractUtils.FindContractFromBlueprintUID`, and changed return type from `Contract?` to `List<Contract>`, because it could be possible to have multiple contracts instanciated from the same blueprint.
+- Reordered the `PrerequisiteType` to group by specific and generic types.
+- Changed to only offer a contract if the linked mission is accepted.
+- Renamed *Contract Management Window* to *Mission & Contract Management Window*.
+- Refactored all usages of `ContractBlueprint.prerequisites` value.
+- Refactored all usages of `MissionBlueprint.prerequisites` value.
+- Removed  all usages of `PrerequisiteType`.
+- Removed  all usages of `Prerequisite.uid`.
+- Changed `Contract.contractUID` to `Contract.uid` and created migration to update save file when loaded.
+- Changed `Mission.contractUID` to `Mission.uid` and created migration to update save file when loaded.
+
+### Fixed
+
+- Fix to check all required orbit fields if the required orbit is achieved.
+- Fix to show in *Active Contracts Window* the required orbited body and orbit type.
+- Fix to show max Apoapsis/Periapsis if the requirement was not yet started.
+- Fix `ContractManagerData` to store contracts and missions as array and not multiple of the same items.
+
+### Depreciated
+
+- `ContractBlueprint.prerequisites`: flattened into a single instance of `Prerequisite` as `ContractBlueprint.prerequisite`.
+- `MissionBlueprint.prerequisites`: flattened into a single instance of `Prerequisite` as `MissionBlueprint.prerequisite`.
+- `PrerequisiteType`: not needed anymore after flattening.
+- `Prerequisite.uid`: not needed anymore after flattening.
+
 ## [0.2.0] - 2026-01-04
 
 ### Added

@@ -110,19 +110,44 @@ namespace ContractManager.Contract
             return null;
         }
 
-        internal static Contract? FindContractFromUID(List<Contract> contracts, string blueprintUID)
+        internal static List<Contract> FindContractFromBlueprintUID(List<Contract> contracts, string blueprintUID)
         {
-            bool foundBlueprint = false;
+            List<Contract> foundContracts = new List<Contract>();
             foreach (Contract contract in contracts)
             {
-                foundBlueprint = contract._contractBlueprint.uid == blueprintUID;
-                if (foundBlueprint)
+                if (contract._contractBlueprint.uid == blueprintUID)
+                {
+                    // Found matching contract.
+                    foundContracts.Add(contract);
+                }
+            }
+            return foundContracts;
+        }
+
+        internal static Contract? FindContractFromContractUID(List<Contract> contracts, string contractUID)
+        {
+            bool foundContract = false;
+            foreach (Contract contract in contracts)
+            {
+                foundContract = contract.uid == contractUID;
+                if (foundContract)
                 {
                     // Found matching contract.
                     return contract;
                 }
             }
             return null;
+        }
+
+        internal static Contract? FindContractFromContractUID(string contractUID)
+        {
+            Contract? contract = null;
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.offeredContracts, contractUID);
+            if (contract != null) { return contract; }
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.acceptedContracts, contractUID);
+            if (contract != null) { return contract; }
+            contract = ContractUtils.FindContractFromContractUID(ContractManager.data.finishedContracts, contractUID);
+            return contract;
         }
 
         internal static ContractBlueprint.Requirement? FindRequirementFromUID(List<ContractBlueprint.Requirement> blueprintRequirements, string requirementUID)
@@ -135,6 +160,21 @@ namespace ContractManager.Contract
                 {
                     // Found matching blueprint requirement.
                     return blueprintRequirement;
+                }
+            }
+            return null;
+        }
+
+        internal static ContractBlueprint.Action? FindActionFromUID(List<ContractBlueprint.Action> blueprintActions, string prerequisiteUID)
+        {
+            bool foundBlueprintAction = false;
+            foreach (ContractBlueprint.Action blueprintAction in blueprintActions)
+            {
+                foundBlueprintAction = blueprintAction.uid == prerequisiteUID;
+                if (foundBlueprintAction)
+                {
+                    // Found matching blueprint requirement.
+                    return blueprintAction;
                 }
             }
             return null;

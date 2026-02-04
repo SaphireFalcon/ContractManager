@@ -3,19 +3,26 @@ using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace ContractManager
 {
     internal static class Utils
     {
-        internal static string FormatDistance(double distanceInMeters, string format = "{0:N1}{1}")
+        internal static string FormatDistance(double distanceInMeters, string format = "{0:N2}{1}")
         {
             string unit = "m";
             double distance = distanceInMeters;
+            if (distanceInMeters >= 1e10d)
+            {
+                distance /= 1e9d;
+                unit = "Gm";
+            }
+            else
             if (distanceInMeters >= 1e7d)
             {
                 distance /= 1e6d;
-                unit = "Gm";
+                unit = "Mm";
             }
             else
             if (distanceInMeters >= 1e4d)
@@ -73,6 +80,10 @@ namespace ContractManager
             {
                 return "NaN";
             }
+            if (Double.IsInfinity(simTime.Years))
+            {
+                return Double.PositiveInfinity.ToString();
+            }
 
             StringBuilder stringBuilder = new StringBuilder();
             if (!showOnlyNonZero) {
@@ -102,6 +113,13 @@ namespace ContractManager
     }
     internal class Colors
     {
+        // Default, bit darker, used for normal button.
+        public static Brutal.Numerics.float4 blueDefaultDark = new Brutal.Numerics.float4 { X = 0.48f, Y = 0.72f, Z = 0.89f, W = 0.49f };
+        // Default, bit whiter, used for hovering color.
+        public static Brutal.Numerics.float4 blueDefaultLight = new Brutal.Numerics.float4 { X = 0.50f, Y = 0.69f, Z = 0.99f, W = 0.68f };
+        // Default, bright, used for pushed or normal text.
+        public static Brutal.Numerics.float4 blueDefault = new Brutal.Numerics.float4 { X = 0.05f, Y = 0.53f, Z = 0.99f, W = 1.0f }; // ?
+
         // Red, bit darker, used for normal button.
         public static Brutal.Numerics.float4 redDark = new Brutal.Numerics.float4 { X = 0.5f, Y = 0.1f, Z = 0.1f, W = 1.0f };
         // Red, bit whiter, used for hovering color.
@@ -172,6 +190,63 @@ namespace ContractManager
             }
             return Colors.gray;
         }
+        
+        public static ColorTriplet GetContractStatusColor(Contract.ContractStatus status)
+        {
+            if (status == Contract.ContractStatus.Accepted)
+            {
+                return new ColorTriplet {normal = Colors.orange, light = Colors.orangeLight, dark = Colors.orangeDark };
+            }
+            else
+            if (status == Contract.ContractStatus.Offered)
+            {
+                return new ColorTriplet {normal = Colors.yellow, light = Colors.yellowLight, dark = Colors.yellowDark };
+            }
+            else
+            if (status == Contract.ContractStatus.Completed)
+            {
+                return new ColorTriplet {normal = Colors.green, light = Colors.greenLight, dark = Colors.greenDark };
+            }
+            else
+            if (status is Contract.ContractStatus.Rejected or Contract.ContractStatus.Failed)
+            {
+                return new ColorTriplet {normal = Colors.red, light = Colors.redLight, dark = Colors.redDark };
+            }
+            return new ColorTriplet {normal = Colors.gray, light = Colors.grayLight, dark = Colors.grayDark };
+        }
+        
+        public static ColorTriplet GetMissionStatusColor(Mission.MissionStatus status)
+        {
+            if (status == Mission.MissionStatus.Accepted)
+            {
+                return new ColorTriplet {normal = Colors.orange, light = Colors.orangeLight, dark = Colors.orangeDark };
+            }
+            else
+            if (status == Mission.MissionStatus.Offered)
+            {
+                return new ColorTriplet {normal = Colors.yellow, light = Colors.yellowLight, dark = Colors.yellowDark };
+            }
+            else
+            if (status == Mission.MissionStatus.Completed)
+            {
+                return new ColorTriplet {normal = Colors.green, light = Colors.greenLight, dark = Colors.greenDark };
+            }
+            else
+            if (status is Mission.MissionStatus.Rejected or Mission.MissionStatus.Failed)
+            {
+                return new ColorTriplet {normal = Colors.red, light = Colors.redLight, dark = Colors.redDark };
+            }
+            return new ColorTriplet {normal = Colors.gray, light = Colors.grayLight, dark = Colors.grayDark };
+        }
+    }
+
+    public class ColorTriplet
+    {
+        public Brutal.Numerics.float4 normal;
+        public Brutal.Numerics.float4 light;
+        public Brutal.Numerics.float4 dark;
+
+        public ColorTriplet() { }
     }
 
     public class TimeConstants
@@ -184,4 +259,129 @@ namespace ContractManager
         public static int daysInYear = 360;
     }
 
+    public class Version
+    {
+        public int major = 0;
+        public int minor = 0;
+        public int patch = 0;
+
+        public bool valid = false;
+        
+        public Version() { }
+
+        public Version(Version versionToCopy)
+        {
+            this.valid = versionToCopy.valid;
+            if (versionToCopy.valid) {
+                this.major = versionToCopy.major;
+                this.minor = versionToCopy.minor;
+                this.patch = versionToCopy.patch;
+            }
+        }
+
+        public Version(string version)
+        {
+            this.FromString(version);
+        }
+        
+        public Version(XDocument? xmlDocument)
+        {
+            if (xmlDocument == null) { return; }
+            if (xmlDocument.Root == null) { return; }
+            XElement? versionElement = xmlDocument.Root.Element("version");
+            if (versionElement == null) { return; }
+            this.FromString(versionElement.Value);
+        }
+        
+
+        public void UpdateTo(Version version)
+        {
+            if (version.valid)
+            {
+                this.valid = true;
+                this.major = version.major;
+                this.minor = version.minor;
+                this.patch = version.patch;
+            }
+        }
+
+        public void FromString(string version)
+        {
+            if (version.StartsWith("v"))
+            {
+                version = version.Substring(1);
+            }
+            string[] splitByDot = version.Split(".");
+            if (splitByDot.Length == 3)
+            {
+                if (!Int32.TryParse(splitByDot[0], out this.major)) { return ;}
+                if (!Int32.TryParse(splitByDot[1], out this.minor)) { return ;}
+                if (!Int32.TryParse(splitByDot[2], out this.patch)) { return ;}
+                this.valid = true;
+            }
+        }
+
+        public string ToString()
+        {
+            return String.Format("{0}.{1}.{2}", this.major, this.minor, this.patch);
+        }
+
+        public static bool operator >(Version a, Version b) {
+            return (a.valid || !b.valid ) && (
+                a.major > b.major ||
+                a.major == b.major && a.minor > b.minor ||
+                a.major == b.major && a.minor == b.minor && a.patch > b.patch
+            );
+        }
+        
+        public static bool operator <(Version a, Version b) {
+            return (a.valid || !b.valid ) && (
+                a.major < b.major ||
+                a.major == b.major && a.minor < b.minor ||
+                a.major == b.major && a.minor == b.minor && a.patch < b.patch
+            );
+        }
+
+        public static bool operator ==(Version? a, Version? b) {
+            return (a is null && b is null) || (
+                a.valid &&
+                b.valid &&
+                a.major == b.major &&
+                a.minor == b.minor &&
+                a.patch == b.patch
+            );
+        }
+
+        public static bool operator !=(Version? a, Version? b) {
+            return (!(a is null) && b is null ) || (a is null && !(b is null)) || (
+                a.valid &&
+                b.valid &&
+                (
+                    a.major != b.major ||
+                    a.minor != b.minor ||
+                    a.patch != b.patch
+                )
+            );
+        }
+        
+        public static bool operator >(Version a, string b) {
+            Version vb = new Version(b);
+            return a > vb;
+        }
+        
+        public static bool operator <(Version a, string b) {
+            Version vb = new Version(b);
+            return a < vb;
+        }
+
+        public static bool operator ==(Version? a, string b) {
+            Version vb = new Version(b);
+            return a == vb;
+        }
+
+        public static bool operator !=(Version? a, string b) {
+            Version vb = new Version(b);
+            return a != vb;
+        }
+    }
 }

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Contract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <version>0.2.4</version>
+  <uid>example_mission_001_contract_002</uid>
+  <missionBlueprintUID>example_mission_001</missionBlueprintUID>
+  <title>Return to Earth</title>
+  <synopsis>Return to Earth from orbiting Luna.</synopsis>
+  <description>Create an escape trajectory from Luna. Then achieve an orbit around Earth between 150~200km.</description>
+  <isRejectable>false</isRejectable>
+  <isAutoAccepted>true</isAutoAccepted>
+  <completionCondition>all</completionCondition>
+  <requirements>
+    <Requirement>
+      <uid>escape_luna</uid>
+      <type>orbit</type>
+      <title>Escape Luna</title>
+      <synopsis>Escape Luna back to Earth.</synopsis>
+      <description>Change your orbit around Luna to a low orbit of below 30km.</description>
+      <Orbit>
+        <targetBody>Luna</targetBody>
+        <type>escape</type>
+      </Orbit>
+    </Requirement>
+    <Requirement>
+      <uid>orbit_earth_again</uid>
+      <type>orbit</type>
+      <title>Orbit Earth again</title>
+      <synopsis>Orbit Earth again.</synopsis>
+      <description>Change your orbit around Earth to a orbit of between 150~200km.</description>
+      <Orbit>
+        <targetBody>Earth</targetBody>
+        <type>elliptical</type>
+        <minApoapsis>150000</minApoapsis>
+        <maxApoapsis>200000</maxApoapsis>
+        <minPeriapsis>150000</minPeriapsis>
+        <maxPeriapsis>200000</maxPeriapsis>
+      </Orbit>
+    </Requirement>
+  </requirements>
+  <actions />
+  <Prerequisite>
+    <hasCompletedContract>example_mission_001_contract_001</hasCompletedContract>
+  </Prerequisite>
+</Contract>

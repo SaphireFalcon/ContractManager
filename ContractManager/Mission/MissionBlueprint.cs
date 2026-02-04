@@ -1,193 +1,148 @@
-﻿using ContractManager.Mission;
+﻿using ContractManager.ContractBlueprint;
 using KSA;
 using System.Collections.Generic;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace ContractManager.ContractBlueprint
+namespace ContractManager.Mission
 {
-    public enum CompletionCondition
+    [XmlRoot("Mission")]
+    public class MissionBlueprint
     {
-        [XmlEnum("all")]
-        All,
-        [XmlEnum("any")]
-        Any
-    }
-
-    [XmlRoot("Contract")]    
-    public class ContractBlueprint
-    {
-        // Details of the contract
         // The version for which the contract was created.
         [XmlElement("version", DataType = "string")]
         public string version { get; set; } = ContractManager.version.ToString();
-
-        // The unique identifier for the contract
+        
+        // The unique identifier for the mission
         [XmlElement("uid", DataType = "string")]
         public string uid { get; set; }
         internal static int uidMaxLength = 128;
 
-        // Mission unique identifier if the blueprint is linked to a mission.
-        [XmlElement("missionBlueprintUID", DataType = "string")]
-        public string missionBlueprintUID { get; set; } = string.Empty;
-        internal static int missionBlueprintUIDMaxLength = 128;
-
-        // The title of the contract
+        // The title of the mission
         [XmlElement("title", DataType = "string")]
         public string title { get; set; }
         internal static int titleMaxLength = 128;
 
-        // A brief synopsis of the contract
+        // A brief synopsis of the mission
         [XmlElement("synopsis", DataType = "string")]
         public string synopsis { get; set; } = string.Empty;
         internal static int synopsisMaxLength = 1024;
 
-        // Detailed description of the contract
+        // Detailed description of the mission
         [XmlElement("description", DataType = "string")]
         public string description { get; set; } = string.Empty;
         internal static int descriptionMaxLength = 4096;
 
-        // When an offered contract will expired, in seconds
+        // When an offered mission will expired, in seconds
         [XmlElement("expiration", DataType = "double")]
         public double expiration { get; set; } = double.PositiveInfinity;  // Never expires
 
-        // Flag if an offered contract from this blueprint can be rejected.
+        // Flag if an offered mission from this blueprint can be rejected.
         [XmlElement("isRejectable", DataType = "boolean")]
         public bool isRejectable { get; set; } = true;
 
-        // When an accepted contract will fail, in seconds
+        // When an accepted mission will fail, in seconds
         [XmlElement("deadline", DataType = "double")]
         public double deadline { get; set; } = double.PositiveInfinity;  // No deadline
 
-        // Flag if an offered contract is automatically accepted.
+        // Flag if an offered mission is automatically accepted.
         [XmlElement("isAutoAccepted", DataType = "boolean")]
         public bool isAutoAccepted { get; set; } = false;
 
-        // [DEPRECIATED v0.2.1] List of prerequisites for the contract
+        // [DEPRECIATED v0.2.1] List of prerequisites for the misison to be offered automatically
         //[XmlArray("prerequisites")]
         //public List<Prerequisite> prerequisites { get; set; } = new List<Prerequisite>();
-        
+
         // [v0.2.1] Prerequisite to offer contract
         [XmlElement("Prerequisite")]
         public Prerequisite prerequisite { get; set; } = new Prerequisite();
 
-        // Completion condition of the contract based on the requirements.
-        [XmlElement("completionCondition")]
-        public CompletionCondition completionCondition { get; set; } = CompletionCondition.All;
-
-        // List of requirements for the contract
-        [XmlArray("requirements")]
-        public List<Requirement> requirements { get; set; } = new List<Requirement>();
-
-        // List of actions for the contract
+        // List of actions for the misison
         [XmlArray("actions")]
-        public List<Action> actions { get; set; } = new List<Action>();
+        public List<ContractBlueprint.Action> actions { get; set; } = new List<ContractBlueprint.Action>();
+
+        // List of contract blueprints UIDs for the mission
+        [XmlArray("contractBlueprintUIDs")]
+        public List<string> contractBlueprintUIDs { get; set; } = new List<string>();
 
         // internal flag to indicate if the blueprint can be edited or not
         internal bool isEditable { get; set; } = false;
 
-        public ContractBlueprint() { }
-
-        //  Doesn't write anything to console in-game, only on StarMap launcher console.
-        internal void WriteToConsole()
-        {
-            Console.WriteLine($"Contract Blueprint:");
-            Console.WriteLine($"  UID: {uid}");
-            Console.WriteLine($"  Title: {title}");
-            Console.WriteLine($"  Synopsis: {synopsis}");
-            Console.WriteLine($"  Description: {description}");
-            Console.WriteLine($"  Prerequisiste:");
-            prerequisite.WriteToConsole();
-            Console.WriteLine($"  Complete {completionCondition} of {requirements.Count} requirements:");
-            foreach (Requirement requirement in requirements)
-            {
-                requirement.WriteToConsole();
-            }
-            Console.WriteLine($"  Actions: {actions.Count}");
-            foreach (Action action in actions)
-            {
-                action.WriteToConsole();
-            }
-            Console.WriteLine($"  ");
-        }
-
-        // Write the contract blueprint to an XML file.
+        public MissionBlueprint() { }
+        
+        // Write the mission blueprint to an XML file.
         internal void WriteToFile(string filePath)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
+            XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
             XmlHelper.SerializeWithoutNaN(serializer, this, filePath);
         }
 
-        // Load a contract blueprint from an XML file.
-        internal static ContractBlueprint? LoadFromFile(string filePath)
+        // Load a mission blueprint from an XML file.
+        internal static MissionBlueprint? LoadFromFile(string filePath)
         {
             XDocument? xmlDocument = null;
             using (var reader = new System.IO.StreamReader(filePath))
             {
                 xmlDocument = XDocument.Load(reader);
             }
-            if (ContractBlueprint.Migrate(ref xmlDocument, filePath))
+            if (MissionBlueprint.Migrate(ref xmlDocument, filePath))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
-                return (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+                XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
+                return (MissionBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
             }
             return null;
         }
 
-        internal bool Validate()
+        internal bool Validate(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
         {
             // Validate the contract blueprint.
             // The title can't be empty
             if (String.IsNullOrEmpty(this.title))
             {
-                Console.WriteLine("[CM] [WARNING] contract blueprint title has be to be defined.");
+                Console.WriteLine("[CM] [WARNING] mission blueprint title has be to be defined.");
                 return false;
             }
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
+                Console.WriteLine("[CM] [WARNING] mission blueprint uid has be to be defined.");
                 return false;
             }
-            // FIXME: It should have at least one prerequisiteElement to know when to offer a contract from the contract 
-            // It should have at least one requirement to know when to the contract should be completed.
-            if (this.requirements.Count == 0)
+            // It should have at least one contract linked to the mission.
+            if (this.contractBlueprintUIDs.Count == 0)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
+                Console.WriteLine($"[CM] [WARNING] mission blueprint '{this.title}' has no contracts.");
                 return false;
             }
-            if (this.uid.Length >= ContractBlueprint.uidMaxLength)
+            if (this.uid.Length >= MissionBlueprint.uidMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint uid should be less than {ContractBlueprint.uidMaxLength} in length");
+                Console.WriteLine($"[CM] [WARNING] mission blueprint uid length should be less than {MissionBlueprint.uidMaxLength}.");
                 return false;
             }
-            if (this.title.Length >= ContractBlueprint.titleMaxLength)
+            if (this.title.Length >= MissionBlueprint.titleMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint title should be less than {ContractBlueprint.titleMaxLength} in length");
+                Console.WriteLine($"[CM] [WARNING] mission blueprint title length should be less than {MissionBlueprint.titleMaxLength}.");
                 return false;
             }
-            if (this.synopsis.Length >= ContractBlueprint.synopsisMaxLength)
+            if (this.synopsis.Length >= MissionBlueprint.synopsisMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint synopsis should be less than {ContractBlueprint.synopsisMaxLength} in length");
+                Console.WriteLine($"[CM] [WARNING] mission blueprint synopsis length should be less than {MissionBlueprint.synopsisMaxLength}.");
                 return false;
             }
-            if (this.description.Length >= ContractBlueprint.descriptionMaxLength)
+            if (this.description.Length >= MissionBlueprint.descriptionMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
+                Console.WriteLine($"[CM] [WARNING] mission blueprint description length should be less than {MissionBlueprint.descriptionMaxLength}.");
                 return false;
             }
 
-            prerequisite.Validate();
-
-            foreach (var requirement in requirements)
-            {
-                if (!requirement.Validate()) { return false; }
-            }
+            if (!this.prerequisite.Validate()) { return false; }
             foreach (var action in actions)
             {
                 if (!action.Validate()) { return false; }
             }
+
             return true;
         }
 
@@ -206,9 +161,9 @@ namespace ContractManager.ContractBlueprint
             if (xmlDocument.Root == null) { return false; }
             Version xmlVersion = new Version(loadedXMLVersion);
             
-            if (!ContractBlueprint.MigratePrerequisteWithTypeFlatten(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
-            if (!ContractBlueprint.MigrateAddActionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
-
+            if (!MissionBlueprint.MigratePrerequisteWithTypeFlatten(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            if (!MissionBlueprint.MigrateAddActionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+                        
             if (xmlVersion < ContractManager.version)
             {
                 xmlVersion.UpdateTo(ContractManager.version);
@@ -222,7 +177,7 @@ namespace ContractManager.ContractBlueprint
                 string contentDirectoryPath = Path.GetFullPath(@"Content");
                 if (modFolderContractPath.StartsWith(contentDirectoryPath))
                 {
-                    // This has to be true, because contracts are loaded from Content/[mod]/contracts
+                    // This has to be true, because contracts are loaded from Content/[mod]/missions
                     modFolderContractPath = modFolderContractPath.Substring(contentDirectoryPath.Length);
                 }
                 string contractsVersionExportFolderPath = Path.Combine(
@@ -271,7 +226,7 @@ namespace ContractManager.ContractBlueprint
                 XElement? prerequisitesElement = xmlDocument.Root.Element("prerequisites");
                 if (prerequisitesElement != null )
                 {
-                    XElement? migratedPrerequisiteElement = Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
+                    XElement? migratedPrerequisiteElement = ContractBlueprint.Prerequisite.MigratePrerequisteWithTypeFlatten(prerequisitesElement);
                     if(migratedPrerequisiteElement != null)
                     {
                         xmlDocument.Root.Add(migratedPrerequisiteElement);
@@ -294,7 +249,7 @@ namespace ContractManager.ContractBlueprint
                 XElement? uidElement = xmlDocument.Root.Element("uid");
                 if (actionsElement != null && uidElement != null )
                 {
-                    Action.MigrateAddUID(ref actionsElement, uidElement.Value);
+                    ContractBlueprint.Action.MigrateAddUID(ref actionsElement, uidElement.Value);
                 }
                 xmlVersion.FromString("0.2.2");
                 migratedFile = true;

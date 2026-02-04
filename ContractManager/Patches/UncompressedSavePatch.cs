@@ -28,7 +28,8 @@ namespace ContractManager.Patches
         public static void LoadPostfix(ref KSA.UncompressedSave __instance)
         {
             Console.WriteLine($"[CM] UncompressedSavePatchLoad.LoadPostfix() loading data from '{__instance.Directory.FullName}'");
-            ContractManager.data.LoadFrom(__instance.Directory.FullName);
+            bool succeeded = ContractManager.data.LoadFrom(__instance.Directory.FullName);
+            Console.WriteLine(String.Format("[CM] UncompressedSavePatchLoad.LoadPostfix() loading data {0}'", succeeded ? "succeeded" : "failed"));
         }
     }
 }
