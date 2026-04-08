@@ -244,8 +244,9 @@ public class ContractManager
     {
         if (Universe.CurrentSystem != null)
         {
-            if (Universe.CurrentSystem.VehicleCount < prerequisite.minNumberOfVessels) { return false; };
-            if (Universe.CurrentSystem.VehicleCount > prerequisite.maxNumberOfVessels) { return false; };
+            int numberOfVessels = Universe.CurrentSystem.CountOf<Vehicle>();
+            if (numberOfVessels < prerequisite.minNumberOfVessels) { return false; };
+            if (numberOfVessels > prerequisite.maxNumberOfVessels) { return false; };
         }
         if (!String.IsNullOrEmpty(prerequisite.hasCompletedContract))
         {
@@ -285,12 +286,17 @@ public class ContractManager
         }
         return true;
     }
-
+        
     private void LoadContractBlueprints()
     {
+        this.LoadContractBlueprintsFromModsFolder(@"Content");
+        this.LoadContractBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
+    }
+
+    private void LoadContractBlueprintsFromModsFolder(string modsDirectory)
+    {
         // Load contracts from disk here
-        const string contentDirectoryPath = @"Content";
-        string[] contentDirectoryDirectories = Directory.GetDirectories(contentDirectoryPath);
+        string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
             string contractsDirectoryPath = Path.Combine(contentSubDirectoryPath, @"contracts");
@@ -323,7 +329,7 @@ public class ContractManager
                 }
             }
         }
-        Console.WriteLine($"[CM] loaded {ContractManager.data.contractBlueprints.Count} contract blueprints.");
+        Console.WriteLine($"[CM] loaded {ContractManager.data.contractBlueprints.Count} contract blueprints from '{modsDirectory}'.");
     }
 
     private void UpdateMissions(in KSA.SimTime simTime)
@@ -453,9 +459,14 @@ public class ContractManager
 
     private void LoadMissionBlueprints()
     {
+        this.LoadMissionBlueprintsFromModsFolder(@"Content");
+        this.LoadMissionBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
+    }
+
+    private void LoadMissionBlueprintsFromModsFolder(string modsDirectory)
+    {
         // Load missions from disk here
-        const string contentDirectoryPath = @"Content";
-        string[] contentDirectoryDirectories = Directory.GetDirectories(contentDirectoryPath);
+        string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
             string missionsDirectoryPath = Path.Combine(contentSubDirectoryPath, @"missions");
@@ -483,7 +494,7 @@ public class ContractManager
                 }
             }
         }
-        Console.WriteLine($"[CM] loaded {ContractManager.data.missionBlueprints.Count} mission blueprints.");
+        Console.WriteLine($"[CM] loaded {ContractManager.data.missionBlueprints.Count} mission blueprints from '{modsDirectory}'.");
     }
 }
 
