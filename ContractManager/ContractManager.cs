@@ -314,6 +314,7 @@ public class ContractManager
                             Console.WriteLine($"[CM] [WARNING] blueprint '{file}' couldn't be loaded.");
                             continue;
                         }
+                        // TODO: Check against blueprint contracts that are already loaded, to prevent loading the same contract multiple times when it is present in multiple mods folders.
                         if (blueprintContract.Validate())
                         {
                             ContractManager.data.contractBlueprints.Add(blueprintContract);
@@ -479,6 +480,7 @@ public class ContractManager
                     try
                     {
                         var blueprintMission = Mission.MissionBlueprint.LoadFromFile(file);
+                        // TODO: Check against blueprint missions that are already loaded, to prevent loading the same mission multiple times when it is present in multiple mods folders.
                         if (blueprintMission.Validate(ContractManager.data.contractBlueprints))
                         {
                             ContractManager.data.missionBlueprints.Add(blueprintMission);
