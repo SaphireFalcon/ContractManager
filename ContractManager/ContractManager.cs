@@ -64,7 +64,8 @@ public class ContractManager
     public void AfterGui(double dt)
     {
         // game loop
-        
+        if (Program.EditorFlag) { return; }  // Don't show contract manager when in the editor.
+
         KSA.SimTime simTime = Universe.GetElapsedSimTime();
         double playerTime = Program.GetPlayerTime();
         // Only update on the given interval.
