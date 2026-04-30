@@ -85,7 +85,8 @@ namespace ContractManager.GUI
                                 new Mission.MissionBlueprint
                                 {
                                     uid = newUID,
-                                    title = "!update me!"
+                                    title = "!update me!",
+                                    isEditable = true
                                 }
                             );
                         }
@@ -144,7 +145,8 @@ namespace ContractManager.GUI
                                 new ContractBlueprint.ContractBlueprint
                                 {
                                     uid = newUID,
-                                    title = "!update me!"
+                                    title = "!update me!",
+                                    isEditable = true
                                 }
                             );
                         }
@@ -669,6 +671,10 @@ namespace ContractManager.GUI
         {
             // Draw contract blueprint details
             ImGui.SeparatorText("Contract blueprint: " + this._contractBlueprint.title);
+            if (!String.IsNullOrEmpty(this._contractBlueprint.loadedFromFilePath))
+            {
+                ImGui.Text("Loaded from: " + this._contractBlueprint.loadedFromFilePath);
+            }
             if (!this._contractBlueprint.isEditable)
             {
                 ImGui.Text("NOTE: contract blueprint is not editable, create a copy to edit.");
@@ -924,6 +930,42 @@ namespace ContractManager.GUI
                 ImGui.TreePop();
             }
             ImGui.EndDisabled();
+            
+            // Draw the button region
+            ImGui.Separator();
+            if (this._contractBlueprint.isEditable)
+            {
+                // Draw a button to export this blueprint to a file
+                if (ImGui.Button("Export"))
+                {
+                    if (String.IsNullOrEmpty(this._contractBlueprint.loadedFromFilePath))
+                    {
+                        ContractManager.data.popupWindows.Add(
+                            new GUI.ExportModal
+                            {
+                                title = "Export contract blueprint",
+                                messageToShow = "Please select the mod folder to export the contract blueprint to.",
+                                contractBlueprint = this._contractBlueprint
+                            }
+                        );
+                    }
+                    else
+                    {
+                        // If the blueprint was loaded from a file, we can export it by simply saving it, overwriting the existing file.
+                        this._contractBlueprint.WriteToFile(this._contractBlueprint.loadedFromFilePath);
+                        this._contractBlueprint.isEditable = false;
+                    }
+                }
+            }
+            else
+            {
+                // Draw a button to create a copy of this blueprint
+                if (ImGui.Button("Make editable"))
+                {
+                    // todo: implement make editable functionality
+                    this._contractBlueprint.isEditable = true;
+                }
+            }
 
             /* Debug info
             ImGui.SeparatorText("Debug");
@@ -1238,6 +1280,42 @@ namespace ContractManager.GUI
                 ImGui.TreePop();
             }
             ImGui.EndDisabled();
+                        
+            // Draw the button region
+            ImGui.Separator();
+            if (this._missionBlueprint.isEditable)
+            {
+                // Draw a button to export this blueprint to a file
+                if (ImGui.Button("Export"))
+                {
+                    if (String.IsNullOrEmpty(this._missionBlueprint.loadedFromFilePath))
+                    {
+                        ContractManager.data.popupWindows.Add(
+                            new GUI.ExportModal
+                            {
+                                title = "Export mission blueprint",
+                                messageToShow = "Please select the mod folder to export the mission blueprint to.",
+                                missionBlueprint = this._missionBlueprint
+                            }
+                        );
+                    }
+                    else
+                    {
+                        // If the blueprint was loaded from a file, we can export it by simply saving it, overwriting the existing file.
+                        this._missionBlueprint.WriteToFile(this._missionBlueprint.loadedFromFilePath);
+                        this._missionBlueprint.isEditable = false;
+                    }
+                }
+            }
+            else
+            {
+                // Draw a button to create a copy of this blueprint
+                if (ImGui.Button("Make editable"))
+                {
+                    // todo: implement make editable functionality
+                    this._missionBlueprint.isEditable = true;
+                }
+            }
 
             /* Debug info
             ImGui.SeparatorText("Debug");

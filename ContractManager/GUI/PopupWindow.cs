@@ -1,11 +1,18 @@
 ﻿using Brutal.ImGuiApi;
 using ContractManager.ContractBlueprint;
+using ContractManager.Mission;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace ContractManager.GUI
 {
+    internal enum PopupType {
+        Popup,
+        Modal
+    }
+
     internal class PopupWindow
     {
         // Title of popup window, used when contract is null
@@ -25,9 +32,8 @@ namespace ContractManager.GUI
 
         internal PopupWindow() { }
 
-        internal void DrawPopup()
+        internal virtual void DrawPopup()
         {
-            string popupTitle = String.Format("Contract: {0}##{1}", this.title, this.uid);
             bool isDrawing = false;
             ImGui.SetNextWindowSizeConstraints(
                 new Brutal.Numerics.float2 { X = 300.0f, Y = 200.0f },
@@ -36,16 +42,15 @@ namespace ContractManager.GUI
             if (this.popupType == PopupType.Popup)
             {
                 // Using a normal window is nicer instead of a popup.
-                isDrawing = ImGui.Begin(popupTitle);
+                isDrawing = ImGui.Begin(this.title);
             }
             else
             if (this.popupType == PopupType.Modal)
             {
                 // If there is a blocking modal pop, best to put the game speed to 0.
                 KSA.Universe.SetSimulationSpeed(0);
-                ImGui.OpenPopup(popupTitle);
-                bool refBool = this.drawPopup;
-                isDrawing = ImGui.BeginPopupModal(popupTitle);
+                ImGui.OpenPopup(this.title);
+                isDrawing = ImGui.BeginPopupModal(this.title);
             }
             if(isDrawing)
             {
@@ -70,9 +75,89 @@ namespace ContractManager.GUI
             }
         }
     }
+    
+    internal class ExportModal : PopupWindow
+    {
+        internal MissionBlueprint? missionBlueprint = null;
+        internal ContractBlueprint.ContractBlueprint? contractBlueprint = null;
+        internal int modDirectoryIndex = -1;
+        
+        internal ExportModal() { }
 
-    internal enum PopupType {
-        Popup,
-        Modal
+        internal override void DrawPopup()
+        {
+            // If the blueprint is not loaded from a file, create a popup to ask where to save it.
+            // Find mods in the documents game mods folder and offer to save in one of them.
+            ImGui.OpenPopup("Where to export?");
+            if (ImGui.BeginPopupModal("Where to export?"))
+            {
+                ImGui.Text(messageToShow);
+                ImGui.Separator();
+
+                string[] modeDirectories = Directory.GetDirectories(ModLibrary.LocalModsFolderPath);
+                ImGuiTreeNodeFlags modsTreeNodeFlags = ImGuiTreeNodeFlags.DrawLinesToNodes | ImGuiTreeNodeFlags.DefaultOpen;
+                if (ImGui.TreeNodeEx("mods:", modsTreeNodeFlags))
+                {
+                        foreach (var (modDirectory, index) in modeDirectories.Select((v, i) => (v, i)))
+                    {
+                        ImGuiTreeNodeFlags modNodeTreeNodeFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.SpanLabelWidth;
+                        if (index == modDirectoryIndex)
+                        {
+                            modNodeTreeNodeFlags |= ImGuiTreeNodeFlags.Selected;
+                        }
+                        if (ImGui.TreeNodeEx(String.Format("{0}##{1}", Path.GetFileName(modDirectory), index), modNodeTreeNodeFlags))
+                        {
+                            if (ImGui.IsItemClicked())
+                            {
+                                modDirectoryIndex = index;
+                                Console.WriteLine($"[CM] clicked {Path.GetFileName(modDirectory)} at {modDirectoryIndex} -> {modeDirectories[modDirectoryIndex]}");
+                            }
+                            //ImGui.TreePop();
+                        }
+                    }
+                    ImGui.TreePop();
+                }
+
+                if (ImGui.Button("Cancel", new Brutal.Numerics.float2 {X = 120.0f, Y = 0.0f })) {
+                    this.drawPopup = false;
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.SetItemDefaultFocus();
+                ImGui.SameLine();
+                if (ImGui.Button("Export", new Brutal.Numerics.float2 {X = 120.0f, Y = 0.0f })) {
+                    // write
+                    if (modDirectoryIndex >= 0 && modDirectoryIndex < modeDirectories.Length)
+                    {
+                        string modDirectory = modeDirectories[modDirectoryIndex];
+                        string exportFilePath = string.Empty;
+
+                        if (this.contractBlueprint != null) {
+                            exportFilePath = Path.Combine(modDirectory, @"contracts\", this.contractBlueprint.uid + ".xml");
+                        } else if (this.missionBlueprint != null) {
+                            exportFilePath = Path.Combine(modDirectory, @"missions\", this.missionBlueprint.uid + ".xml");
+                        }
+                        if (exportFilePath != string.Empty)
+                        {
+                            if(Directory.CreateDirectory(Path.GetDirectoryName(exportFilePath)) != null)
+                            {
+                                Console.WriteLine($"[CM] click export to {exportFilePath}");
+                                if (this.contractBlueprint != null) {
+                                    this.contractBlueprint.WriteToFile(exportFilePath);
+                                    this.contractBlueprint.loadedFromFilePath = exportFilePath;
+                                    this.contractBlueprint.isEditable = false;
+                                } else if (this.missionBlueprint != null) {
+                                    this.missionBlueprint.WriteToFile(exportFilePath);
+                                    this.missionBlueprint.loadedFromFilePath = exportFilePath;
+                                    this.missionBlueprint.isEditable = false;
+                                }
+                            }
+                        }
+                    }
+                    this.drawPopup = false;
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.EndPopup();
+            }
+        }
     }
 }

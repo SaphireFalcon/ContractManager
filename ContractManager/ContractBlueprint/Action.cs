@@ -70,7 +70,7 @@ namespace ContractManager.ContractBlueprint
             ContractManager.data.popupWindows.Add(
                 new GUI.PopupWindow
                 {
-                    title = contract._contractBlueprint.title,
+                    title = String.Format("Contract: {0}##{1}", contract._contractBlueprint.title, contract.uid),
                     uid = String.Format("contract{0}_{1}", contract.uid, this.trigger),
                     messageToShow = this.showMessage,
                     popupType = this.type == ActionType.ShowMessage ? GUI.PopupType.Popup : GUI.PopupType.Modal

@@ -70,6 +70,9 @@ namespace ContractManager.Mission
         // internal flag to indicate if the blueprint can be edited or not
         internal bool isEditable { get; set; } = false;
 
+        // internal field to store the file path from which the blueprint is loaded, used for editing and saving the blueprint back to the same file.
+        internal string loadedFromFilePath { get; set; } = string.Empty;
+
         public MissionBlueprint() { }
         
         // Write the mission blueprint to an XML file.
@@ -90,7 +93,12 @@ namespace ContractManager.Mission
             if (MissionBlueprint.Migrate(ref xmlDocument, filePath))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(MissionBlueprint));
-                return (MissionBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+                MissionBlueprint? missionBlueprint = (MissionBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+                if (missionBlueprint != null)
+                {
+                    missionBlueprint.loadedFromFilePath = filePath;
+                }
+                return missionBlueprint;
             }
             return null;
         }

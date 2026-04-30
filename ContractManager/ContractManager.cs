@@ -86,13 +86,16 @@ public class ContractManager
         {
             ContractManager.contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
         }
+        foreach (var popupWindow in ContractManager.data.popupWindows)
+        {
+            if (popupWindow.drawPopup)
+            {
+                popupWindow.DrawPopup();
+            }
+        }
         for (int popupIndex = 0; popupIndex < ContractManager.data.popupWindows.Count; popupIndex++)
         {
-            if (ContractManager.data.popupWindows[popupIndex].drawPopup)
-            {
-                ContractManager.data.popupWindows[popupIndex].DrawPopup();
-            }
-            else
+            if (!ContractManager.data.popupWindows[popupIndex].drawPopup)
             {
                 ContractManager.data.popupWindows.RemoveAt(popupIndex);
                 popupIndex--;

@@ -87,6 +87,9 @@ namespace ContractManager.ContractBlueprint
         // internal flag to indicate if the blueprint can be edited or not
         internal bool isEditable { get; set; } = false;
 
+        // internal field to store the file path from which the blueprint is loaded, used for editing and saving the blueprint back to the same file.
+        internal string loadedFromFilePath { get; set; } = string.Empty;
+
         public ContractBlueprint() { }
 
         //  Doesn't write anything to console in-game, only on StarMap launcher console.
@@ -130,7 +133,12 @@ namespace ContractManager.ContractBlueprint
             if (ContractBlueprint.Migrate(ref xmlDocument, filePath))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(ContractBlueprint));
-                return (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+                ContractBlueprint? contractBlueprint = (ContractBlueprint)serializer.Deserialize(new StringReader(xmlDocument.ToString()));
+                if (contractBlueprint != null)
+                {
+                    contractBlueprint.loadedFromFilePath = filePath;
+                }
+                return contractBlueprint;
             }
             return null;
         }
