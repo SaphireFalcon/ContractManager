@@ -173,58 +173,86 @@ namespace ContractManager.ContractBlueprint
             return clonedContract;
         }
 
-        internal bool Validate()
+        internal bool Validate(bool logWarnings = true)
         {
             // Validate the contract blueprint.
             // The title can't be empty
             if (String.IsNullOrEmpty(this.title))
             {
-                Console.WriteLine("[CM] [WARNING] contract blueprint title has be to be defined.");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] contract blueprint title has be to be defined."); 
+                }
                 return false;
             }
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] contract blueprint uid has be to be defined.");
+                }
                 return false;
             }
             // FIXME: It should have at least one prerequisiteElement to know when to offer a contract from the contract 
             // It should have at least one requirement to know when to the contract should be completed.
             if (this.requirements.Count == 0)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no requirement.");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no requirement.");
+                }
                 return false;
             }
             if (this.uid.Length >= ContractBlueprint.uidMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint uid should be less than {ContractBlueprint.uidMaxLength} in length");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] contract blueprint uid should be less than {ContractBlueprint.uidMaxLength} in length");
+                }
                 return false;
             }
             if (this.title.Length >= ContractBlueprint.titleMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint title should be less than {ContractBlueprint.titleMaxLength} in length");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] contract blueprint title should be less than {ContractBlueprint.titleMaxLength} in length");
+                }
                 return false;
             }
             if (this.synopsis.Length >= ContractBlueprint.synopsisMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint synopsis should be less than {ContractBlueprint.synopsisMaxLength} in length");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] contract blueprint synopsis should be less than {ContractBlueprint.synopsisMaxLength} in length");
+                }
                 return false;
             }
             if (this.description.Length >= ContractBlueprint.descriptionMaxLength)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
+                
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] contract blueprint description should be less than {ContractBlueprint.descriptionMaxLength} in length");
+                }
                 return false;
             }
 
-            prerequisite.Validate();
+            prerequisite.Validate(logWarnings);
 
             foreach (var requirement in requirements)
             {
-                if (!requirement.Validate()) { return false; }
+                if (!requirement.Validate(logWarnings)) { return false; }
             }
             foreach (var action in actions)
             {
-                if (!action.Validate()) { return false; }
+                if (!action.Validate(logWarnings)) { return false; }
             }
             return true;
         }
@@ -240,7 +268,6 @@ namespace ContractManager.ContractBlueprint
                 return false;
             }
 
-            Console.WriteLine($"[CM] [INFO] Running Migration.");
             if (xmlDocument.Root == null) { return false; }
             Version xmlVersion = new Version(loadedXMLVersion);
             
@@ -250,52 +277,56 @@ namespace ContractManager.ContractBlueprint
             if (xmlVersion < ContractManager.version)
             {
                 xmlVersion.UpdateTo(ContractManager.version);
-                Console.WriteLine($"[CM] [INFO] migrated to latest version: {xmlVersion.ToString()}.");
             }
             xmlDocument.Root.SetElementValue("version", xmlVersion.ToString());
             if (migratedFile)
             {
-                // Write to disk
+                Console.WriteLine($"[CM] [INFO] migrated '{filePath}' to latest version: {xmlVersion.ToString()}.");
+                // Write backup to disk before overwriting the original file.
                 string modFolderContractPath = Path.GetDirectoryName(filePath);
-                string contentDirectoryPath = Path.GetFullPath(@"Content");
-                if (modFolderContractPath.StartsWith(contentDirectoryPath))
-                {
-                    // This has to be true, because contracts are loaded from Content/[mod]/contracts
-                    modFolderContractPath = modFolderContractPath.Substring(contentDirectoryPath.Length);
-                }
-                string contractsVersionExportFolderPath = Path.Combine(
-                    KSA.Constants.DocumentsFolderPath,
+                string contractsOriginalBackupFilePath = Path.Combine(
+                    Path.GetDirectoryName(modFolderContractPath), // mod folder
                     "migration",
-                    String.Format("version_{0}_{1}_{2}", xmlVersion.major, xmlVersion.minor, xmlVersion.patch),
-                    modFolderContractPath
+                    String.Format("version_{0}_{1}_{2}", loadedXMLVersion.major, loadedXMLVersion.minor, loadedXMLVersion.patch),
+                    "contracts",
+                    Path.GetFileName(filePath)
                 );
                 try
                 {
-                    Directory.CreateDirectory(contractsVersionExportFolderPath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(contractsOriginalBackupFilePath));
                 }
                 catch { }  // silently catch any error.
-                if (Directory.Exists(contractsVersionExportFolderPath))
+                if (Directory.Exists(Path.GetDirectoryName(contractsOriginalBackupFilePath)))
                 {
-                    string migratedContractExportPath = Path.Combine(contractsVersionExportFolderPath, Path.GetFileName(filePath));
-                    Console.WriteLine($"[CM] [INFO] export migrated contract to: {migratedContractExportPath}.");
-                    xmlDocument.Save(migratedContractExportPath);
-                    // Create/add to popup
-                    GUI.PopupWindow popupWindow = ContractManager.data.FindPopupWindowFromUID("migration");
-                    if (popupWindow == null)
+                    using (var reader = new System.IO.StreamReader(filePath))
                     {
-                        ContractManager.data.popupWindows.Add(new GUI.PopupWindow
-                        {
-                            uid = "migration",
-                            title = "Migrated files exported to disk.",
-                            popupType = GUI.PopupType.Popup,
-                            messageToShow = $"Contract Manager found old files and has migrated the following file(s):\n'{migratedContractExportPath}'",
+                        XDocument? originalXmlDocument = XDocument.Load(reader);
+                        if (originalXmlDocument != null) {
+                            Console.WriteLine($"[CM] [INFO] backup contract '{contractsOriginalBackupFilePath}'.");
+                            originalXmlDocument.Save(contractsOriginalBackupFilePath);
                         }
-                        );
                     }
-                    else
+                }
+
+                // Write to disk
+                Console.WriteLine($"[CM] [INFO] migrated contract '{filePath}'.");
+                xmlDocument.Save(filePath);
+                // Create/add to popup
+                GUI.PopupWindow popupWindow = ContractManager.data.FindPopupWindowFromUID("migration");
+                if (popupWindow == null)
+                {
+                    ContractManager.data.popupWindows.Add(new GUI.PopupWindow
                     {
-                        popupWindow.messageToShow += $"\n'{migratedContractExportPath}'";
+                        uid = "migration",
+                        title = "Migrated files exported to disk.",
+                        popupType = GUI.PopupType.Popup,
+                        messageToShow = $"Contract Manager found old version of files and has migrated them. Original files can be found in the 'migration' folder.\nMigrated file(s):\n'{filePath}'",
                     }
+                    );
+                }
+                else
+                {
+                    popupWindow.messageToShow += $"\n'{filePath}'";
                 }
             }
             return true;

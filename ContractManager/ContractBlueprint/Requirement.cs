@@ -123,30 +123,42 @@ namespace ContractManager.ContractBlueprint
             }
         }
 
-        internal bool Validate()
+        internal bool Validate(bool logWarnings = true)
         {
             // The title can't be empty
             if (String.IsNullOrEmpty(this.title))
             {
-                Console.WriteLine("[CM] [WARNING] requirement title has be to be defined.");
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] requirement title has be to be defined.");
+                }
                 return false;
             }
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] requirement uid has be to be defined.");
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] requirement uid has be to be defined.");
+                }
                 return false;
             }
             // Validate type and their fields.
             if (type == RequirementType.Group && this.group == null)
             {
-                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `group` field can't be empty.");
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `group` field can't be empty.");
+                }
                 return false;
             }
             else
             if (type == RequirementType.Orbit && this.orbit == null)
             {
-                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `orbit` field can't be empty.");
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `orbit` field can't be empty.");
+                }
                 return false;
             }
             if (type == RequirementType.Group && !this.group.Validate())

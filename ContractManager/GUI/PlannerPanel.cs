@@ -938,22 +938,43 @@ namespace ContractManager.GUI
                 // Draw a button to export this blueprint to a file
                 if (ImGui.Button("Export"))
                 {
-                    if (String.IsNullOrEmpty(this._contractBlueprint.loadedFromFilePath))
-                    {
-                        ContractManager.data.popupWindows.Add(
-                            new GUI.ExportModal
-                            {
-                                title = "Export contract blueprint",
-                                messageToShow = "Please select the mod folder to export the contract blueprint to.",
-                                contractBlueprint = this._contractBlueprint
-                            }
-                        );
+                    if (this._contractBlueprint.Validate(true)) {
+                        if (String.IsNullOrEmpty(this._contractBlueprint.loadedFromFilePath))
+                        {
+                            ContractManager.data.popupWindows.Add(
+                                new GUI.ExportModal
+                                {
+                                    uid = $"popup_overwrite_{this._contractBlueprint.uid}",
+                                    title = "Export contract blueprint",
+                                    messageToShow = "Please select the mod folder to export the contract blueprint to:",
+                                    contractBlueprint = this._contractBlueprint
+                                }
+                            );
+                        }
+                        else
+                        {
+                            ContractManager.data.popupWindows.Add(
+                                new GUI.ExportModal
+                                {
+                                    uid = $"popup_overwrite_{this._contractBlueprint.uid}",
+                                    title = "Where to export?",
+                                    messageToShow = $"Are you sure to overwrite '{this._contractBlueprint.loadedFromFilePath}' with the current blueprint?",
+                                    contractBlueprint = this._contractBlueprint
+                                }
+                            );
+                        }
                     }
                     else
                     {
-                        // If the blueprint was loaded from a file, we can export it by simply saving it, overwriting the existing file.
-                        this._contractBlueprint.WriteToFile(this._contractBlueprint.loadedFromFilePath);
-                        this._contractBlueprint.isEditable = false;
+                        ContractManager.data.popupWindows.Add(
+                            new GUI.PopupWindow
+                            {
+                                title = $"Validation failed.",
+                                uid = $"popup_failed_validate_{this._contractBlueprint.uid}",
+                                messageToShow = "The contract blueprint failed validation, so can't be exported. Please confirm if all fields are configured correctly.",
+                                popupType = GUI.PopupType.Modal
+                            }
+                        );
                     }
                 }
             }
@@ -962,7 +983,6 @@ namespace ContractManager.GUI
                 // Draw a button to create a copy of this blueprint
                 if (ImGui.Button("Make editable"))
                 {
-                    // todo: implement make editable functionality
                     this._contractBlueprint.isEditable = true;
                 }
             }
@@ -1288,22 +1308,43 @@ namespace ContractManager.GUI
                 // Draw a button to export this blueprint to a file
                 if (ImGui.Button("Export"))
                 {
-                    if (String.IsNullOrEmpty(this._missionBlueprint.loadedFromFilePath))
-                    {
-                        ContractManager.data.popupWindows.Add(
-                            new GUI.ExportModal
-                            {
-                                title = "Export mission blueprint",
-                                messageToShow = "Please select the mod folder to export the mission blueprint to.",
-                                missionBlueprint = this._missionBlueprint
-                            }
-                        );
+                    if (this._missionBlueprint.Validate(ContractManager.data.contractBlueprints, true)) {
+                        if (String.IsNullOrEmpty(this._missionBlueprint.loadedFromFilePath))
+                        {
+                            ContractManager.data.popupWindows.Add(
+                                new GUI.ExportModal
+                                {
+                                    uid = $"popup_overwrite_{this._missionBlueprint.uid}",
+                                    title = "Where to export?",
+                                    messageToShow = "Please select the mod folder to export the mission blueprint to.",
+                                    missionBlueprint = this._missionBlueprint
+                                }
+                            );
+                        }
+                        else
+                        {
+                            ContractManager.data.popupWindows.Add(
+                                new GUI.ExportModal
+                                {
+                                    uid = $"popup_overwrite_{this._missionBlueprint.uid}",
+                                    title = "Where to export?",
+                                    messageToShow = $"Are you sure to overwrite '{this._missionBlueprint.loadedFromFilePath}' with the current blueprint?",
+                                    missionBlueprint = this._missionBlueprint
+                                }
+                            );
+                        }
                     }
                     else
                     {
-                        // If the blueprint was loaded from a file, we can export it by simply saving it, overwriting the existing file.
-                        this._missionBlueprint.WriteToFile(this._missionBlueprint.loadedFromFilePath);
-                        this._missionBlueprint.isEditable = false;
+                        ContractManager.data.popupWindows.Add(
+                            new GUI.PopupWindow
+                            {
+                                title = $"Validation failed.",
+                                uid = $"popup_failed_validate_{this._missionBlueprint.uid}",
+                                messageToShow = "The mission blueprint failed validation, so can't be exported. Please confirm if all fields are configured correctly.",
+                                popupType = GUI.PopupType.Modal
+                            }
+                        );
                     }
                 }
             }

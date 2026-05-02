@@ -99,17 +99,23 @@ namespace ContractManager.ContractBlueprint
             );
         }
 
-        internal bool Validate()
+        internal bool Validate(bool logWarnings = true)
         {
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] action uid has be to be defined.");
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] action uid has be to be defined.");
+                }
                 return false;
             }
             if ((type is ActionType.ShowMessage or ActionType.ShowBlockingPopup) && String.IsNullOrEmpty(this.showMessage))
             {
-                Console.WriteLine($"[CM] [WARNING] action type = '{type}' `showMessage` field can't be empty.");
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] action type = '{type}' `showMessage` field can't be empty.");
+                }
                 return false;
             }
             // ActionType and TriggerType don't need to be validated loading XML will throw an exception.

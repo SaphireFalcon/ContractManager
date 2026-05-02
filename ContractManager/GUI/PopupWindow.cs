@@ -94,28 +94,35 @@ namespace ContractManager.GUI
                 ImGui.Text(messageToShow);
                 ImGui.Separator();
 
+                bool isLoadedFromFile = (  
+                    (this.missionBlueprint != null && !String.IsNullOrEmpty(this.missionBlueprint.loadedFromFilePath)) ||
+                    ( this.contractBlueprint != null && !String.IsNullOrEmpty(this.contractBlueprint.loadedFromFilePath))
+                );
                 string[] modeDirectories = Directory.GetDirectories(ModLibrary.LocalModsFolderPath);
-                ImGuiTreeNodeFlags modsTreeNodeFlags = ImGuiTreeNodeFlags.DrawLinesToNodes | ImGuiTreeNodeFlags.DefaultOpen;
-                if (ImGui.TreeNodeEx("mods:", modsTreeNodeFlags))
+                if (!isLoadedFromFile)
                 {
-                        foreach (var (modDirectory, index) in modeDirectories.Select((v, i) => (v, i)))
+                    ImGuiTreeNodeFlags modsTreeNodeFlags = ImGuiTreeNodeFlags.DrawLinesToNodes | ImGuiTreeNodeFlags.DefaultOpen;
+                    if (ImGui.TreeNodeEx("mods:", modsTreeNodeFlags))
                     {
-                        ImGuiTreeNodeFlags modNodeTreeNodeFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.SpanLabelWidth;
-                        if (index == modDirectoryIndex)
+                            foreach (var (modDirectory, index) in modeDirectories.Select((v, i) => (v, i)))
                         {
-                            modNodeTreeNodeFlags |= ImGuiTreeNodeFlags.Selected;
-                        }
-                        if (ImGui.TreeNodeEx(String.Format("{0}##{1}", Path.GetFileName(modDirectory), index), modNodeTreeNodeFlags))
-                        {
-                            if (ImGui.IsItemClicked())
+                            ImGuiTreeNodeFlags modNodeTreeNodeFlags = ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.SpanLabelWidth;
+                            if (index == modDirectoryIndex)
                             {
-                                modDirectoryIndex = index;
-                                Console.WriteLine($"[CM] clicked {Path.GetFileName(modDirectory)} at {modDirectoryIndex} -> {modeDirectories[modDirectoryIndex]}");
+                                modNodeTreeNodeFlags |= ImGuiTreeNodeFlags.Selected;
                             }
-                            //ImGui.TreePop();
+                            if (ImGui.TreeNodeEx(String.Format("{0}##{1}", Path.GetFileName(modDirectory), index), modNodeTreeNodeFlags))
+                            {
+                                if (ImGui.IsItemClicked())
+                                {
+                                    modDirectoryIndex = index;
+                                    Console.WriteLine($"[CM] clicked {Path.GetFileName(modDirectory)} at {modDirectoryIndex} -> {modeDirectories[modDirectoryIndex]}");
+                                }
+                                //ImGui.TreePop();
+                            }
                         }
+                        ImGui.TreePop();
                     }
-                    ImGui.TreePop();
                 }
 
                 if (ImGui.Button("Cancel", new Brutal.Numerics.float2 {X = 120.0f, Y = 0.0f })) {
@@ -124,33 +131,50 @@ namespace ContractManager.GUI
                 }
                 ImGui.SetItemDefaultFocus();
                 ImGui.SameLine();
-                if (ImGui.Button("Export", new Brutal.Numerics.float2 {X = 120.0f, Y = 0.0f })) {
-                    // write
-                    if (modDirectoryIndex >= 0 && modDirectoryIndex < modeDirectories.Length)
+                if (ImGui.Button("Export", new Brutal.Numerics.float2 {X = 120.0f, Y = 0.0f }))
+                {
+                    string exportFilePath = string.Empty;
+                    if (!isLoadedFromFile)
                     {
-                        string modDirectory = modeDirectories[modDirectoryIndex];
-                        string exportFilePath = string.Empty;
-
-                        if (this.contractBlueprint != null) {
-                            exportFilePath = Path.Combine(modDirectory, @"contracts\", this.contractBlueprint.uid + ".xml");
-                        } else if (this.missionBlueprint != null) {
-                            exportFilePath = Path.Combine(modDirectory, @"missions\", this.missionBlueprint.uid + ".xml");
-                        }
-                        if (exportFilePath != string.Empty)
+                        if (modDirectoryIndex >= 0 && modDirectoryIndex < modeDirectories.Length)
                         {
-                            if(Directory.CreateDirectory(Path.GetDirectoryName(exportFilePath)) != null)
-                            {
-                                Console.WriteLine($"[CM] click export to {exportFilePath}");
-                                if (this.contractBlueprint != null) {
-                                    this.contractBlueprint.WriteToFile(exportFilePath);
-                                    this.contractBlueprint.loadedFromFilePath = exportFilePath;
-                                    this.contractBlueprint.isEditable = false;
-                                } else if (this.missionBlueprint != null) {
-                                    this.missionBlueprint.WriteToFile(exportFilePath);
-                                    this.missionBlueprint.loadedFromFilePath = exportFilePath;
-                                    this.missionBlueprint.isEditable = false;
-                                }
+                            string modDirectory = modeDirectories[modDirectoryIndex];
+                            if (this.contractBlueprint != null) {
+                                exportFilePath = Path.Combine(modDirectory, @"contracts\", this.contractBlueprint.uid + ".xml");
+                                this.contractBlueprint.loadedFromFilePath = exportFilePath;
                             }
+                            else if (this.missionBlueprint != null) {
+                                exportFilePath = Path.Combine(modDirectory, @"missions\", this.missionBlueprint.uid + ".xml");
+                                this.missionBlueprint.loadedFromFilePath = exportFilePath;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (this.contractBlueprint != null)
+                        {
+                            exportFilePath = this.contractBlueprint.loadedFromFilePath;
+                        }
+                        else if (this.missionBlueprint != null)
+                        {
+                            exportFilePath = this.missionBlueprint.loadedFromFilePath;
+                        }
+                    }
+                    // write
+                    if(exportFilePath != String.Empty && Directory.CreateDirectory(Path.GetDirectoryName(exportFilePath)) != null)
+                    {
+                        Console.WriteLine($"[CM] exporting to '{exportFilePath}'");
+                        if (this.contractBlueprint != null)
+                        {
+                            this.contractBlueprint.WriteToFile(exportFilePath);
+                            this.contractBlueprint.loadedFromFilePath = exportFilePath;
+                            this.contractBlueprint.isEditable = false;
+                        }
+                        else if (this.missionBlueprint != null)
+                        {
+                            this.missionBlueprint.WriteToFile(exportFilePath);
+                            this.missionBlueprint.loadedFromFilePath = exportFilePath;
+                            this.missionBlueprint.isEditable = false;
                         }
                     }
                     this.drawPopup = false;

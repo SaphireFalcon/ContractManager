@@ -52,12 +52,12 @@ public class ContractManager
     {
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
-        this.LoadContractBlueprints();
+        this.LoadContractBlueprintsFromModsFolder();
 
-        this.LoadMissionBlueprints();
+        this.LoadMissionBlueprintsFromModsFolder();
 
         // For testing: create and write an example contract to disk
-        Generate.ExampleMission001();
+        //Generate.ExampleMission001();
     }
 
     [StarMapAfterGui]
@@ -203,7 +203,8 @@ public class ContractManager
         List<ContractBlueprint.ContractBlueprint> contractBlueprintsToOffer = new List<ContractBlueprint.ContractBlueprint>();
         foreach (ContractBlueprint.ContractBlueprint contractBlueprint in ContractManager.data.contractBlueprints)
         {
-            if (this.CanOfferContractFromBlueprint(in contractBlueprint))
+            if (!contractBlueprint.Validate() ) { continue; }  // Don't offer invalid contracts (during creation or editing can be invalid)
+                if (this.CanOfferContractFromBlueprint(in contractBlueprint))
             {
                 contractBlueprintsToOffer.Add(contractBlueprint);
             }
@@ -290,16 +291,11 @@ public class ContractManager
         }
         return true;
     }
-        
-    private void LoadContractBlueprints()
-    {
-        this.LoadContractBlueprintsFromModsFolder(@"Content");
-        this.LoadContractBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
-    }
 
-    private void LoadContractBlueprintsFromModsFolder(string modsDirectory)
+    private void LoadContractBlueprintsFromModsFolder()
     {
-        // Load contracts from disk here
+        // Load contracts from mods folder on disk.
+        string modsDirectory = ModLibrary.LocalModsFolderPath;
         string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
@@ -429,6 +425,7 @@ public class ContractManager
         List<Mission.MissionBlueprint> missionBlueprintsToOffer = new List<Mission.MissionBlueprint>();
         foreach (Mission.MissionBlueprint missionBlueprint in ContractManager.data.missionBlueprints)
         {
+            if (!missionBlueprint.Validate(ContractManager.data.contractBlueprints, false)) { continue; }  // Don't offer invalid missions (during creation or editing can be invalid)
             if (this.CanOfferMissionFromBlueprint(in missionBlueprint))
             {
                 missionBlueprintsToOffer.Add(missionBlueprint);
@@ -462,15 +459,10 @@ public class ContractManager
         return CheckGenericPrerequisite(prerequisite);
     }
 
-    private void LoadMissionBlueprints()
+    private void LoadMissionBlueprintsFromModsFolder()
     {
-        this.LoadMissionBlueprintsFromModsFolder(@"Content");
-        this.LoadMissionBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
-    }
-
-    private void LoadMissionBlueprintsFromModsFolder(string modsDirectory)
-    {
-        // Load missions from disk here
+        // Load missions from mods folder on disk.
+        string modsDirectory = ModLibrary.LocalModsFolderPath;
         string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {

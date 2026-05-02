@@ -1,4 +1,5 @@
 ﻿using ContractManager.Mission;
+using KSA;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -67,15 +68,14 @@ namespace ContractManager.ContractBlueprint
 
             contractToWrite.WriteToConsole();
 
-            string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            Console.WriteLine($"[CM] 'My Documents' path: {myDocumentsPath}");
+            string modsDirectory = ModLibrary.LocalModsFolderPath;
             string savePath = Path.Combine(
-                myDocumentsPath,
-                @"My Games\Kitten Space Agency\contracts\",
+                modsDirectory,
+                @"ContractManager\contracts\",
                 $"{contractToWrite.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
-            if (!string.IsNullOrEmpty(myDocumentsPath))
+            if (!string.IsNullOrEmpty(modsDirectory))
             {
                 contractToWrite.WriteToFile(savePath);
             }
@@ -169,15 +169,14 @@ namespace ContractManager.ContractBlueprint
 
             contractToWrite.WriteToConsole();
 
-            string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            Console.WriteLine($"[CM] 'My Documents' path: {myDocumentsPath}");
+            string modsDirectory = ModLibrary.LocalModsFolderPath;
             string savePath = Path.Combine(
-                myDocumentsPath,
-                @"My Games\Kitten Space Agency\contracts\",
+                modsDirectory,
+                @"ContractManager\contracts\",
                 $"{contractToWrite.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
-            if (!string.IsNullOrEmpty(myDocumentsPath))
+            if (!string.IsNullOrEmpty(modsDirectory))
             {
                 contractToWrite.WriteToFile(savePath);
             }
@@ -298,37 +297,36 @@ namespace ContractManager.ContractBlueprint
             contractToLuna.missionBlueprintUID = missionToWrite.uid;
             contractToEarth.missionBlueprintUID = missionToWrite.uid;
             
-            string myDocumentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            Console.WriteLine($"[CM] 'My Documents' path: {myDocumentsPath}");
+            string modsDirectory = ModLibrary.LocalModsFolderPath;
             string savePath = Path.Combine(
-                myDocumentsPath,
-                @"My Games\Kitten Space Agency\contracts\",
+                modsDirectory,
+                @"ContractManager\contracts\",
                 $"{contractToLuna.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
-            if (!string.IsNullOrEmpty(myDocumentsPath))
+            if (!string.IsNullOrEmpty(modsDirectory))
             {
                 contractToLuna.WriteToFile(savePath);
             }
             
             savePath = Path.Combine(
-                myDocumentsPath,
-                @"My Games\Kitten Space Agency\contracts\",
+                modsDirectory,
+                @"ContractManager\contracts\",
                 $"{contractToEarth.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
-            if (!string.IsNullOrEmpty(myDocumentsPath))
+            if (!string.IsNullOrEmpty(modsDirectory))
             {
                 contractToEarth.WriteToFile(savePath);
             }
             
             savePath = Path.Combine(
-                myDocumentsPath,
-                @"My Games\Kitten Space Agency\missions\",
+                modsDirectory,
+                @"ContractManager\missions\",
                 $"{missionToWrite.uid}.xml"
             );
             Console.WriteLine($"[CM] save path: {savePath}");
-            if (!string.IsNullOrEmpty(myDocumentsPath))
+            if (!string.IsNullOrEmpty(modsDirectory))
             {
                 missionToWrite.WriteToFile(savePath);
             }
