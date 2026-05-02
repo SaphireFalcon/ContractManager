@@ -30,6 +30,11 @@ namespace ContractManager.ContractBlueprint
 
         public Action() { }
 
+        public Action Clone()
+        {
+            return (Action)this.MemberwiseClone();
+        }
+
         public void WriteToConsole()
         {
             Console.WriteLine($"  - trigger: {trigger}");

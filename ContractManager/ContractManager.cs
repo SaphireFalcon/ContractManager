@@ -16,7 +16,7 @@ namespace ContractManager
 public class ContractManager
 {
     // Version to be used across the code.
-    public static readonly Version version = new Version("0.2.4");
+    public static readonly Version version = new Version("0.4.0");
 
     // Internal fields
     private double _lastUpdateTime = 0.0d;

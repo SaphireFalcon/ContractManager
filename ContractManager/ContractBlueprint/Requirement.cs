@@ -53,6 +53,32 @@ namespace ContractManager.ContractBlueprint
 
         public Requirement() { }
 
+        public Requirement Clone()
+        {
+            // This works?
+            Requirement clonedRequirement = (Requirement)this.MemberwiseClone();
+
+            // Deep copy for reference types
+            if (this.orbit != null)
+            {
+                clonedRequirement.orbit = this.orbit.Clone();
+            }
+
+            if (this.group != null)
+            {
+                clonedRequirement.group = new RequiredGroup
+                {
+                    completionCondition = this.group.completionCondition,
+                };
+                foreach (Requirement groupRequirement in this.group.requirements)
+                {
+                    clonedRequirement.group.requirements.Add(groupRequirement.Clone());
+                }
+            }
+
+            return clonedRequirement;
+        }
+
         public void WriteToConsole(int hierachyLevel = 1)
         {
             string indent = new string(' ', hierachyLevel * 2);
@@ -225,7 +251,31 @@ namespace ContractManager.ContractBlueprint
         public double maxArgumentOfPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
-        
+
+        public RequiredOrbit Clone()
+        {
+            return (RequiredOrbit)this.MemberwiseClone();
+            //return new RequiredOrbit
+            //{
+            //    targetBody = this.targetBody,
+            //    type = this.type,
+            //    minApoapsis = this.minApoapsis,
+            //    maxApoapsis = this.maxApoapsis,
+            //    minPeriapsis = this.minPeriapsis,
+            //    maxPeriapsis = this.maxPeriapsis,
+            //    minEccentricity = this.minEccentricity,
+            //    maxEccentricity = this.maxEccentricity,
+            //    minPeriod = this.minPeriod,
+            //    maxPeriod = this.maxPeriod,
+            //    minLongitudeOfAscendingNode = this.minLongitudeOfAscendingNode,
+            //    maxLongitudeOfAscendingNode = this.maxLongitudeOfAscendingNode,
+            //    minInclination = this.minInclination,
+            //    maxInclination = this.maxInclination,
+            //    minArgumentOfPeriapsis = this.minArgumentOfPeriapsis,
+            //    maxArgumentOfPeriapsis = this.maxArgumentOfPeriapsis
+            //};
+        }
+
         internal bool Validate()
         {
             // The targetBody can't be empty

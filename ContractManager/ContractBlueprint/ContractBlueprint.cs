@@ -143,6 +143,36 @@ namespace ContractManager.ContractBlueprint
             return null;
         }
 
+        // Clone, e.g after deserializing from a stream.
+        internal ContractBlueprint? Clone()
+        {
+            ContractBlueprint clonedContract = new ContractBlueprint
+            {
+                uid = this.uid,
+                missionBlueprintUID = this.missionBlueprintUID,
+                title = this.title,
+                synopsis = this.synopsis,
+                description = this.description,
+                expiration = this.expiration,
+                isRejectable = this.isRejectable,
+                deadline = this.deadline,
+                isAutoAccepted = this.isAutoAccepted,
+                prerequisite = this.prerequisite.Clone(),
+                completionCondition = this.completionCondition,
+                isEditable = true,  // blueprint created from savegame should be editable by default.
+            };
+            foreach (Requirement requirement in this.requirements)
+            {
+                clonedContract.requirements.Add(requirement.Clone());
+            }
+            foreach (Action action in this.actions)
+            {
+                clonedContract.actions.Add(action.Clone());
+            }
+
+            return clonedContract;
+        }
+
         internal bool Validate()
         {
             // Validate the contract blueprint.
@@ -162,7 +192,7 @@ namespace ContractManager.ContractBlueprint
             // It should have at least one requirement to know when to the contract should be completed.
             if (this.requirements.Count == 0)
             {
-                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no prerequisites.");
+                Console.WriteLine($"[CM] [WARNING] contract blueprint '{this.title}' has no requirement.");
                 return false;
             }
             if (this.uid.Length >= ContractBlueprint.uidMaxLength)
@@ -258,7 +288,7 @@ namespace ContractManager.ContractBlueprint
                             uid = "migration",
                             title = "Migrated files exported to disk.",
                             popupType = GUI.PopupType.Popup,
-                            messageToShow = $"Contract Manager found old files and has migrated these, please move them into the respective mod/game folders:\n'{migratedContractExportPath}'",
+                            messageToShow = $"Contract Manager found old files and has migrated the following file(s):\n'{migratedContractExportPath}'",
                         }
                         );
                     }

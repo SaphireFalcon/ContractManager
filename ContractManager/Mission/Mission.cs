@@ -121,20 +121,42 @@ namespace ContractManager.Mission
             }
 
             // Check if the mission can be completed
-            // Use >= because a contract can fail and re-offered.
-            bool allContractsFinished = this.contractUIDs.Count >= this._missionBlueprint.contractBlueprintUIDs.Count;
+            bool allContractsFinished = this.contractUIDs.Count > 0;
             if (!allContractsFinished) { return false; }
-            // Check if all needed contracts are done
-            foreach (string contractUID in this.contractUIDs)
+            foreach (String contractId in this.contractUIDs)
             {
-                Contract.Contract? contract = Contract.ContractUtils.FindContractFromContractUID(
-                    ContractManager.data.finishedContracts,
-                    contractUID
-                );
-                if (!(contract != null && contract.status == ContractStatus.Completed))
+                Contract.Contract? contract = Contract.ContractUtils.FindContractFromContractUID(ContractManager.data.finishedContracts, contractId);
+                if (contract == null || contract.status != ContractStatus.Completed)
                 {
                     allContractsFinished = false;
-                    Console.WriteLine($"[CM] Mission.Update() contract '{contract._contractBlueprint.title}' not completed!");
+                    break;
+                }
+            }
+            if (!allContractsFinished) { return false; }
+            // Loop over contractBlueprints and check if all contracts are completed.
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in ContractManager.data.contractBlueprints)
+            {
+                // Only check contractBlueprints related to this mission.
+                if (contractBlueprint.missionBlueprintUID != this.uid) { continue; }
+
+                // Find if any contract created from this contractBlueprint is completed.
+                List<Contract.Contract> matchingContracts = Contract.ContractUtils.FindContractFromBlueprintUID(ContractManager.data.finishedContracts, contractBlueprint.uid);
+
+                bool contractCompleted = false;
+                foreach (Contract.Contract contract in matchingContracts)
+                {
+                    if (contract.status == ContractStatus.Completed)
+                    {
+                        contractCompleted = true;
+                        
+                        Console.WriteLine($"[CM] Mission.Update() contract '{contract._contractBlueprint.title}' is completed!");
+                        break;
+                    }
+                }
+                Console.WriteLine($"[CM] Mission.Update() contract blueprint '{contractBlueprint.title}' is {(contractCompleted ? "completed" : "not completed")}!");
+                if (!contractCompleted)
+                {
+                    allContractsFinished = false;
                     break;
                 }
             }

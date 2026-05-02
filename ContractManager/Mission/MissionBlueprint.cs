@@ -62,10 +62,11 @@ namespace ContractManager.Mission
         // List of actions for the misison
         [XmlArray("actions")]
         public List<ContractBlueprint.Action> actions { get; set; } = new List<ContractBlueprint.Action>();
-
+        
+        // [DEPRECIATED v0.4.0] List of contract blueprints for the mission are only linked from contractblueprint to the mission blueprint.
         // List of contract blueprints UIDs for the mission
-        [XmlArray("contractBlueprintUIDs")]
-        public List<string> contractBlueprintUIDs { get; set; } = new List<string>();
+        //[XmlArray("contractBlueprintUIDs")]
+        //public List<string> contractBlueprintUIDs { get; set; } = new List<string>();
 
         // internal flag to indicate if the blueprint can be edited or not
         internal bool isEditable { get; set; } = false;
@@ -103,6 +104,29 @@ namespace ContractManager.Mission
             return null;
         }
 
+        internal MissionBlueprint Clone(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
+        {
+            MissionBlueprint clonedMissionBlueprint = new MissionBlueprint
+            {
+                version = this.version,
+                uid = this.uid,
+                title = this.title,
+                synopsis = this.synopsis,
+                description = this.description,
+                expiration = this.expiration,
+                isRejectable = this.isRejectable,
+                deadline = this.deadline,
+                isAutoAccepted = this.isAutoAccepted,
+                prerequisite = this.prerequisite.Clone(),
+                isEditable = this.isEditable,
+            };
+            foreach (ContractBlueprint.Action action in this.actions)
+            {
+                clonedMissionBlueprint.actions.Add(action.Clone());
+            }
+            return clonedMissionBlueprint;
+        }
+
         internal bool Validate(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
         {
             // Validate the contract blueprint.
@@ -119,7 +143,15 @@ namespace ContractManager.Mission
                 return false;
             }
             // It should have at least one contract linked to the mission.
-            if (this.contractBlueprintUIDs.Count == 0)
+            int countLinkedContractBlueprints = 0;
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractBlueprints)
+            {
+                if (contractBlueprint.missionBlueprintUID == this.uid)
+                {
+                    countLinkedContractBlueprints++;
+                }
+            }
+            if (countLinkedContractBlueprints == 0)
             {
                 Console.WriteLine($"[CM] [WARNING] mission blueprint '{this.title}' has no contracts.");
                 return false;
@@ -171,6 +203,7 @@ namespace ContractManager.Mission
             
             if (!MissionBlueprint.MigratePrerequisteWithTypeFlatten(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
             if (!MissionBlueprint.MigrateAddActionUID(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
+            if (!MissionBlueprint.MigrateRemoveContractBlueprintUIDList(ref xmlDocument, ref xmlVersion, ref migratedFile)) { return false; }
                         
             if (xmlVersion < ContractManager.version)
             {
@@ -182,6 +215,7 @@ namespace ContractManager.Mission
             {
                 // Write to disk
                 string modFolderContractPath = Path.GetDirectoryName(filePath);
+                // TODO: Remove the dependency on Content folder.
                 string contentDirectoryPath = Path.GetFullPath(@"Content");
                 if (modFolderContractPath.StartsWith(contentDirectoryPath))
                 {
@@ -213,7 +247,7 @@ namespace ContractManager.Mission
                             uid = "migration",
                             title = "Migrated files exported to disk.",
                             popupType = GUI.PopupType.Popup,
-                            messageToShow = $"Contract Manager found old files and has migrated these, please move them into the respective mod/game folders:\n'{migratedContractExportPath}'",
+                            messageToShow = $"Contract Manager found old files and has migrated the following file(s):\n'{migratedContractExportPath}'",
                         }
                         );
                     }
@@ -260,6 +294,23 @@ namespace ContractManager.Mission
                     ContractBlueprint.Action.MigrateAddUID(ref actionsElement, uidElement.Value);
                 }
                 xmlVersion.FromString("0.2.2");
+                migratedFile = true;
+                Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
+            }
+            return true;
+        }
+
+        private static bool MigrateRemoveContractBlueprintUIDList(ref XDocument xmlDocument, ref Version xmlVersion, ref bool migratedFile)
+        {
+            if (xmlVersion < "0.4.0")
+            {
+                // version 0.4.0 removes contractBlueprintUIDs
+                XElement? contractBlueprintUIDsElement = xmlDocument.Root.Element("contractBlueprintUIDs");
+                if (contractBlueprintUIDsElement != null)
+                {
+                    contractBlueprintUIDsElement.Remove();
+                }
+                xmlVersion.FromString("0.4.0");
                 migratedFile = true;
                 Console.WriteLine($"[CM] [INFO] migrated to {xmlVersion.ToString()}.");
             }

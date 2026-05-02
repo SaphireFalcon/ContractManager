@@ -79,6 +79,11 @@ namespace ContractManager.ContractBlueprint
         public uint maxNumberOfVessels { get; set; } = uint.MaxValue;
 
         public Prerequisite() { }
+
+        public Prerequisite Clone()
+        {
+            return (Prerequisite)this.MemberwiseClone();
+        }
         
         public void WriteToConsole()
         {

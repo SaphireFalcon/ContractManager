@@ -294,8 +294,7 @@ namespace ContractManager.ContractBlueprint
                     minPeriapsis = 150000,
                 }
             });
-            missionToWrite.contractBlueprintUIDs.Add(contractToLuna.uid);
-            missionToWrite.contractBlueprintUIDs.Add(contractToEarth.uid);
+            // Link contracts to mission
             contractToLuna.missionBlueprintUID = missionToWrite.uid;
             contractToEarth.missionBlueprintUID = missionToWrite.uid;
             
