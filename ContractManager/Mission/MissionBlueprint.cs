@@ -106,20 +106,9 @@ namespace ContractManager.Mission
 
         internal MissionBlueprint Clone(List<ContractBlueprint.ContractBlueprint> contractBlueprints)
         {
-            MissionBlueprint clonedMissionBlueprint = new MissionBlueprint
-            {
-                version = this.version,
-                uid = this.uid,
-                title = this.title,
-                synopsis = this.synopsis,
-                description = this.description,
-                expiration = this.expiration,
-                isRejectable = this.isRejectable,
-                deadline = this.deadline,
-                isAutoAccepted = this.isAutoAccepted,
-                prerequisite = this.prerequisite.Clone(),
-                isEditable = this.isEditable,
-            };
+            MissionBlueprint clonedMissionBlueprint = (MissionBlueprint)this.MemberwiseClone();
+            clonedMissionBlueprint.isEditable = true;  // blueprint created from savegame should be editable by default.
+            clonedMissionBlueprint.prerequisite = this.prerequisite.Clone();
             foreach (ContractBlueprint.Action action in this.actions)
             {
                 clonedMissionBlueprint.actions.Add(action.Clone());

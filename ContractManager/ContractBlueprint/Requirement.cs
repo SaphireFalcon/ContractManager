@@ -55,7 +55,7 @@ namespace ContractManager.ContractBlueprint
 
         public Requirement Clone()
         {
-            // This works?
+            // MemberwiseClone creates a shallow copy, deep copy the reference type fields manually.
             Requirement clonedRequirement = (Requirement)this.MemberwiseClone();
 
             // Deep copy for reference types
@@ -266,26 +266,8 @@ namespace ContractManager.ContractBlueprint
 
         public RequiredOrbit Clone()
         {
+            // Clone, there is no reference type field, so MemberwiseClone is enough.
             return (RequiredOrbit)this.MemberwiseClone();
-            //return new RequiredOrbit
-            //{
-            //    targetBody = this.targetBody,
-            //    type = this.type,
-            //    minApoapsis = this.minApoapsis,
-            //    maxApoapsis = this.maxApoapsis,
-            //    minPeriapsis = this.minPeriapsis,
-            //    maxPeriapsis = this.maxPeriapsis,
-            //    minEccentricity = this.minEccentricity,
-            //    maxEccentricity = this.maxEccentricity,
-            //    minPeriod = this.minPeriod,
-            //    maxPeriod = this.maxPeriod,
-            //    minLongitudeOfAscendingNode = this.minLongitudeOfAscendingNode,
-            //    maxLongitudeOfAscendingNode = this.maxLongitudeOfAscendingNode,
-            //    minInclination = this.minInclination,
-            //    maxInclination = this.maxInclination,
-            //    minArgumentOfPeriapsis = this.minArgumentOfPeriapsis,
-            //    maxArgumentOfPeriapsis = this.maxArgumentOfPeriapsis
-            //};
         }
 
         internal bool Validate()

@@ -146,31 +146,20 @@ namespace ContractManager.ContractBlueprint
         // Clone, e.g after deserializing from a stream.
         internal ContractBlueprint? Clone()
         {
-            ContractBlueprint clonedContract = new ContractBlueprint
-            {
-                uid = this.uid,
-                missionBlueprintUID = this.missionBlueprintUID,
-                title = this.title,
-                synopsis = this.synopsis,
-                description = this.description,
-                expiration = this.expiration,
-                isRejectable = this.isRejectable,
-                deadline = this.deadline,
-                isAutoAccepted = this.isAutoAccepted,
-                prerequisite = this.prerequisite.Clone(),
-                completionCondition = this.completionCondition,
-                isEditable = true,  // blueprint created from savegame should be editable by default.
-            };
+            
+            ContractBlueprint clonedContractBlueprint = (ContractBlueprint)this.MemberwiseClone();
+            clonedContractBlueprint.isEditable = true;  // blueprint created from savegame should be editable by default.
+            clonedContractBlueprint.prerequisite = this.prerequisite.Clone();
             foreach (Requirement requirement in this.requirements)
             {
-                clonedContract.requirements.Add(requirement.Clone());
+                clonedContractBlueprint.requirements.Add(requirement.Clone());
             }
             foreach (Action action in this.actions)
             {
-                clonedContract.actions.Add(action.Clone());
+                clonedContractBlueprint.actions.Add(action.Clone());
             }
 
-            return clonedContract;
+            return clonedContractBlueprint;
         }
 
         internal bool Validate(bool logWarnings = true)

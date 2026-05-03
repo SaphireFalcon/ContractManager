@@ -86,7 +86,7 @@ namespace ContractManager.GUI
 
         internal override void DrawPopup()
         {
-            // If the blueprint is not loaded from a file, create a popup to ask where to save it.
+            // If the blueprint is to be saved to a file, create a popup to ask where or to confirm to save it.
             // Find mods in the documents game mods folder and offer to save in one of them.
             ImGui.OpenPopup("Where to export?");
             if (ImGui.BeginPopupModal("Where to export?"))
