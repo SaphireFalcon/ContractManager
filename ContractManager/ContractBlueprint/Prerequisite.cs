@@ -79,6 +79,11 @@ namespace ContractManager.ContractBlueprint
         public uint maxNumberOfVessels { get; set; } = uint.MaxValue;
 
         public Prerequisite() { }
+
+        public Prerequisite Clone()
+        {
+            return (Prerequisite)this.MemberwiseClone();
+        }
         
         public void WriteToConsole()
         {
@@ -99,7 +104,7 @@ namespace ContractManager.ContractBlueprint
             Console.WriteLine($"  - Require less than {maxNumberOfVessels} vessels");
         }
 
-        internal bool Validate()
+        internal bool Validate(bool logWarnings = true)
         {
             // Validate if the has*Contract/Mission also exists?
             return true;

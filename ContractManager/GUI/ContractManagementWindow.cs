@@ -28,11 +28,17 @@ namespace ContractManager.GUI
             this._rightPanelDetailType = RightPanelDetailType.CONTRACT;
             this._colors = Colors.GetContractStatusColor(contract.status);
         }
-        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Contract.Contract> contracts)
+
+        internal static List<LeftPanelListItem> GetLeftPanelListItems(ContractManagementWindow window, List<Contract.Contract> contracts, Mission.Mission? relatedMission = null)
         {
             List<LeftPanelListItem> leftPanelListItems = new List<LeftPanelListItem>();
             foreach (Contract.Contract contract in contracts)
             {
+                if (relatedMission != null && contract.missionUID != relatedMission.uid)
+                {
+                    // If relatedMission is provided, only show contracts related to that mission.
+                    continue;
+                }
                 leftPanelListItems.Add(new LeftPanelListItem(window, contract));
             }
             return leftPanelListItems;
@@ -326,20 +332,17 @@ namespace ContractManager.GUI
                         this.DrawTabItemList(
                             LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.offeredMissions),
                             "Offered",
-                            "management_missions",
-                            relatedMission != null && ContractManager.data.offeredMissions.Contains(relatedMission)
+                            "management_missions"
                         );
                         this.DrawTabItemList(
                             LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.acceptedMissions),
                             "Accepted",
-                            "management_missions",
-                            relatedMission != null && ContractManager.data.acceptedMissions.Contains(relatedMission)
+                            "management_missions"
                         );
                         this.DrawTabItemList(
                             LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.finishedMissions),
                             "Finished",
-                            "management_missions",
-                            relatedMission != null && ContractManager.data.finishedMissions.Contains(relatedMission)
+                            "management_missions"
                         );
 
                         ImGui.EndTabBar();
@@ -356,32 +359,26 @@ namespace ContractManager.GUI
                 {
                     ImGui.SeparatorText("Contracts");
 
-                    if (relatedMission != null)
+                    // Show tabs in the left panel for all type of contracts
+                    if (ImGui.BeginTabBar("LeftContractTabs", ImGuiTabBarFlags.None))
                     {
-                        // Show only related contracts
-                        List<Contract.Contract> contractsRelatedToMission = new List<Contract.Contract>();
-                        foreach (string contractUID in relatedMission.contractUIDs)
-                        {
-                            Contract.Contract? contract = ContractUtils.FindContractFromContractUID(contractUID);
-                            if (contract != null)
-                            {
-                                contractsRelatedToMission.Add(contract);
-                            }
-                        }
-                        this.DrawItemList(LeftPanelListItem.GetLeftPanelListItems(this, contractsRelatedToMission), "management_contracts", true);
-                        // Note what to do with contracts that haven't been offered? -> could create list items from contract blueprints.
-                    }
-                    else
-                    {
-                        // Show tabs in the left panel for all type of contracts
-                        if (ImGui.BeginTabBar("LeftContractTabs", ImGuiTabBarFlags.None))
-                        {
-                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.offeredContracts), "Offered", "management_contracts");
-                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.acceptedContracts), "Accepted", "management_contracts");
-                            this.DrawTabItemList(LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.finishedContracts), "Finished", "management_contracts");
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.offeredContracts, relatedMission),
+                            "Offered",
+                            "management_contracts"
+                        );
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.acceptedContracts, relatedMission),
+                            "Accepted",
+                            "management_contracts"
+                        );
+                        this.DrawTabItemList(
+                            LeftPanelListItem.GetLeftPanelListItems(this, ContractManager.data.finishedContracts, relatedMission),
+                            "Finished",
+                            "management_contracts"
+                        );
 
-                            ImGui.EndTabBar();
-                        }
+                        ImGui.EndTabBar();
                     }
 
                     ImGui.EndChild();  // End of LeftContractPanel
@@ -426,7 +423,6 @@ namespace ContractManager.GUI
                 ImGui.EndChild();
             }
         }
-
 
         private void DrawManagementRightPanel()
         {

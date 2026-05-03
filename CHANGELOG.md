@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0] - unreleased
+
+### Added
+- In-game created and editable blueprints are stored as part of the savegame file.
+- Feature to export in-game created blueprints to disk.
+- Blueprints loaded from disk are not editable by default.
+- A blueprint can be made editable.
+- Only editable contract/mission blueprints can be edited.
+
+### Fixes
+- Fix when selecting a contract with a mission would hide all tabs for the contract left panel section.
+- Fix filtering contracts when a mission or a contract with a mission is selected on the left panel.
+- Fix to not show contract manager and active contract windows in editor mode.
+
+### Depreciated
+- Removed the `contractBlueprintUIDs` field in mission blueprint.
+- Loading contracts and missions from the game folder.
+
+## [0.3.1] - 2026-04-05
+
+### Changed
+- Some recent changes made the mod crash. Created changes and rebuild accordingly.
+
 ## [0.3.0] - 2026-02-04
 
 ### Added

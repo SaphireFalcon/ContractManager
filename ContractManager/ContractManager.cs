@@ -16,7 +16,7 @@ namespace ContractManager
 public class ContractManager
 {
     // Version to be used across the code.
-    public static readonly Version version = new Version("0.2.4");
+    public static readonly Version version = new Version("0.4.0");
 
     // Internal fields
     private double _lastUpdateTime = 0.0d;
@@ -52,19 +52,20 @@ public class ContractManager
     {
         Console.WriteLine("[CM] 'OnAllModsLoaded'");
 
-        this.LoadContractBlueprints();
+        this.LoadContractBlueprintsFromModsFolder();
 
-        this.LoadMissionBlueprints();
+        this.LoadMissionBlueprintsFromModsFolder();
 
         // For testing: create and write an example contract to disk
-        Generate.ExampleMission001();
+        //Generate.ExampleMission001();
     }
 
     [StarMapAfterGui]
     public void AfterGui(double dt)
     {
         // game loop
-        
+        if (Program.EditorFlag) { return; }  // Don't show contract manager when in the editor.
+
         KSA.SimTime simTime = Universe.GetElapsedSimTime();
         double playerTime = Program.GetPlayerTime();
         // Only update on the given interval.
@@ -85,13 +86,16 @@ public class ContractManager
         {
             ContractManager.contractManagementWindow.DrawContractManagementWindow(contractToShowDetails);
         }
+        foreach (var popupWindow in ContractManager.data.popupWindows)
+        {
+            if (popupWindow.drawPopup)
+            {
+                popupWindow.DrawPopup();
+            }
+        }
         for (int popupIndex = 0; popupIndex < ContractManager.data.popupWindows.Count; popupIndex++)
         {
-            if (ContractManager.data.popupWindows[popupIndex].drawPopup)
-            {
-                ContractManager.data.popupWindows[popupIndex].DrawPopup();
-            }
-            else
+            if (!ContractManager.data.popupWindows[popupIndex].drawPopup)
             {
                 ContractManager.data.popupWindows.RemoveAt(popupIndex);
                 popupIndex--;
@@ -199,7 +203,8 @@ public class ContractManager
         List<ContractBlueprint.ContractBlueprint> contractBlueprintsToOffer = new List<ContractBlueprint.ContractBlueprint>();
         foreach (ContractBlueprint.ContractBlueprint contractBlueprint in ContractManager.data.contractBlueprints)
         {
-            if (this.CanOfferContractFromBlueprint(in contractBlueprint))
+            if (!contractBlueprint.Validate() ) { continue; }  // Don't offer invalid contracts (during creation or editing can be invalid)
+                if (this.CanOfferContractFromBlueprint(in contractBlueprint))
             {
                 contractBlueprintsToOffer.Add(contractBlueprint);
             }
@@ -286,16 +291,11 @@ public class ContractManager
         }
         return true;
     }
-        
-    private void LoadContractBlueprints()
-    {
-        this.LoadContractBlueprintsFromModsFolder(@"Content");
-        this.LoadContractBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
-    }
 
-    private void LoadContractBlueprintsFromModsFolder(string modsDirectory)
+    private void LoadContractBlueprintsFromModsFolder()
     {
-        // Load contracts from disk here
+        // Load contracts from mods folder on disk.
+        string modsDirectory = ModLibrary.LocalModsFolderPath;
         string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
@@ -313,6 +313,7 @@ public class ContractManager
                             Console.WriteLine($"[CM] [WARNING] blueprint '{file}' couldn't be loaded.");
                             continue;
                         }
+                        // TODO: Check against blueprint contracts that are already loaded, to prevent loading the same contract multiple times when it is present in multiple mods folders.
                         if (blueprintContract.Validate())
                         {
                             ContractManager.data.contractBlueprints.Add(blueprintContract);
@@ -424,6 +425,7 @@ public class ContractManager
         List<Mission.MissionBlueprint> missionBlueprintsToOffer = new List<Mission.MissionBlueprint>();
         foreach (Mission.MissionBlueprint missionBlueprint in ContractManager.data.missionBlueprints)
         {
+            if (!missionBlueprint.Validate(ContractManager.data.contractBlueprints, false)) { continue; }  // Don't offer invalid missions (during creation or editing can be invalid)
             if (this.CanOfferMissionFromBlueprint(in missionBlueprint))
             {
                 missionBlueprintsToOffer.Add(missionBlueprint);
@@ -457,15 +459,10 @@ public class ContractManager
         return CheckGenericPrerequisite(prerequisite);
     }
 
-    private void LoadMissionBlueprints()
+    private void LoadMissionBlueprintsFromModsFolder()
     {
-        this.LoadMissionBlueprintsFromModsFolder(@"Content");
-        this.LoadMissionBlueprintsFromModsFolder(ModLibrary.LocalModsFolderPath);
-    }
-
-    private void LoadMissionBlueprintsFromModsFolder(string modsDirectory)
-    {
-        // Load missions from disk here
+        // Load missions from mods folder on disk.
+        string modsDirectory = ModLibrary.LocalModsFolderPath;
         string[] contentDirectoryDirectories = Directory.GetDirectories(modsDirectory);
         foreach (var contentSubDirectoryPath in contentDirectoryDirectories)
         {
@@ -478,6 +475,7 @@ public class ContractManager
                     try
                     {
                         var blueprintMission = Mission.MissionBlueprint.LoadFromFile(file);
+                        // TODO: Check against blueprint missions that are already loaded, to prevent loading the same mission multiple times when it is present in multiple mods folders.
                         if (blueprintMission.Validate(ContractManager.data.contractBlueprints))
                         {
                             ContractManager.data.missionBlueprints.Add(blueprintMission);

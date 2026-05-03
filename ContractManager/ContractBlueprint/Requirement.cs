@@ -53,6 +53,32 @@ namespace ContractManager.ContractBlueprint
 
         public Requirement() { }
 
+        public Requirement Clone()
+        {
+            // MemberwiseClone creates a shallow copy, deep copy the reference type fields manually.
+            Requirement clonedRequirement = (Requirement)this.MemberwiseClone();
+
+            // Deep copy for reference types
+            if (this.orbit != null)
+            {
+                clonedRequirement.orbit = this.orbit.Clone();
+            }
+
+            if (this.group != null)
+            {
+                clonedRequirement.group = new RequiredGroup
+                {
+                    completionCondition = this.group.completionCondition,
+                };
+                foreach (Requirement groupRequirement in this.group.requirements)
+                {
+                    clonedRequirement.group.requirements.Add(groupRequirement.Clone());
+                }
+            }
+
+            return clonedRequirement;
+        }
+
         public void WriteToConsole(int hierachyLevel = 1)
         {
             string indent = new string(' ', hierachyLevel * 2);
@@ -97,30 +123,42 @@ namespace ContractManager.ContractBlueprint
             }
         }
 
-        internal bool Validate()
+        internal bool Validate(bool logWarnings = true)
         {
             // The title can't be empty
             if (String.IsNullOrEmpty(this.title))
             {
-                Console.WriteLine("[CM] [WARNING] requirement title has be to be defined.");
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] requirement title has be to be defined.");
+                }
                 return false;
             }
             // The uid can't be empty
             if (String.IsNullOrEmpty(this.uid))
             {
-                Console.WriteLine("[CM] [WARNING] requirement uid has be to be defined.");
+                if (logWarnings)
+                {
+                    Console.WriteLine("[CM] [WARNING] requirement uid has be to be defined.");
+                }
                 return false;
             }
             // Validate type and their fields.
             if (type == RequirementType.Group && this.group == null)
             {
-                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `group` field can't be empty.");
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `group` field can't be empty.");
+                }
                 return false;
             }
             else
             if (type == RequirementType.Orbit && this.orbit == null)
             {
-                Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `orbit` field can't be empty.");
+                if (logWarnings)
+                {
+                    Console.WriteLine($"[CM] [WARNING] requirement type = '{type}' `orbit` field can't be empty.");
+                }
                 return false;
             }
             if (type == RequirementType.Group && !this.group.Validate())
@@ -225,7 +263,13 @@ namespace ContractManager.ContractBlueprint
         public double maxArgumentOfPeriapsis { get; set; } = double.NaN;
 
         public RequiredOrbit() { }
-        
+
+        public RequiredOrbit Clone()
+        {
+            // Clone, there is no reference type field, so MemberwiseClone is enough.
+            return (RequiredOrbit)this.MemberwiseClone();
+        }
+
         internal bool Validate()
         {
             // The targetBody can't be empty

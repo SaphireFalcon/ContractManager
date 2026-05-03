@@ -15,30 +15,38 @@ namespace ContractManager
         [XmlElement("version")]
         public string version { get; set; } = ContractManager.version.ToString();
 
-        // List of offered contracts, loaded from save game / file.
+        // List of offered contracts.
         [XmlArray("offeredContracts")]
         public List<Contract.Contract> offeredContracts { get; set; } = new List<Contract.Contract>();
 
-        // List of accepted contracts, loaded from save game / file.
+        // List of accepted contracts.
         [XmlArray("acceptedContracts")]
         public List<Contract.Contract> acceptedContracts { get; set; } = new List<Contract.Contract>();
-        
-        // List of finished contracts, loaded from save game / file.
+
+        // List of finished contracts.
         [XmlArray("finishedContracts")]
         public List<Contract.Contract> finishedContracts { get; set; } = new List<Contract.Contract>();
 
-        // List of offered missions, loaded from save game / file.
+        // List of offered missions.
         [XmlArray("offeredMissions")]
         public List<Mission.Mission> offeredMissions { get; set; } = new List<Mission.Mission>();
 
-        // List of accepted missions, loaded from save game / file.
+        // List of accepted missions.
         [XmlArray("acceptedMissions")]
         public List<Mission.Mission> acceptedMissions { get; set; } = new List<Mission.Mission>();
         
-        // List of finished missions, loaded from save game / file.
+        // List of finished missions.
         [XmlArray("finishedMissions")]
         public List<Mission.Mission> finishedMissions { get; set; } = new List<Mission.Mission>();
         
+        // List of contract blueprints.
+        [XmlArray("contractBlueprints")]
+        public List<ContractBlueprint.ContractBlueprint> editableContractBlueprints { get; set; } = new List<ContractBlueprint.ContractBlueprint>();
+
+        // List of mission blueprints.
+        [XmlArray("missionBlueprints")]
+        public List<Mission.MissionBlueprint> editableMissionBlueprints { get; set; } = new List<Mission.MissionBlueprint>();
+
         // Global ContractManager config of max number of contracts that can be offered simultaneously. Should be determined by the management building at the launch site.
         [XmlElement("maxNumberOfOfferedContracts")]
         public int maxNumberOfOfferedContracts { get; set; } = 4;
@@ -103,6 +111,69 @@ namespace ContractManager
             }
             // Need to deep copy because the data loaded by the stream reader will be destroyed.
             // TODO: Is this still true when using string reader?
+
+            this.editableContractBlueprints.Clear();
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in contractManagerData.editableContractBlueprints)
+            {
+                ContractBlueprint.ContractBlueprint? clonedContractBlueprint = contractBlueprint.Clone();
+                if (clonedContractBlueprint != null)
+                {
+                    if(!clonedContractBlueprint.Validate())
+                    {
+                        Console.WriteLine($"[CM] [WARNING] Invalid contract blueprint with uid '{contractBlueprint.uid}' in gamesave file.");
+                        continue;
+                    }
+                    // Check for existing blueprint with same uid. Blueprint can be loaded from file or previous load from savegame, and this is loaded from savegame.
+                    ContractBlueprint.ContractBlueprint? existingContractBlueprint = Contract.ContractUtils.FindContractBlueprintFromUID(contractBlueprints, contractBlueprint.uid);
+                    if (existingContractBlueprint != null) {
+                        // Restore the loadedFromFilePath for exporting to file later.
+                        clonedContractBlueprint.loadedFromFilePath = existingContractBlueprint.loadedFromFilePath;
+                        // Delete the loaded blueprint with same uid loaded from file to avoid duplication.
+                        for (int contractBlueprintsIndex = 0; contractBlueprintsIndex < this.contractBlueprints.Count; contractBlueprintsIndex++)
+                        {
+                            if (this.contractBlueprints[contractBlueprintsIndex].uid == existingContractBlueprint.uid)
+                            {
+                                this.contractBlueprints.RemoveAt(contractBlueprintsIndex);
+                                break;
+                            }
+                        }
+                    }
+                    clonedContractBlueprint.isEditable = true;  // ensure the loaded mission blueprint is editable.
+                    this.contractBlueprints.Add(clonedContractBlueprint);
+                }
+            }
+
+            this.editableMissionBlueprints.Clear();
+            foreach (Mission.MissionBlueprint missionBlueprint in contractManagerData.editableMissionBlueprints)
+            {
+                Mission.MissionBlueprint? clonedMissionBlueprint = missionBlueprint.Clone(this.contractBlueprints);
+                if (clonedMissionBlueprint != null)
+                {
+                    if(!clonedMissionBlueprint.Validate(this.contractBlueprints))
+                    {
+                        Console.WriteLine($"[CM] [WARNING] Invalid mission blueprint with uid '{missionBlueprint.uid}' in gamesave file.");
+                        continue;
+                    }
+                    // Check for existing blueprint with same uid. Blueprint can be loaded from file or previous load from savegame, and this is loaded from savegame.
+                    Mission.MissionBlueprint? existingMissionBlueprintFromFile = Mission.MissionUtils.FindMissionBlueprintFromUID(this.missionBlueprints, missionBlueprint.uid);
+                    if (existingMissionBlueprintFromFile != null) {
+                        // Restore the loadedFromFilePath for exporting to file later.
+                        clonedMissionBlueprint.loadedFromFilePath = existingMissionBlueprintFromFile.loadedFromFilePath;
+                        // Delete the loaded blueprint with same uid loaded from file to avoid duplication.
+                        for (int missionBlueprintsIndex = 0; missionBlueprintsIndex < this.missionBlueprints.Count; missionBlueprintsIndex++)
+                        {
+                            if (this.missionBlueprints[missionBlueprintsIndex].uid == existingMissionBlueprintFromFile.uid)
+                            {
+                                this.missionBlueprints.RemoveAt(missionBlueprintsIndex);
+                                break;
+                            }
+                        }
+                    }
+                    clonedMissionBlueprint.isEditable = true;  // ensure the loaded mission blueprint is editable.
+                    this.missionBlueprints.Add(clonedMissionBlueprint);
+                }
+            }
+
             this.offeredContracts.Clear();
             foreach (Contract.Contract contract in contractManagerData.offeredContracts)
             {
@@ -112,6 +183,7 @@ namespace ContractManager
                     this.offeredContracts.Add(clonedContract);
                 }
             }
+
             this.acceptedContracts.Clear();
             foreach (Contract.Contract contract in contractManagerData.acceptedContracts)
             {
@@ -121,6 +193,7 @@ namespace ContractManager
                     this.acceptedContracts.Add(clonedContract);
                 }
             }
+
             this.finishedContracts.Clear();
             foreach (Contract.Contract contract in contractManagerData.finishedContracts)
             {
@@ -130,7 +203,7 @@ namespace ContractManager
                     this.finishedContracts.Add(clonedContract);
                 }
             }
-            
+
             this.offeredMissions.Clear();
             foreach (Mission.Mission mission in contractManagerData.offeredMissions)
             {
@@ -140,6 +213,7 @@ namespace ContractManager
                     this.offeredMissions.Add(clonedMission);
                 }
             }
+
             this.acceptedMissions.Clear();
             foreach (Mission.Mission mission in contractManagerData.acceptedMissions)
             {
@@ -149,6 +223,7 @@ namespace ContractManager
                     this.acceptedMissions.Add(clonedMission);
                 }
             }
+
             this.finishedMissions.Clear();
             foreach (Mission.Mission mission in contractManagerData.finishedMissions)
             {
@@ -169,6 +244,24 @@ namespace ContractManager
         // Write data to save file
         public void WriteTo(DirectoryInfo directory)
         {
+            // collect the blueprints to write to file.
+            this.editableContractBlueprints.Clear();
+            foreach (ContractBlueprint.ContractBlueprint contractBlueprint in this.contractBlueprints)
+            {
+                if (contractBlueprint.isEditable)
+                {
+                    this.editableContractBlueprints.Add(contractBlueprint);
+                }
+            }
+            this.editableMissionBlueprints.Clear();
+            foreach (Mission.MissionBlueprint missionBlueprint in this.missionBlueprints)
+            {
+                if (missionBlueprint.isEditable)
+                {
+                    this.editableMissionBlueprints.Add(missionBlueprint);
+                }
+            }
+
             XmlSerializer serializer = new XmlSerializer(typeof(ContractManagerData));
             XmlHelper.SerializeWithoutNaN(serializer, this, Path.Combine(directory.FullName, "contractmanager.xml"));
         }
