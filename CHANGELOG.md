@@ -8,6 +8,8 @@
 - Blueprints loaded from disk are not editable by default.
 - A blueprint can be made editable.
 - Only editable contract/mission blueprints can be edited.
+- Configuration tab to change max offered and accepted contracts or missions.
+- The internal configuration parameters of max offered and accepted contracts or missions is stored in and can be loaded from the savegame data.
 
 ### Fixes
 - Fix when selecting a contract with a mission would hide all tabs for the contract left panel section.
