@@ -220,7 +220,6 @@ namespace ContractManager.GUI
 
     internal class ContractManagementWindow
     {
-        // TODO: move this to a static data class?
         // What to show on the right side, one of CONTRACTBLUEPRINT, CONTRACT, MISSIONBLUEPRINT, MISSION, 
         internal RightPanelDetailType rightPanelDetailType { get; set; } = RightPanelDetailType.NONE;
         // The UID to show on the right, one of contract, contractBlueprint, mission, missionBlueprint uids for corresponding rightPanelDetailType.
@@ -231,10 +230,12 @@ namespace ContractManager.GUI
         internal string rightPanelDetailSubUID { get; set; } = string.Empty;
         
         private readonly PlannerPanel _plannerPanel;
+        private readonly ConfigurationEditingPanel _configurationEditingPanel;
 
         public ContractManagementWindow()
         {
             this._plannerPanel = new PlannerPanel();
+            this._configurationEditingPanel = new ConfigurationEditingPanel();
         }
 
         public void DrawContractManagementWindow(Contract.Contract? contractToShowDetails)
@@ -277,6 +278,7 @@ namespace ContractManager.GUI
                     if (ImGui.BeginTabItem("Configuration"))
                     {
                         // ToDo
+                        this._configurationEditingPanel.DrawConfigurationTab();
                         ImGui.EndTabItem();
                     }
                     ImGui.EndTabBar();
@@ -1203,6 +1205,97 @@ namespace ContractManager.GUI
                 ImGui.Text(text);
                 ImGui.PopTextWrapPos();
                 ImGui.EndTooltip();
+            }
+        }
+    }
+        
+    internal class ConfigurationEditingPanel
+    {
+        private int _maxNumberOfOfferedContracts;
+        private int _maxNumberOfAcceptedContracts;
+        private int _maxNumberOfOfferedMissions;
+        private int _maxNumberOfAcceptedMissions;
+
+        internal ConfigurationEditingPanel() { }
+
+        internal void DrawConfigurationTab()
+        {
+            this._maxNumberOfOfferedContracts = ContractManager.data.maxNumberOfOfferedContracts;
+            this._maxNumberOfAcceptedContracts = ContractManager.data.maxNumberOfAcceptedContracts;
+            this._maxNumberOfOfferedMissions = ContractManager.data.maxNumberOfOfferedMissions;
+            this._maxNumberOfAcceptedMissions = ContractManager.data.maxNumberOfAcceptedMissions;
+            if (ImGui.BeginChild("ConfigurationPanel"))
+            {
+                Brutal.Numerics.float2 panelRegionSize = ImGui.GetContentRegionAvail();
+                Brutal.Numerics.float2 panelSize = new Brutal.Numerics.float2 { X = 0.0f, Y = panelRegionSize.Y - 35.0f};
+                // Wrap contents in a child to make it scrollable if needed
+                if (ImGui.BeginChild("ConfigurationDetails", panelSize, ImGuiChildFlags.None, ImGuiWindowFlags.None))
+                {
+                    ImGui.SeparatorText("Configuration");
+                    ImGui.Text("Contract Manager Version: " + ContractManager.data.version);
+
+                    if (ImGui.BeginTable("ConfigurationPanel_editTable", 2))
+                    {
+                        ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed);
+                        ImGui.TableSetupColumn("Input", ImGuiTableColumnFlags.WidthStretch);
+                        
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text("maxNumberOfOfferedContracts:");
+                        ImGui.SameLine();
+                        ContractManagementWindow.DrawHelpTooltip("The maximum number of contracts that can be offered at the same time. If currently already offered this number of contracts, no new contracts will be offered until some of them are rejected.");
+                        
+                        ImGui.TableNextColumn();
+                        ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
+                        if (ImGui.InputInt("##maxNumberOfOfferedContracts", ref this._maxNumberOfOfferedContracts, 1, 5))
+                        {
+                            ContractManager.data.maxNumberOfOfferedContracts = Math.Max(0, this._maxNumberOfOfferedContracts);
+                        }
+                        
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text("maxNumberOfAcceptedContracts:");
+                        ImGui.SameLine();
+                        ContractManagementWindow.DrawHelpTooltip("The maximum number of contracts that can be accepted at the same time. If currently already accepted this number of contracts, no new contracts can be accepted until some of them are rejected or completed.");
+                        
+                        ImGui.TableNextColumn();
+                        ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
+                        if (ImGui.InputInt("##maxNumberOfAcceptedContracts", ref this._maxNumberOfAcceptedContracts, 1, 5))
+                        {
+                            ContractManager.data.maxNumberOfAcceptedContracts = Math.Max(0, this._maxNumberOfAcceptedContracts);
+                        }
+                                                
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text("maxNumberOfOfferedMissions:");
+                        ImGui.SameLine();
+                        ContractManagementWindow.DrawHelpTooltip("The maximum number of missions that can be offered at the same time. If currently already offered this number of missions, no new missions will be offered until some of them are rejected.");
+                        
+                        ImGui.TableNextColumn();
+                        ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
+                        if (ImGui.InputInt("##maxNumberOfOfferedMissions", ref this._maxNumberOfOfferedMissions, 1, 5))
+                        {
+                            ContractManager.data.maxNumberOfOfferedMissions = Math.Max(0, this._maxNumberOfOfferedMissions);
+                        }
+                        
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text("maxNumberOfAcceptedMissions:");
+                        ImGui.SameLine();
+                        ContractManagementWindow.DrawHelpTooltip("The maximum number of missions that can be accepted at the same time. If currently already accepted this number of missions, no new missions can be accepted until some of them are rejected or completed.");
+                        
+                        ImGui.TableNextColumn();
+                        ImGui.SetNextItemWidth(-1.0f); // make the input use the full width.
+                        if (ImGui.InputInt("##maxNumberOfAcceptedMissions", ref this._maxNumberOfAcceptedMissions, 1, 5))
+                        {
+                            ContractManager.data.maxNumberOfAcceptedMissions = Math.Max(0, this._maxNumberOfAcceptedMissions);
+                        }
+                        
+                        ImGui.EndTable();
+                    }
+                    ImGui.EndChild();
+                }
+                ImGui.EndChild();
             }
         }
     }
